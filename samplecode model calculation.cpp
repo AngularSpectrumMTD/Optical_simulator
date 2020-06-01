@@ -1,5 +1,5 @@
-#include"WaveFront.h"
-#include"Model.h"
+//#include"WaveFront.h"
+#include"Model.h"//ModelÇ™WaveFrontÇä‹ÇÒÇ≈Ç¢ÇÈ
 
 double lambda = 630e-9;//îgí∑[m]
 int WIDTH = 1024;//âÊëúâ°ïù
@@ -21,13 +21,17 @@ int main()
 	mfb.ModRandomphase();
 
 	BoundingBox bb(rw, rh, 5e-4, vec3(0, 0, -rw));
+	//BoundingBox bb(rw/2, rh/2, 5e-4, vec3(0, 0, -rw));
 
 	char name[200] = "Bunny.mqo";
+	//char name[200] = "3sphere.mqo";
+	//char name[200] = "large.mqo";
 
 	MODEL model(name, vec3{ -1,-1,-1 }, SMOOTH, bb, DWIDTH, true);
 
 	//model.SetShieldMethod(SILHOUETTE);
 	mat3 id = mat3::identity();
+	//mat3 id = mat3::rotationY(30*DEG);
 	model.AddObjectField(mfb, 1, id, true, true);
 
 	mfb.Normalize();

@@ -6,7 +6,7 @@ void WaveFront::SaveAsCsv(const char* fname, Axis axis, int ij)
 
 	if (axis == X_AXIS)
 	{
-		if (ij < 0 || ij >= _ny)
+		if (ij < 0 || ij >= w_ny)
 		{
 			printf("Index is invalid");
 			return;
@@ -14,16 +14,16 @@ void WaveFront::SaveAsCsv(const char* fname, Axis axis, int ij)
 
 		fprintf(fp, "%s,  %s,  %s,  %s,  %s,  %s\n",
 			"X", "Real", "Imaginary", "Amplitude", "Phase", "Intensity");
-		for (int i = 0; i < _nx; i++)
+		for (int i = 0; i < w_nx; i++)
 		{
 			fprintf(fp, "%g,  %g,  %g,  %g,  %g,  %g\n", itox(i),
 				GetReal(i, ij), GetImage(i, ij),
-				GetAmplitude(i, ij), (double)GetPhase(i, ij), GetIntensity(i, ij));
+				GetAmplitude(i, ij), GetPhase(i, ij), GetIntensity(i, ij));
 		}
 	}
 	else
 	{
-		if (ij < 0 || ij >= _nx)
+		if (ij < 0 || ij >= w_nx)
 		{
 			printf("Index is invalid");
 			return;
@@ -31,11 +31,11 @@ void WaveFront::SaveAsCsv(const char* fname, Axis axis, int ij)
 
 		fprintf(fp, "%s,  %s,  %s,  %s,  %s,  %s\n",
 			"Y", "Real", "Imaginary", "Amplitude", "Phase", "Intensity");
-		for (int j = 0; j < _ny; j++)
+		for (int j = 0; j < w_ny; j++)
 		{
 			fprintf(fp, "%g,  %g,  %g,  %g,  %g,  %g\n", jtoy(j),
 				GetReal(ij, j), GetImage(ij, j),
-				GetAmplitude(ij, j), (double)GetPhase(ij, j), GetIntensity(ij, j));
+				GetAmplitude(ij, j), GetPhase(ij, j), GetIntensity(ij, j));
 		}
 	}
 

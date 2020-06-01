@@ -1,24 +1,32 @@
 #include"WaveFront.h"
-
+using namespace std;
 // interpolation method
 complex<double> WaveFront::GetInterpolatedValueNEAREST_NEIGHBOR(double u, double v)const
 {
 	// caluculate index as double format
-	double tx = u / _px + _nx / 2;
-	double ty = v / _py + _ny / 2;
+	double tx = u / w_px + w_nx / 2;
+	double ty = v / w_py + w_ny / 2;
 
 	// caluculate index as integer format
-	int i1 = (int)ceil(tx);
-	int j1 = (int)ceil(ty);
+	int i1 = static_cast<int>(ceil(tx));
+	int j1 = static_cast<int>(ceil(ty));
 
 	if (i1 < 0)
+	{
 		return complex<double>(0.0, 0.0);
-	if (i1 >= _nx)
+	}
+	if (i1 >= w_nx)
+	{
 		return complex<double>(0.0, 0.0);
+	}
 	if (j1 < 0)
+	{
 		return complex<double>(0.0, 0.0);
-	if (j1 >= _ny)
+	}
+	if (j1 >= w_ny)
+	{
 		return complex<double>(0.0, 0.0);
+	}
 
 	complex<double> ret = GetPixel(i1, j1);
 
@@ -27,26 +35,36 @@ complex<double> WaveFront::GetInterpolatedValueNEAREST_NEIGHBOR(double u, double
 complex<double> WaveFront::GetInterpolatedValueBILINEAR(double u, double v)const
 {
 	// caluculate index as double format
-	double tx = u / _px + _nx / 2;
-	double ty = v / _py + _ny / 2;
+	double tx = u / w_px + w_nx / 2;
+	double ty = v / w_py + w_ny / 2;
 
 	// caluculate index as integer format
-	int i1 = (int)floor(tx);
-	int j1 = (int)floor(ty);
+	int i1 = static_cast<int>(floor(tx));
+	int j1 = static_cast<int>(floor(ty));
 
-	if (i1 < 0 || i1 > _nx - 1 || j1 < 0 || j1 > _ny - 1)
+	if (i1 < 0 || i1 > w_nx - 1 || j1 < 0 || j1 > w_ny - 1)
+	{
 		return complex<double>(0.0, 0.0);
+	}
 
 	int i2, j2;
-	if (i1 == _nx - 1)
+	if (i1 == w_nx - 1)
+	{
 		i2 = i1;
+	}
 	else
+	{
 		i2 = i1 + 1;
+	}
 
-	if (j1 == _ny - 1)
+	if (j1 == w_ny - 1)
+	{
 		j2 = j1;
+	}
 	else
+	{
 		j2 = j1 + 1;
+	}
 
 	double tt = (tx - i1);
 	double uu = (ty - j1);
@@ -79,12 +97,12 @@ static void Cubic4(double bufx[8], double x1)
 complex<double> WaveFront::GetInterpolatedValueBICUBIC(double u, double v)const
 {
 	// caluculate index as double format
-	double tx = u / _px + _nx / 2;
-	double ty = v / _py + _ny / 2;
+	double tx = u / w_px + w_nx / 2;
+	double ty = v / w_py + w_ny / 2;
 
 	int i, j;
-	int tx_int = (int)tx;
-	int ty_int = (int)ty;
+	int tx_int = static_cast<int>(tx);
+	int ty_int = static_cast<int>(ty);
 	double tx_dec = tx - tx_int;
 	double ty_dec = ty - ty_int;
 
@@ -104,12 +122,12 @@ complex<double> WaveFront::GetInterpolatedValueBICUBIC(double u, double v)const
 	if (j_bufpos < 0) {
 		js = -j_bufpos;
 	}
-	if (in > _nx - i_bufpos) {
-		in = _nx - i_bufpos;
+	if (in > w_nx - i_bufpos) {
+		in = w_nx - i_bufpos;
 		iflag = 0;
 	}
-	if (jn > _ny - j_bufpos) {
-		jn = _ny - j_bufpos;
+	if (jn > w_ny - j_bufpos) {
+		jn = w_ny - j_bufpos;
 	}
 	if (is >= in || js >= jn) {
 		return complex<double>(0.0, 0.0);
@@ -144,7 +162,7 @@ complex<double> WaveFront::GetInterpolatedValueBICUBIC(double u, double v)const
 	}
 	return complex<double>(c2r, c2i);
 }
-complex<double> WaveFront::GetInterpolatedValue(double u, double v, Interpol interp)const
+complex<double> WaveFront::GetInterpolatedValue(double u, double v, Interp interp)const
 {
 	complex<double> ret;
 	switch (interp)
@@ -156,6 +174,9 @@ complex<double> WaveFront::GetInterpolatedValue(double u, double v, Interpol int
 		ret = GetInterpolatedValueBILINEAR(u, v);
 		return ret;
 	case BICUBIC:
+		ret = GetInterpolatedValueBICUBIC(u, v);
+		return ret;
+	default:
 		ret = GetInterpolatedValueBICUBIC(u, v);
 		return ret;
 	}

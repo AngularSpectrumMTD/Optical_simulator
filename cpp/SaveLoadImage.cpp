@@ -5,17 +5,18 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #endif
 #include"WaveFront.h"
-
+using namespace std;
 // function related to save as image and load real part from image
-void WaveFront::SaveBmp(const char* name, Outputformat type)
+void WaveFront::SaveBmp(const char* name, Out type)
 {
-	double val = 0;
-	Image* image = new Image(_nx, _ny);
+	Image* image = new Image(w_nx, w_ny);
 	int i, j;
 #pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
-	for (i = 0; i < _nx; i++)
-		for (j = 0; j < _ny; j++)
+	for (i = 0; i < w_nx; i++)
+	{
+		for (j = 0; j < w_ny; j++)
 		{
+			double val = 0;
 			switch (type)
 			{
 			case REAL:
@@ -34,20 +35,29 @@ void WaveFront::SaveBmp(const char* name, Outputformat type)
 				val = 255.99f * (GetPhase(i, j) / 2.0f / PI + 1.0f / 2.0f);
 				break;
 			}
-			image->Write(i, (_ny - j - 1), val, val, val, false);// data must be inserted from bottom
+			image->Write(i, (w_ny - j - 1), val, val, val, false);// data must be inserted from bottom
 		}
-	stbi_write_bmp(name, _nx, _ny, sizeof(Image::RGB), image->Pixels());
+	}
+	stbi_write_bmp(name, w_nx, w_ny, sizeof(Image::RGB), image->Pixels());
 }
 void WaveFront::Normalize()
 {
 	double max_amp = 0;
-	for (int i = 0; i < _nx; i++)
-		for (int j = 0; j < _ny; j++)
+	for (int i = 0; i < w_nx; i++)
+	{
+		for (int j = 0; j < w_ny; j++)
+		{
 			max_amp = max<double>(max_amp, GetAmplitude(i, j));// seek max value
+		}
+	}
 
-	for (int i = 0; i < _nx; i++)
-		for (int j = 0; j < _ny; j++)
+	for (int i = 0; i < w_nx; i++)
+	{
+		for (int j = 0; j < w_ny; j++)
+		{
 			SetPixel(i, j, GetPixel(i, j) / max_amp);// normalization
+		}
+	}
 }
 WaveFront& WaveFront::LoadBmp(const char* filename)
 {
@@ -57,34 +67,33 @@ WaveFront& WaveFront::LoadBmp(const char* filename)
 	int loopnx, loopny;
 	pixels = stbi_load(filename,&loopnx,&loopny,&bpp,0);
 
-	double expX = log((double)loopnx) / log(2.0);
-	double expY = log((double)loopny) / log(2.0);
+	double expX = log(static_cast<double>(loopnx)) / log(2.0);
+	double expY = log(static_cast<double>(loopny)) / log(2.0);
 
-	_nx = nearPow2(pow(2.0, expX));
-	_ny = nearPow2(pow(2.0, expY));
+	w_nx = nearPow2(pow(2.0, expX));
+	w_ny = nearPow2(pow(2.0, expY));
 
-	_data.reset(new complex<double>[_nx * _ny]);
+	w_data.reset(new complex<double>[w_nx * w_ny]);
 
 	Clear();
-
-	unsigned char r, g, b;
-	double gray;
 	
-	unsigned int offsetX = (_nx - loopnx) / 2;
-	unsigned int offsetY = (_ny - loopny) / 2;
+	unsigned int offsetX = (w_nx - loopnx) / 2;
+	unsigned int offsetY = (w_ny - loopny) / 2;
 	
 	unsigned int index;
 #pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
 	for (i = 0; i < loopnx; i++)
+	{
 		for (j = 0; j < loopny; j++)
 		{
 			index = (loopny - j - 1) * loopnx + i;
-			r = pixels[index * bpp + 0];
-			g = pixels[index * bpp + 1];
-			b = pixels[index * bpp + 2];
-			gray = (double)((r + g + b) / 3.0f / 256.0f);
-			SetPixel(i + offsetX, j + offsetY, complex<double>(sqrt(gray),0));
+			unsigned char r = pixels[index * bpp + 0];
+			unsigned char g = pixels[index * bpp + 1];
+			unsigned char b = pixels[index * bpp + 2];
+			double gray = (double)((r + g + b) / 3.0f / 256.0f);
+			SetPixel(i + offsetX, j + offsetY, complex<double>(sqrt(gray), 0));
 		}
+	}
 	stbi_image_free(pixels);
 
 	return *this;

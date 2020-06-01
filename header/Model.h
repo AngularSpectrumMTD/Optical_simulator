@@ -6,128 +6,105 @@
 #include<string>
 #include"WaveFront.h"
 
-#ifndef VECTORMATH
-#define VECTORMATH
-#include ".\vectormath\include\vectormath\scalar\cpp/vectormath_aos.h"
-#endif
-
-using namespace Vectormath::Aos;
-
-using namespace std;
-
-#ifndef VEC3
-#define VEC3
-	typedef Vector3 vec3;
-#endif
-
-#ifndef COL3
-#define COL3
-	typedef Vector3 col3;
-#endif
-
-#ifndef MAT3
-#define MAT3
-	typedef Matrix3 mat3;
-#endif
 #ifndef SHADE
-	typedef enum SHADER
+	enum Shader
 	{
 		FLAT,
 		SMOOTH
-	}Shader;
+	};
 #endif
 #ifndef DIRECT
-	typedef enum DIRECTION
+	enum Direction
 	{
 		DWIDTH,
 		DHEIGHT,
 		DDEPTH
-	}Direction;
+	};
 #endif
 #ifndef METHOD
-	typedef enum SHIELD
+	enum Shield
 	{
 		SILHOUETTE,
 		EXACT
-	}Shield;
+	};
 #endif
 #ifndef REF4
 #define REF4
 	struct Reflection4 {
-		float _diffuse;
-		float _ambient;
-		float _emission;
-		float _specular;
+		float w_diffuse;
+		float w_ambient;
+		float w_emission;
+		float w_specular;
 	};
 #endif
 #ifndef COL4
 #define COL4
 	struct Color4 {
-		float _r;
-		float _g;
-		float _b;
-		float _a;
+		float w_r;
+		float w_g;
+		float w_b;
+		float w_a;
 	};
 #endif
 #ifndef UVC
 #define UVC
 	struct UV {
-		float _u;
-		float _v;
+		float w_u;
+		float w_v;
 	};
 #endif
 #ifndef TRI
 #define TRI
 	//triangular face
 	struct TRIANGLE {
-		int _MaterialID;//material No.
-		int _Index[3];//index
-		UV _uv[3];//uv info.
-		vec3 _SurfaceNV;//surface normal
-		float _bbox[2][3];
-		vec3 _center;
+		int w_MaterialID;//material No.
+		int w_Index[3];//index
+		UV w_uv[3];//uv info.
+		vec3 w_SurfaceNV;//surface normal
+		float w_bbox[2][3];
+		vec3 w_center;
 	};
 #endif
 #ifndef QUAD
 #define QUAD
 	//quadrilateral face
 	struct QUADRILATERAL {
-		int _MaterialID;
-		int _Index[4];
-		UV _uv[4];
-		vec3 _SurfaceNV;
+		int w_MaterialID;
+		int w_Index[4];
+		UV w_uv[4];
+		vec3 w_SurfaceNV;
 	};
 #endif
 #ifndef VTX
 #define VTX
 	//vertex
 	struct VERTEX {
-		vec3 _Coord;//coordinate
-		vec3 _VertexNV;//vertex normal
+		vec3 w_Coord;//coordinate
+		vec3 w_VertexNV;//vertex normal
 	};
 #endif
 #ifndef OBJ
 #define OBJ
 	//object
 	struct OBJECT {
-		string _Name;//object name
-		vector<VERTEX> _Vertex;//vertex data
-		vector<TRIANGLE> _Triangle;
-		vector<QUADRILATERAL> _Quadrilateral;
+		std::string w_Name;//object name
+		std::vector<VERTEX> w_Vertex;//vertex data
+		std::vector<TRIANGLE> w_Triangle;
+		std::vector<QUADRILATERAL> w_Quadrilateral;
 	};
 #endif
 #ifndef MATE
 #define MATE
 	//material
 	struct MATERIAL {
-		int _MaterialID;//ID
-		string _MaterialName;//material name
-		Color4 _Color;//color
-		Reflection4 _ReflectionColor;//color of refrection
-		float _Power;//shiness
-		string _TextureName;//name of texture
-		Image* _TextureImg;//image of texture
-		bool _texexist = false;
+		int w_MaterialID;//ID
+		std::string w_MaterialName;//material name
+		Color4 w_Color;//color
+		Reflection4 w_ReflectionColor;//color of refrection
+		float w_Power;//shiness
+		std::string w_TextureName;//name of texture
+		Image* w_TextureImg;//image of texture
+		bool w_texexist = false;
 	};
 #endif
 #ifndef DPTL
@@ -159,8 +136,8 @@ using namespace std;
 	class depthListArray
 	{
 	public:
-		vector<depthList> _list;
-		vec3 _modelcenter;
+		std::vector<depthList> w_list;
+		vec3 w_modelcenter;
 	};
 #endif
 #ifndef BDB
@@ -168,21 +145,21 @@ using namespace std;
 	class BoundingBox
 	{
 	public:
-		vec3 _min;
-		vec3 _max;
-		vec3 _center;
-		BoundingBox() :_min(vec3{ 0.0,0.0,0.0 }), 
-			_max(vec3{ 0.0,0.0,0.0 }), 
-			_center(vec3{ 0.0,0.0,0.0 }) {};
-		BoundingBox(vec3 min, vec3 max) :_min(min), _max(max), _center( (max + min)/2 ) {};
-		BoundingBox(double w, double h, double d, vec3 center):_center(center)
+		vec3 w_min;
+		vec3 w_max;
+		vec3 w_center;
+		BoundingBox() :w_min(vec3{ 0.0,0.0,0.0 }), 
+			w_max(vec3{ 0.0,0.0,0.0 }), 
+			w_center(vec3{ 0.0,0.0,0.0 }) {};
+		BoundingBox(vec3 min, vec3 max) :w_min(min), w_max(max), w_center( (max + min)/2 ) {};
+		BoundingBox(double w, double h, double d, vec3 center):w_center(center)
 		{
-			_min = vec3{ (float)(center.getX() - w / 2), (float)(center.getY() - h / 2), (float)(center.getZ() - d / 2) };
-			_max = vec3{ (float)(center.getX() + w / 2), (float)(center.getY() + h / 2), (float)(center.getZ() + d / 2) };
+			w_min = vec3{ static_cast<float>(center.getX() - w / 2), static_cast<float>(center.getY() - h / 2), static_cast<float>(center.getZ() - d / 2) };
+			w_max = vec3{ static_cast<float>(center.getX() + w / 2), static_cast<float>(center.getY() + h / 2), static_cast<float>(center.getZ() + d / 2) };
 		}
-		double Width() { return _max.getX() - _min.getX(); }
-		double Height() { return _max.getY() - _min.getY(); }
-		double Depth() { return _max.getZ() - _min.getZ(); }
+		double Width() { return w_max.getX() - w_min.getX(); }
+		double Height() { return w_max.getY() - w_min.getY(); }
+		double Depth() { return w_max.getZ() - w_min.getZ(); }
 	};
 #endif
 #ifndef CUP
@@ -190,38 +167,40 @@ using namespace std;
 	class CurrentPolygon
 	{
 	public:
-		int _objidx = 0;
-		int _faceidx = 0;
-		vec3 _vertex[3];
-		vec3 _vertexnormal[3];
-		vec3 _surfacenormal = vec3{0.0,0.0,0.0};
-		vec3 _center = vec3{ 0.0,0.0,0.0 };
-		int _MaterialID = 0;
-		UV _uv[3];
+		int w_objidx = 0;
+		int w_faceidx = 0;
+		vec3 w_vertex[3];
+		vec3 w_vertexnormal[3];
+		vec3 w_surfacenormal = vec3{0.0,0.0,0.0};
+		vec3 w_center = vec3{ 0.0,0.0,0.0 };
+		int w_MaterialID = 0;
+		UV w_uv[3];
 
-		vec3 _diffractcenter = vec3{ 0.0,0.0,0.0 };
+		vec3 w_diffractcenter = vec3{ 0.0,0.0,0.0 };
 
 		CurrentPolygon() {};
 		~CurrentPolygon() {};
 
-		void SetVertex(const vector<vec3> v) 
+		void SetVertex(const std::vector<vec3> v)
 		{
 			if (v.size() != 3)
 			{
 				printf("\nSetVertex: input vector size is not suit!!");
 				system("pause");
 			}
-			_vertex[0] = v[0];
-			_vertex[1] = v[1];
-			_vertex[2] = v[2];
+			w_vertex[0] = v[0];
+			w_vertex[1] = v[1];
+			w_vertex[2] = v[2];
 		};
 
-		vector<vec3> GetVertex()
+		std::vector<vec3> GetVertex()
 		{
-			vector<vec3> v;
+			std::vector<vec3> v;
 			
 			for (int i = 0; i < 3; i++)
-				v.push_back(_vertex[i]);
+			{
+				v.push_back(w_vertex[i]);
+			}
 
 			return v;
 		};
@@ -234,15 +213,15 @@ using namespace std;
 
 		Ray() {}
 
-		Ray(const vec3& o, const vec3& dir) : _origin(o), _direction(dir) {}
+		Ray(const vec3& o, const vec3& dir) : w_origin(o), w_direction(dir) {}
 
-		const vec3& origin() const { return _origin; }
-		const vec3& direction() const { return _direction; }
-		vec3 at(float t) const { return _origin + t * _direction; }
+		const vec3& origin() const { return w_origin; }
+		const vec3& direction() const { return w_direction; }
+		vec3 at(float t) const { return w_origin + t * w_direction; }
 
 	private:
-		vec3 _origin;//start point
-		vec3 _direction;//directional vector
+		vec3 w_origin;//start point
+		vec3 w_direction;//directional vector
 	};
 #endif
 #ifndef MODELL
@@ -250,60 +229,61 @@ using namespace std;
 	//model
 	class MODEL {
 	protected:
-		double _px;//sampling interval along to x axis of main frame buffer
-		double _py;//along to y axis
-		double _lambda;//wavelength
+		double w_px;//sampling interval along to x axis of main frame buffer
+		double w_py;//along to y axis
+		double w_lambda;//wavelength
 
-		FILE* _fp;//file pointer to handle mqo file
-		char _buf[255];
-		string _str;
-		depthListArray _depthlistArray;//array of depthlist(contain polygon index and z value of center of it)
-		vector<MATERIAL> _Material;
-		vector<OBJECT> _Object;
-		vec3 _EMV = vec3{0.0,0.0,-1.0};//vector of ambient light
+		FILE* w_fp;//file pointer to handle mqo file
+		char w_buf[255];
+		std::string w_str;
+		depthListArray w_depthlistArray;//array of depthlist(contain polygon index and z value of center of it)
+		std::vector<MATERIAL> w_Material;
+		std::vector<OBJECT> w_Object;
+		vec3 w_EMV = vec3{0.0,0.0,-1.0};//vector of ambient light
 
-		Shader _shader;//shading method
+		Shader w_shader;//shading method
 
-		CurrentPolygon _currentpolygon;//contaions almost information to calculate polygon field
+		CurrentPolygon w_currentpolygon;//contaions almost information to calculate polygon field
 
-		Direction _dir = DWIDTH;//direction means accomodate to bounding box
+		Direction w_dir = DWIDTH;//direction means accomodate to bounding box
 
-		vec3 _center = vec3{0.0,0.0,0.0};//model's center
+		vec3 w_center = vec3{0.0,0.0,0.0};//model's center
 
-		bool _surface = true;//whether to calculate surface function
+		bool w_surface = true;//whether to calculate surface function
 
-		vec3 _subcenter = vec3{ 0.0,0.0,0.0 };//center of submodel
+		vec3 w_subcenter = vec3{ 0.0,0.0,0.0 };//center of submodel
 
-		double _gamma = 2.2;
+		double w_gamma = 2.2;
 
-		Shield _shieldmtd = EXACT;//shielding method
+		Shield w_shieldmtd = EXACT;//shielding method
 
 		void Vertex_Set();//頂点情報セット
 		void Material_Set();//マテリアル情報セット
 		void Face_Set(int Object_num);//面情報セット
-		string Split(string* str, char str1, char str2);//文字列分離
+		std::string Split(std::string* str, char str1, char str2);//文字列分離
 	public:
 
-		BoundingBox _bbox;
+		BoundingBox w_bbox;
 		MODEL() {
 		}
 		MODEL(const MODEL& model)
 		{
-			_fp = model._fp;
-			strcpy(_buf, model._buf);
-			_str = model._str;
-			_depthlistArray = model._depthlistArray;
-			_Material = model._Material;
-			_Object = model._Object;
-			_EMV = model._EMV;
-			_bbox = model._bbox;
-			_surface = model._surface;
-			_px = model._px;
-			_py = model._py;
+			w_fp = model.w_fp;
+			strcpy(w_buf, model.w_buf);
+			w_str = model.w_str;
+			w_depthlistArray = model.w_depthlistArray;
+			w_Material = model.w_Material;
+			w_Object = model.w_Object;
+			w_EMV = model.w_EMV;
+			w_bbox = model.w_bbox;
+			w_surface = model.w_surface;
+			w_px = model.w_px;
+			w_py = model.w_py;
 		}
-		MODEL(const char* FileName, vec3 emv, Shader shade, BoundingBox bb, Direction dir, bool surface): _shader(shade),_dir(dir),_surface(surface) {
+		MODEL(const char* FileName, vec3 emv, Shader shade, BoundingBox bb, Direction dir, bool surface): 
+			w_shader(shade),w_dir(dir),w_surface(surface) {
 			if(MQO_Load(FileName))
-              _bbox = bb;
+              w_bbox = bb;
 			else
 			{
 				printf("Indicated file is not exist under the this directly....");
@@ -312,19 +292,19 @@ using namespace std;
 		}
 		~MODEL()
 		{}
-		double GetPx() const { return _px; }
-		double GetPy() const { return _py; }
-		double GetLambda() const { return _lambda; }
+		double GetPx() const { return w_px; }
+		double GetPy() const { return w_py; }
+		double GetLambda() const { return w_lambda; }
 
-		void SetShieldMethod(Shield mtd) { _shieldmtd = mtd; }
+		void SetShieldMethod(Shield mtd) { w_shieldmtd = mtd; }
 
-		FILE* FilePointer() { return _fp; }
-		char Buffer() { return *_buf; }
-		string String() { return _str; }
-		depthListArray Depthlist() { return _depthlistArray; }
-		vector<MATERIAL> Material() { return _Material; }
-		vector<OBJECT> Object() { return _Object; }
-		vec3 Emvironment() { return _EMV; }
+		FILE* FilePointer() { return w_fp; }
+		char Buffer() { return *w_buf; }
+		std::string String() { return w_str; }
+		depthListArray Depthlist() { return w_depthlistArray; }
+		std::vector<MATERIAL> Material() { return w_Material; }
+		std::vector<OBJECT> Object() { return w_Object; }
+		vec3 Emvironment() { return w_EMV; }
 
 		bool MQO_Load(const char* FileName);//ロード
 		void CalcSurfaceNV();//面法線ベクトルの計算
@@ -338,10 +318,10 @@ using namespace std;
 
 		void AccommodatePolygonInBB();
 
-		vec3 center(vec3 p0, vec3 p1, vec3 p2);
-		void RotInFourierSpaceForward(const WaveFront& source, WaveFront& reference, vec3* c, Interpol interp);
-		void RotInFourierSpaceBackward(const WaveFront& source, WaveFront& reference, vec3& c, Interpol interp);
-		mat3 RotMatFromG2L(vec3 global, vec3 local);
+		vec3 center(vec3 &p0, vec3 &p1, vec3 &p2);
+		void RotInFourierSpaceForward(const WaveFront& source, WaveFront& reference, vec3* c, Interp interp);
+		void RotInFourierSpaceBackward(const WaveFront& source, WaveFront& reference, vec3& c, Interp interp);
+		mat3 RotMatFromG2L(vec3 &global, vec3 &local);
 		mat3 G2L();
 		BoundingBox GetDiffractionRect(double targetZ);
 		void SetCurrentPolygon(depthList dpl);
@@ -363,8 +343,8 @@ using namespace std;
 
 		bool PolygonIsVisible();
 
-		void MarkingRectangularPointsInFourierSpace(vector<vec3> &vec);
-		BoundingBox GetBoundingBox(vector<vec3> vec);
+		void MarkingRectangularPointsInFourierSpace(std::vector<vec3> &vec);
+		BoundingBox GetBoundingBox(std::vector<vec3> &vec);
 
 		void Shading(WaveFront& field, CurrentPolygon& local);
 		void FlatShading(WaveFront& field, CurrentPolygon& local);
@@ -377,94 +357,17 @@ using namespace std;
 
 		vec3 IntersectPoint(Ray &ray);
 
-		MODEL& operator +=(vec3 vec)
-		{
-			vec3 v;
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
-			for (int n = 0; n < (*this)._Object.size(); ++n)
-				for (int m = 0; m < (*this)._Object[n]._Vertex.size(); ++m)
-				{
-					v = _Object[n]._Vertex[m]._Coord;
-					v = v + vec;
-					_Object[n]._Vertex[m]._Coord = v;
-				}
-			return *this;
-		}
+		MODEL& operator +=(vec3& vec);
 
-		MODEL& operator *=(mat3 mat)
-		{
-			vec3 v;
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
-			for (int n = 0; n < (*this)._Object.size(); ++n)
-				for (int m = 0; m < (*this)._Object[n]._Vertex.size(); ++m)
-				{
-					v = _Object[n]._Vertex[m]._Coord;
-					v = v - _center;
-					v = mat * v;
-					v = v + _center;
-					_Object[n]._Vertex[m]._Coord = v;
-				}
-			return *this;
-		}
+		MODEL& operator *=(mat3& mat);
 
-		void mul(vector<vec3> &vec, mat3 mat)
-		{
-			int i;
-			for (auto& v : vec)
-				v = mat * v;
-		}
+		void mul(std::vector<vec3>& vec, mat3& mat);
 
-		void sub(vector<vec3> &vec, vec3 vv)
-		{
-			int i;
-			for (auto& v : vec)
-				v -= vv;
-		}
+		void sub(std::vector<vec3>& vec, vec3& vv);
 
-		void fouriermul(vector<vec3> vec, mat3 mat)
-		{
-			int i;
-			double invlambda2 = 1 / _lambda / _lambda;
-			vec3 v;
-			float w;
-			auto itr = vec.begin();
-			while (itr != vec.end())
-			{
-				v = mat * (*itr);//access the element and transform
-				w = invlambda2 - v.getX() * v.getX() - v.getY() * v.getY();
-				if (w < 0) {
-					// return the iterator indicate next element of deleted one
-					itr = vec.erase(itr);
-				}
-				// in case of not delete element, get the next indicator
-				else {
-					*itr = vec3{v.getX(), v.getY(), sqrt(w)};
-					itr++;
-				}
-			}
-		}
-		void fouriersub(vector<vec3> vec, vec3 vv)
-		{
-			int i;
-			double invlambda2 = 1 / _lambda / _lambda;
-			vec3 v;
-			float w;
-			auto itr = vec.begin();
-			while (itr != vec.end())
-			{
-				v = (*itr) - vv;//access the element and transform
-				w = invlambda2 - v.getX() * v.getX() - v.getY() * v.getY();
-				if (w < 0) {
-					// return the iterator indicate next element of deleted one
-					itr = vec.erase(itr);
-				}
-				// in case of not delete element, get the next indicator
-				else {
-					*itr = vec3{ v.getX(), v.getY(), sqrt(w) };
-					itr++;
-				}
-			}
-		}
+		void fouriermul(std::vector<vec3>& vec, mat3& mat);
+		
+		void fouriersub(std::vector<vec3>& vec, vec3& vv);
 	};
 #endif
 #endif

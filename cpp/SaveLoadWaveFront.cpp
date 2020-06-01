@@ -1,5 +1,5 @@
 #include "WaveFront.h"
-
+using namespace std;
 void WaveFront::SaveAsWaveFront(const char* filename)
 {
 	ofstream file(filename);
@@ -16,9 +16,9 @@ void WaveFront::SaveAsWaveFront(const char* filename)
 	file << "\n";
 
 	int i = 0, j = 0;
-	for (j = 0; j < _ny; j++)
+	for (j = 0; j < w_ny; j++)
 	{
-		for (i = 0; i < _nx; i++)
+		for (i = 0; i < w_nx; i++)
 		{
 			file << GetPixel(i, j) << "\t";
 		}
