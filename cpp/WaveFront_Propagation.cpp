@@ -46,14 +46,14 @@ void WaveFront::bandlimit(double uband, double vband)
 	}
 }
 
-void WaveFront::AsmProp(double R)
+void WaveFront::AsmProp(const double R)
 {
 	fft2D(-1);
 	AsmPropInFourierSpace(R);
 	fft2D(1);
 	*this /= GetN();
 }
-void WaveFront::AsmPropInFourierSpace(double R)
+void WaveFront::AsmPropInFourierSpace(const double R)
 {
 	pitchtrans();
 	WaveFront h(w_nx, w_ny, w_px, w_py, w_lambda);
@@ -107,7 +107,7 @@ void WaveFront::Extract()
 		}
 	}
 }
-void WaveFront::ExactAsmProp(double R)
+void WaveFront::ExactAsmProp(const double R)
 {
 	Embed();
 	AsmProp(R);

@@ -328,7 +328,7 @@ void MODEL::AccommodatePolygonInBB()
 	}
 }
 
-vec3 MODEL::center(vec3 &p0, vec3 &p1, vec3 &p2)
+vec3 MODEL::center(const vec3 &p0, const vec3 &p1, const vec3 &p2)
 {
 	vector<vec3> vect = { p0, p1, p2 };
 	BoundingBox bbox = GetBoundingBox(vect);

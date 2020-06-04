@@ -195,11 +195,11 @@
 
 		std::vector<vec3> GetVertex()
 		{
-			std::vector<vec3> v;
+			std::vector<vec3> v(3);
 			
 			for (int i = 0; i < 3; i++)
 			{
-				v.push_back(w_vertex[i]);
+				v[i] = w_vertex[i];
 			}
 
 			return v;
@@ -257,6 +257,7 @@
 
 		Shield w_shieldmtd = EXACT;//shielding method
 
+		//Metasequoia
 		void Vertex_Set();//頂点情報セット
 		void Material_Set();//マテリアル情報セット
 		void Face_Set(int Object_num);//面情報セット
@@ -306,36 +307,39 @@
 		std::vector<OBJECT> Object() { return w_Object; }
 		vec3 Emvironment() { return w_EMV; }
 
+		//Metasequoia
 		bool MQO_Load(const char* FileName);//ロード
 		void CalcSurfaceNV();//面法線ベクトルの計算
 		void CalcVertexNV();//頂点法線ベクトルの計算
 		void CalcPolygonCenter();
 		void CalcModelCenter();
+		vec3 center(const vec3& p0, const vec3& p1, const vec3& p2);
 
+		//CalcObjectField
 		void GenDepthList();
 		void SortByDepth(depthListArray& list);
 		void DivideByDepth(depthListArray& front, depthListArray& back, double z);
 
 		void AccommodatePolygonInBB();
 
-		vec3 center(vec3 &p0, vec3 &p1, vec3 &p2);
 		void RotInFourierSpaceForward(const WaveFront& source, WaveFront& reference, vec3* c, Interp interp);
-		void RotInFourierSpaceBackward(const WaveFront& source, WaveFront& reference, vec3& c, Interp interp);
-		mat3 RotMatFromG2L(vec3 &global, vec3 &local);
+		void RotInFourierSpaceBackward(const WaveFront& source, WaveFront& reference, const vec3& c, Interp interp);
+		mat3 RotMatFromG2L(const vec3 &global, const vec3 &local);
 		mat3 G2L();
-		BoundingBox GetDiffractionRect(double targetZ);
-		void SetCurrentPolygon(depthList dpl);
+		BoundingBox GetDiffractionRect(const double targetZ);
+		void SetCurrentPolygon(const depthList dpl);
 		void AddFieldToMFB(WaveFront& mfb);
 		void AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list);
 		void CalcCenterOfModel(depthListArray& model);
 
-		void AddObjectField(WaveFront& mfb,unsigned int div, mat3 &rot, bool exact = true, bool back = false);
+		void AddObjectField(WaveFront& mfb, const unsigned int div, const mat3 &rot, bool exact = true, bool back = false);
 		void ExShieldingAddingField(WaveFront &pfb);
 		void SilhouetteShieldingAddingField(WaveFront &pfb);
-		void GeneratePolygonField(WaveFront& field, CurrentPolygon& local);
+		void GeneratePolygonField(WaveFront& field, const CurrentPolygon& polyL);
 
-		void PaintTriangle(WaveFront& tfb, CurrentPolygon &polyL, double amp);
-		void MultiplyAperture(WaveFront& tfb, CurrentPolygon& polyL);
+		bool IsInTriangle(vec3 p, const CurrentPolygon& polyL);
+		void PaintTriangle(WaveFront& tfb, const CurrentPolygon &polyL, double amp);
+		void MultiplyAperture(WaveFront& tfb, const CurrentPolygon& polyL);
 		int LineFunc(int x, int y, int x1, int y1, int x2, int y2)
 		{
 			return (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1);
@@ -344,30 +348,27 @@
 		bool PolygonIsVisible();
 
 		void MarkingRectangularPointsInFourierSpace(std::vector<vec3> &vec);
-		BoundingBox GetBoundingBox(std::vector<vec3> &vec);
+		BoundingBox GetBoundingBox(const std::vector<vec3> &vec);
 
-		void Shading(WaveFront& field, CurrentPolygon& local);
-		void FlatShading(WaveFront& field, CurrentPolygon& local);
+		void Shading(WaveFront& field, const CurrentPolygon& polyL);
+		void FlatShading(WaveFront& field, const CurrentPolygon& polyL);
 		double GetCorrectedAmplitude(WaveFront& tfb, double brt);
 
-		void SmoothShading(WaveFront& field, CurrentPolygon& local);
-		void Mapping(WaveFront& field, CurrentPolygon& local);
+		void SmoothShading(WaveFront& field, const CurrentPolygon& polyL);
+		void Mapping(WaveFront& field, const CurrentPolygon& polyL);
 
-		void SetUp(mat3 &rot);
+		void SetUp(const mat3 &rot);
 
-		vec3 IntersectPoint(Ray &ray);
+		//Geometry
+		vec3 IntersectPoint(const Ray &ray);
 
-		MODEL& operator +=(vec3& vec);
-
-		MODEL& operator *=(mat3& mat);
-
-		void mul(std::vector<vec3>& vec, mat3& mat);
-
-		void sub(std::vector<vec3>& vec, vec3& vv);
-
-		void fouriermul(std::vector<vec3>& vec, mat3& mat);
-		
-		void fouriersub(std::vector<vec3>& vec, vec3& vv);
+		//Operator
+		MODEL& operator +=(const vec3& vec);
+		MODEL& operator *=(const mat3& mat);
+		void mul(std::vector<vec3>& vec, const mat3& mat);
+		void sub(std::vector<vec3>& vec, const vec3& vv);
+		void fouriermul(std::vector<vec3>& vec, const mat3& mat);
+		void fouriersub(std::vector<vec3>& vec, const vec3& vv);
 	};
 #endif
 #endif

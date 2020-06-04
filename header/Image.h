@@ -93,15 +93,11 @@ public:
 	int Width() const { return w_nx; }
 	int Height() const { return w_ny; }
 	void* Pixels() const { return Image_pix.get(); }
-
 	int idxij(int i, int j) { return j * w_nx + i; }
 
+	//Load
 	void Write(int i, int j, double R, double G, double B, bool read = true);
-
 	vec3 Load(int i, int j);
-
-	//Image* Create_Image(int width, int height);
-
 	Image* Read_Bmp(const char* filename);
 
 private:

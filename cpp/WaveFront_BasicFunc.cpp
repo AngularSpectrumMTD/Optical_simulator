@@ -70,23 +70,19 @@ double WaveFront::GetEnergy()const
 double WaveFront::GetMaxAmplitude()const
 {
 	int i, j;
-	vector<double> amplitude;
+	vector<double> amplitude(w_nx * w_ny);
 #pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
 		{
-			amplitude.push_back(GetAmplitude(i, j));
+			amplitude[idxij(i,j)] = GetAmplitude(i, j);
+			//amplitude.push_back(GetAmplitude(i, j));
 		}	
 	}
 
 	vector<double>::iterator ite = max_element(amplitude.begin(),amplitude.end());
-	size_t index = distance(amplitude.begin(),ite);
-
-	double ret = 0;
-	ret = amplitude[index];
-
-	return ret;
+	return *ite;
 }
 void WaveFront::Clear()
 {
@@ -121,22 +117,6 @@ unsigned int WaveFront::nearPow2(int n)// return most near power of 2
 	unsigned int ret = 1;
 	while (n > 0) { ret <<= 1; n >>= 1; }
 	return ret;
-}
-double WaveFront::GetAmplitudeMax() const
-{
-	std::vector<double> amp;
-	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
-	for (j = 0; j < w_ny; ++j)
-	{
-		for (i = 0; i < w_nx; ++i)
-		{
-			amp.push_back(GetAmplitude(i, j));
-		}
-	}
-
-	std::vector<double>::iterator ite = max_element(amp.begin(), amp.end());
-	return *ite;
 }
 WaveFront& WaveFront::AllSet(double val)
 {

@@ -46,7 +46,6 @@ enum Axis
 #endif
 
 class WaveFront {
-
 	int w_nx = 0;
 	int w_ny = 0;
 	double w_px = 1e-6;
@@ -153,6 +152,8 @@ public:
 		w_normal = wave.w_normal;
 	};
 	void Init() { w_data.reset(new std::complex<double>[w_nx * w_ny]); };
+
+	//BasicFunc
 	unsigned int xtoi(double x)const;// convert distance along to x-axis to index i
 	unsigned int ytoj(double y)const;// convert distance along to y-axis to index j 
 	double itox(unsigned int i)const;// convert index i to distance along to x-axis
@@ -169,69 +170,68 @@ public:
 	void DispMat(mat3 &mat)const;
 	void DispVec(vec3 &vec)const;
 	unsigned int nearPow2(int n);// return most near power of 2
-	// function related to save as image and load real part from image
+	WaveFront& AllSet(double val);
+
+	// SaveLoadImage (function related to save as image and load real part from image)
 	void SaveBmp(const char* filename, Out type);// save as image
 	void Normalize();// normalize
 	WaveFront& LoadBmp(const char* filename);// load bmp
-	// set basic aperture
+
+	// Aperture (set basic aperture)
 	void SetCirc(double r);// circular aperture
 	void SetRect(double wx, double wy);// rectangular aperture
 	void SetGaussian(double r, double n);// gaussian beam
-	// interpolation method
+
+	// Interpolation (interpolation method)
 	std::complex<double> GetInterpolatedValueNEAREST_NEIGHBOR(double u, double v)const;// nearest neighbor
 	std::complex<double> GetInterpolatedValueBILINEAR(double u, double v)const;// bi-linear
 	std::complex<double> GetInterpolatedValueBICUBIC(double u, double v)const;// bi-cubic
 	std::complex<double> GetInterpolatedValue(double u, double v, Interp interp)const;// return interpolated value by use of chosed method
-	// function related to fft
+	
+	// FFT (function related to fft)
 	void swap();// swap orthant
 	void fft1D(std::unique_ptr <std::complex<double>[]>& x, int n, int func);// 1D fft
 	void fft2D(int func);// 2D fft
+
 	// function related to angular spectrum method
 	void pitchtrans() { w_px = 1.0 / (w_px * w_nx); w_py = 1.0 / (w_py * w_ny); };// convert sampling interval
+	// Propagation
 	void generateFRF(double distance);// generate frequential function
 	void bandlimit(double uband, double vband);// bandlimit by use of chosed frequency
-	void AsmProp(double R);// execute calculation of optical diffraction by use of angular spectrum method
-	void AsmPropInFourierSpace(double R);
+	void AsmProp(const double R);// execute calculation of optical diffraction by use of angular spectrum method
+	void AsmPropInFourierSpace(const double R);
 	void Embed();// embed distribution by 4 times
 	void Extract();// extruct distribution by 4 times
-	void ExactAsmProp(double R);// exacterASM
-	// function related to rotational transformation of wave-field
+	void ExactAsmProp(const double R);// exacterASM
 	double GetWpow2(double u, double v);// return power of w-element of spatial frequency(distinguish evanescent region)
 	mat3 GetRotMat(const vec3 &v);// get rotational matrix from 2 vectors v and normal vector of this field
 	void RotInFourierSpace(WaveFront& reference, Interp interp);// rotation in fourier space
 	void TiltedAsmProp(WaveFront& reference, Interp interp);//execute calculation of optical diffraction between non-parallel planes
-	// function related to random
+	
+	// Random (function related to random)
 	WaveFront& ModRandomphase();// randomize phase
 	double getrandom(double min, double max);// generate random
-	// function related to save as csv
+
+	// SaveCsv (function related to save as csv)
 	void SaveAsCsv(const char* fname, Axis axis, int ij);
+
 	// QuadraticPhase
-	WaveFront& SetQuadraticPhase(double f);
-	WaveFront& MultiplyQuadraticPhase(double f);
-	// function related to complex distribution
+	WaveFront& SetQuadraticPhase(const double f);
+	WaveFront& MultiplyQuadraticPhase(const double f);
+
+	// SaveLoad (function related to complex distribution)
 	void SaveAsWaveFront(const char* filename);
 	WaveFront& LoadAsWaveFront(const char* filename);
-
-	double GetAmplitudeMax() const;
-
-	WaveFront& AllSet(double val);
-
+	
+	// Operator
 	WaveFront& operator+=(double val);
-
 	WaveFront& operator-=(double val);
-
 	WaveFront& operator*=(double val);
-
 	WaveFront& operator/=(double val);
-
 	WaveFront& operator+=(const WaveFront& val);
-
 	WaveFront& operator-=(const WaveFront& val);
-
 	WaveFront& operator*=(const WaveFront& val);
-
 	WaveFront& operator/=(const WaveFront& val);
-
 	WaveFront& operator =(const WaveFront& val);
 };
 

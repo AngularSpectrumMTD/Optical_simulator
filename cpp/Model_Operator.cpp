@@ -1,6 +1,6 @@
 #include"Model.h"
 
-MODEL& MODEL::operator +=(vec3& vec)
+MODEL& MODEL::operator +=(const vec3& vec)
 {
 #pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
@@ -15,7 +15,7 @@ MODEL& MODEL::operator +=(vec3& vec)
 	return *this;
 }
 
-MODEL& MODEL::operator *=(mat3& mat)
+MODEL& MODEL::operator *=(const mat3& mat)
 {
 #pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
@@ -32,7 +32,7 @@ MODEL& MODEL::operator *=(mat3& mat)
 	return *this;
 }
 
-void MODEL::mul(std::vector<vec3>& vec, mat3& mat)
+void MODEL::mul(std::vector<vec3>& vec, const mat3& mat)
 {
 	for (auto& v : vec)
 	{
@@ -40,7 +40,7 @@ void MODEL::mul(std::vector<vec3>& vec, mat3& mat)
 	}
 }
 
-void MODEL::sub(std::vector<vec3>& vec, vec3& vv)
+void MODEL::sub(std::vector<vec3>& vec, const vec3& vv)
 {
 	for (auto& v : vec)
 	{
@@ -48,7 +48,7 @@ void MODEL::sub(std::vector<vec3>& vec, vec3& vv)
 	}
 }
 
-void MODEL::fouriermul(std::vector<vec3>& vec, mat3& mat)
+void MODEL::fouriermul(std::vector<vec3>& vec, const mat3& mat)
 {
 	double invlambda2 = 1 / w_lambda / w_lambda;
 	auto itr = vec.begin();
@@ -67,7 +67,7 @@ void MODEL::fouriermul(std::vector<vec3>& vec, mat3& mat)
 		}
 	}
 }
-void MODEL::fouriersub(std::vector<vec3>& vec, vec3& vv)
+void MODEL::fouriersub(std::vector<vec3>& vec, const vec3& vv)
 {
 	double invlambda2 = 1 / w_lambda / w_lambda;
 	auto itr = vec.begin();

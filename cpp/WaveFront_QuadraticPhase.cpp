@@ -1,6 +1,6 @@
 #include"WaveFront.h"
 using namespace std;
-WaveFront& WaveFront::SetQuadraticPhase(double f)
+WaveFront& WaveFront::SetQuadraticPhase(const double f)
 {
 	double k = 2*PI/w_lambda;
 	int i, j;
@@ -17,7 +17,7 @@ WaveFront& WaveFront::SetQuadraticPhase(double f)
 	}
 	return *this;
 }
-WaveFront& WaveFront::MultiplyQuadraticPhase(double f)
+WaveFront& WaveFront::MultiplyQuadraticPhase(const double f)
 {
 	double k = 2 * PI / w_lambda;
 	int i, j;
