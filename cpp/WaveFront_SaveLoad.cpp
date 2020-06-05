@@ -15,6 +15,11 @@ void WaveFront::SaveAsWaveFront(const char* filename)
 	file << GetLambda() << " ";
 	file << "\n";
 
+	file << GetOrigin().getX() << " ";
+	file << GetOrigin().getY() << " ";
+	file << GetOrigin().getZ() << " ";
+	file << "\n";
+
 	int i = 0, j = 0;
 	for (j = 0; j < w_ny; j++)
 	{
@@ -51,6 +56,14 @@ WaveFront& WaveFront::LoadAsWaveFront(const char* filename)
 	ret.SetNx(nx); ret.SetNy(ny); ret.SetPx(px); ret.SetPy(py); ret.SetLambda(lam);
 
 	ret.Init();
+
+	getline(file, line);
+	buf = line.c_str();
+	float x, y, z;
+	sscanf_s(buf, "%g %g %g", &x, &y, &z);
+
+	vec3 origin {x, y, z};
+	ret.SetOrigin(origin);
 
 	int i = 0, j = 0;
 	while (getline(file, line)) {
