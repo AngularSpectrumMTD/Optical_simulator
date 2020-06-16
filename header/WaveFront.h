@@ -73,8 +73,19 @@ public:
 			w_ny = nearPow2(pow(2.0, expY));
 		}
 
-		w_data.reset(new std::complex<double>[w_nx * w_ny]);
-		//_normal = vec3{ 0.0, 0.0, 0.0 };
+		std::complex<double>* mempool = (std::complex<double>*)malloc(sizeof(std::complex<double>) * w_nx * w_ny);
+
+		if (mempool == NULL)
+		{
+			printf(">>ERROR: Required memory is too large. Memory allocation is mistaken...\n");
+			printf(">>Process is terminated forcibly...\n");
+			exit(0);
+		}
+
+		w_data.reset(mempool);
+
+		//w_data.reset(new std::complex<double>[w_nx * w_ny]);//‚à‚Æ
+
 		w_normal = vec3{ 0.0, 0.0, 1.0 };
 	};
 	WaveFront(const WaveFront& a) :w_nx(a.w_nx), w_ny(a.w_ny), w_px(a.w_px), w_py(a.w_py), w_lambda(a.w_lambda) {
@@ -101,6 +112,8 @@ public:
 	vec3 GetOrigin() const { return w_origin; }
 	bool GetSpace() const { return w_real; }
 	vec3 GetNormal() const { return w_normal; }
+	double GetWidth() const { return w_px * w_nx; }
+	double GetHeight() const { return w_py * w_ny; }
 	// setter
 	void SetNx(unsigned int nx) { 
 		if (ispow2(nx) == false)
@@ -151,7 +164,20 @@ public:
 		w_real = wave.w_real;
 		w_normal = wave.w_normal;
 	};
-	void Init() { w_data.reset(new std::complex<double>[w_nx * w_ny]); };
+	void Init() { 
+		//w_data.reset(new std::complex<double>[w_nx * w_ny]);
+
+		std::complex<double>* mempool = (std::complex<double>*)malloc(sizeof(std::complex<double>) * w_nx * w_ny);
+
+		if (mempool == NULL)
+		{
+			printf(">>ERROR: Required memory is too large. Memory allocation is mistaken...\n");
+			printf(">>Process is terminated forcibly...\n");
+			exit(0);
+		}
+
+		w_data.reset(mempool);
+	};
 
 	//BasicFunc
 	unsigned int xtoi(double x)const;// convert distance along to x-axis to index i
@@ -169,8 +195,12 @@ public:
 	void Clear();// reset all complex value as 0
 	void DispMat(mat3 &mat)const;
 	void DispVec(vec3 &vec)const;
+	void DispParam()const;
 	unsigned int nearPow2(int n);// return most near power of 2
 	WaveFront& AllSet(double val);
+	WaveFront& MultiplyPlaneWave(double u, double v, double phase = 0.0);
+	WaveFront& Add(const WaveFront &source);
+	WaveFront& TransformforBrainImage();
 
 	// SaveLoadImage (function related to save as image and load real part from image)
 	void SaveBmp(const char* filename, Out type);// save as image
@@ -199,14 +229,22 @@ public:
 	void generateFRF(double distance);// generate frequential function
 	void bandlimit(double uband, double vband);// bandlimit by use of chosed frequency
 	void AsmProp(const double R);// execute calculation of optical diffraction by use of angular spectrum method
+	WaveFront& ShiftedAsmProp(const WaveFront& source);// off-axis propagation 
+	WaveFront& ShiftedAsmPropAdd(const WaveFront& source);
+	WaveFront& ShiftedAsmPropEx(const WaveFront& source);
+	WaveFront& ShiftedAsmPropAddEx(const WaveFront& source);
 	void AsmPropInFourierSpace(const double R);
 	void Embed();// embed distribution by 4 times
 	void Extract();// extruct distribution by 4 times
 	void ExactAsmProp(const double R);// exacterASM
 	double GetWpow2(double u, double v);// return power of w-element of spatial frequency(distinguish evanescent region)
-	mat3 GetRotMat(const vec3 &v);// get rotational matrix from 2 vectors v and normal vector of this field
-	void RotInFourierSpace(WaveFront& reference, Interp interp);// rotation in fourier space
-	void TiltedAsmProp(WaveFront& reference, Interp interp);//execute calculation of optical diffraction between non-parallel planes
+	mat3 GetRotMat(const vec3 &v) const;// get rotational matrix from 2 vectors v and normal vector of this field
+	mat3 GetRotMat(const vec3& global, const vec3& local) const;
+	mat3 L2G() const;
+	vec3 GetUnitVector_alongX() const;
+	vec3 GetUnitVector_alongY() const;
+	void RotInFourierSpace(WaveFront& reference, Interp interp, vec3 *carrier = nullptr);// rotation in fourier space
+	void TiltedAsmProp(WaveFront& reference, Interp interp, vec3* carrier = nullptr);//execute calculation of optical diffraction between non-parallel planes
 	
 	// Random (function related to random)
 	WaveFront& ModRandomphase();// randomize phase

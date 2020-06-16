@@ -20,11 +20,12 @@ int main()
     save.Normalize();
     save.SaveBmp("propagated distribution AMPLITUDE.bmp",AMPLITUDE);
 
-    mat3 rot = mat3::rotationY(60 * DEG);
+    mat3 rot = mat3::rotationY(80 * DEG);
 
     WaveFront output(input);
     output.SetNormal(rot * input.GetNormal());
-    input.TiltedAsmProp(output, BICUBIC);
+    output.TiltedAsmProp(input, BICUBIC);
+    //input.TiltedAsmProp(output, BICUBIC);
     output.Normalize();
     output.SaveBmp("rotated distribution AMPLITUDE.bmp", AMPLITUDE);
 }

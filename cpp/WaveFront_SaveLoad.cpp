@@ -47,11 +47,11 @@ WaveFront& WaveFront::LoadAsWaveFront(const char* filename)
 	const char* buf;
 	buf = line.c_str();
 
-	WaveFront ret;
+	WaveFront& ret = *this;
 
 	int nx, ny;
 	double px, py, lam;
-	sscanf_s(buf, "%d %d %g %g %g", &nx, &ny, &px, &py, &lam);
+	sscanf_s(buf, "%d %d %lf %lf %lf", &nx, &ny, &px, &py, &lam);
 
 	ret.SetNx(nx); ret.SetNy(ny); ret.SetPx(px); ret.SetPy(py); ret.SetLambda(lam);
 
@@ -80,5 +80,5 @@ WaveFront& WaveFront::LoadAsWaveFront(const char* filename)
 		j++;
 	}
 	file.close();
-	return *this;
+	return ret;
 }

@@ -328,6 +328,8 @@
 		mat3 G2L();
 		BoundingBox GetDiffractionRect(const double targetZ);
 		void SetCurrentPolygon(const depthList dpl);
+
+		void ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir = true);
 		void AddFieldToMFB(WaveFront& mfb);
 		void AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list);
 		void CalcCenterOfModel(depthListArray& model);

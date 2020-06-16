@@ -179,7 +179,7 @@ void MODEL::SetCurrentPolygon(const depthList dpl)
 	w_currentpolygon.w_uv[2] = (*this).w_Object[n].w_Triangle[m].w_uv[2];
 
 }
-void ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir = true)
+void MODEL::ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir)
 {
 	//matching coordinate
 	double x = (sub.itox(0) + sub.GetOrigin().getX()) - (frame.itox(0) + frame.GetOrigin().getX());
