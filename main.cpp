@@ -220,16 +220,16 @@ double r = 1.0e-4;//äJå˚ïù10[mm]
 //	save.SaveBmp("image.bmp",INTENSITY);
 //}
 
-int main()
-{
-	WaveFront input(256, 256, 2e-6, 2e-6, lambda);
-	input.SetGaussian(256*2e-6/8,2);
-	input.ModRandomphase();
-	input.SaveBmp("input.bmp",INTENSITY);
-	input.SaveBmp("inputp.bmp", PHASE);
-	input.SaveAsWaveFront("test.txt");
-	input.LoadAsWaveFront("test.txt");
-	input.SaveBmp("input2.bmp", INTENSITY);
-	input.SaveBmp("inputp2.bmp", PHASE);
-	input.SaveAsWaveFront("buriburi2.txt");
-}
+//int main()
+//{
+//	WaveFront input(256, 256, 2e-6, 2e-6, lambda);
+//	input.SetGaussian(256*2e-6/8,2);
+//	input.ModRandomphase();
+//	input.SaveBmp("input.bmp",INTENSITY);
+//	input.SaveBmp("inputp.bmp", PHASE);
+//	input.SaveAsWaveFront("test.txt");
+//	input.LoadAsWaveFront("test.txt");
+//	input.SaveBmp("input2.bmp", INTENSITY);
+//	input.SaveBmp("inputp2.bmp", PHASE);
+//	input.SaveAsWaveFront("buriburi2.txt");
+//}

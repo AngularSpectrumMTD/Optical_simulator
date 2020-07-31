@@ -45,10 +45,6 @@ int main()//2048
 	mat3 id = mat3::identity();
 	model.AddObjectField(mfb, 1, id, true, false);
 
-	/*char filenamefield[200];
-	char filenameimage[200];
-	sprintf(filenamefield, "•¨‘ÌŒõ”g_%d.txt", WIDTH);
-	sprintf(filenameimage, "•¨‘ÌŒõ”g_%d.bmp", WIDTH);*/
 	mfb.SaveAsWaveFront(filenamefield);
 	mfb.Normalize();
 	mfb.SaveBmp(filenameimage, INTENSITY);

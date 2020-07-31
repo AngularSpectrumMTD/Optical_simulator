@@ -258,10 +258,10 @@
 		Shield w_shieldmtd = EXACT;//shielding method
 
 		//Metasequoia
-		void Vertex_Set();//頂点情報セット
-		void Material_Set();//マテリアル情報セット
-		void Face_Set(int Object_num);//面情報セット
-		std::string Split(std::string* str, char str1, char str2);//文字列分離
+		void Vertex_Set();
+		void Material_Set();
+		void Face_Set(int Object_num);
+		std::string Split(std::string* str, char str1, char str2);
 	public:
 
 		BoundingBox w_bbox;
@@ -308,9 +308,9 @@
 		vec3 Emvironment() { return w_EMV; }
 
 		//Metasequoia
-		bool MQO_Load(const char* FileName);//ロード
-		void CalcSurfaceNV();//面法線ベクトルの計算
-		void CalcVertexNV();//頂点法線ベクトルの計算
+		bool MQO_Load(const char* FileName);
+		void CalcSurfaceNV();
+		void CalcVertexNV();
 		void CalcPolygonCenter();
 		void CalcModelCenter();
 		vec3 center(const vec3& p0, const vec3& p1, const vec3& p2);

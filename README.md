@@ -15,4 +15,12 @@
 
 また，マルチスレッド対応をしていますが保証はできません．
 
-(後日書き足します)
+サンプルコードである
+samplecode propagation.cpp
+は平行平面間の伝搬計算をシミュレーションする用のコードであり，
+samplecode propagation between non parallel planes.cpp
+は非平行な平面間の伝搬計算をシミュレーションする用のコードです．
+また，
+samplecode model calculation.cpp
+はmqo(メタセコイア)のモデルをロードし，物体光波を計算するためのものです．
+24bitBMPのテクスチャには対応しています．現在はモデル・テクスチャ共にslnと同一階層にあることが前提です．

@@ -27,14 +27,14 @@ void ImagingWaveFront::SetEyeParam()
 }
 void ImagingWaveFront::SetEye(WaveFront& eye, const vec3 & p)
 {
-	double gd = length(this->GetOrigin() - p);	//注視点までの距離
-	//printf("<imaging distance %lf>", gd);
-	double f = gd * d_eye / (gd + d_eye);		//レンズの焦点距離
+	double gd = length(this->GetOrigin() - p);	//distance between viewpoint and focus point
+
+	double f = gd * d_eye / (gd + d_eye);		//focus distance of lens
 
 	eye.AllSet(1.0);
 	eye.SetQuadraticPhase(f);
 
-	int i, j;							//円形瞳関数の描画
+	int i, j;							//painting pupil function
 	for (j = 0; j < eye.GetNy(); j++)
 	{
 		for (i = 0; i < eye.GetNx(); i++)
@@ -49,7 +49,7 @@ void ImagingWaveFront::SetEye(WaveFront& eye, const vec3 & p)
 		}
 	}
 }
-void ImagingWaveFront::View(const WaveFront& wf, const vec3 &p)		//光波wfのp点を注視する
+void ImagingWaveFront::View(const WaveFront& wf, const vec3 &p)		//focus to p of wavefront
 {
 	if (wf.GetNormal().getX() != 0 && wf.GetNormal().getY() != 0 && wf.GetNormal().getZ() != 1)
 	{
@@ -57,23 +57,12 @@ void ImagingWaveFront::View(const WaveFront& wf, const vec3 &p)		//光波wfのp点を
 		printf(">>Process is terminated forcibly...\n");
 		exit(0);
 	}
+
 	SetLambda(wf.GetLambda());
-	SetNormal(vec3(0, 0, 1.0));	//スクリーンを光軸方向に向ける
+	SetNormal(vec3(0, 0, 1.0));	
 	Clear();
 	ShiftedAsmPropEx(wf);
 
-	//WaveFront test(*this);
-	////test.fft2D(-1);
-	//test.Normalize();
-	//////test.SaveBmp("before imaging center.bmp",INTENSITY);
-	//////test.SaveBmp("before imaging right.bmp", INTENSITY);
-	//////test.SaveBmp("before imaging center sp.bmp",INTENSITY);
-	//test.SaveBmp("before imaging before rotate.bmp", INTENSITY);
-
-	//SaveAsWaveFront("SAVED.txt");
-	//system("pause");
-
-	//LoadAsWaveFront("SAVED.txt");
 	printf("<imaging START>");
 	Imaging(p);
 }
@@ -84,42 +73,16 @@ void ImagingWaveFront::Imaging(vec3 p)
 	WaveFront source = *this;
 	this->SetNormal(this->GetOrigin() - p);
 	vec3 freq;
-	//source.TiltedAsmProp(*this, BICUBIC, &freq);
-	/*{
-		WaveFront save = source;
-		save.Normalize();
-		save.SaveBmp("origin.bmp", INTENSITY);
-	}*/
+	
 	TiltedAsmProp(source, BICUBIC, &freq);
-	/*{
-		if (GetOrigin().getX() == 0 && GetOrigin().getY() == 0)
-		{
-			WaveFront save = *this;
-			save.Normalize();
-			save.SaveBmp("rotated center.bmp", INTENSITY);
-		}
-		else
-		{
-			WaveFront save = *this;
-			save.Normalize();
-			save.SaveBmp("rotated right.bmp", INTENSITY);
-		}
-	}
-	vec3 origin = GetOrigin();
-	printf("\nEYE origin =");
-	DispVec(origin);
-	printf("\nCARRIER FREQ =");
-	DispVec(freq);*/
-	this->MultiplyPlaneWave(freq.getX() * this->GetLambda(), freq.getY() * this->GetLambda());//koko
+	
+	this->MultiplyPlaneWave(freq.getX() * this->GetLambda(), freq.getY() * this->GetLambda());
 
 	source.pitchtrans();
 	WaveFront &lens = source;
 	SetEye(lens, p);
 	*this *= lens;
-	/*WaveFront save = *this;
-	save.Normalize();
-	save.SaveBmp("multipled.bmp",INTENSITY);*/
-
-	this->ExactAsmProp(d_eye);		//スクリーン位置まで伝搬
+	
+	this->ExactAsmProp(d_eye);		
 	this->SetOrigin(reserveViewPoint);
 }

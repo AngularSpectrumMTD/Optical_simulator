@@ -84,8 +84,6 @@ public:
 
 		w_data.reset(mempool);
 
-		//w_data.reset(new std::complex<double>[w_nx * w_ny]);//‚à‚Æ
-
 		w_normal = vec3{ 0.0, 0.0, 1.0 };
 	};
 	WaveFront(const WaveFront& a) :w_nx(a.w_nx), w_ny(a.w_ny), w_px(a.w_px), w_py(a.w_py), w_lambda(a.w_lambda) {

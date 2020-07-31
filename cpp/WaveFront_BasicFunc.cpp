@@ -221,39 +221,6 @@ WaveFront& WaveFront::Add(const WaveFront& source)
 }
 WaveFront& WaveFront::TransformforBrainImage()
 {
-	/*for (int j = 0; j < w_ny; j++)
-	{
-		for (int i = 0; i < w_nx; i++)
-		{
-			complex<double> val1 = GetPixel(i, j);
-			complex<double> val2 = GetPixel(w_nx - i -1, w_ny - j - 1);
-			SetPixel(i, j, val2);
-			SetPixel(w_nx - i - 1, w_ny - j - 1, val1);
-		}
-	}
-	return *this;*/
-
-	/*for (int j = 0; j < w_ny; j++)
-	{
-		for (int i = 0; i < w_nx; i++)
-		{
-			complex<double> val1 = GetPixel(i, j);
-			complex<double> val2 = GetPixel(w_nx - i - 1, j);
-			SetPixel(i, j, val2);
-			SetPixel(w_nx - i - 1, j, val1);
-		}
-	}
-	for (int i = 0; i < w_nx; i++)
-	{
-		for (int j = 0; j < w_ny; j++)
-		{
-			complex<double> val1 = GetPixel(i, j);
-			complex<double> val2 = GetPixel(i, w_ny - j - 1);
-			SetPixel(i, j, val2);
-			SetPixel(i, w_ny - j - 1, val1);
-		}
-	}*/
-
 	WaveFront tmp(*this);
 	for (int i = 0; i < w_nx; i++)
 	{
