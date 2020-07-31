@@ -8,6 +8,14 @@ ImagingWaveFront::ImagingWaveFront()
 	Clear();
 }
 
+ImagingWaveFront::ImagingWaveFront(double deye, double dpupil, vec3 vp, const WaveFront image)
+	:WaveFront(image), d_eye(deye), d_pupil(dpupil)
+{
+	vec3 origin{ vp };
+	SetOrigin(origin);
+	Clear();
+}
+
 WaveFront& ImagingWaveFront::SetOrigin(vec3 p)
 {
 	WaveFront::SetOrigin(p);

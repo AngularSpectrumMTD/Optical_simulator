@@ -10,6 +10,7 @@ protected:
 
 public:
 	ImagingWaveFront(void);//constructor to imaging by use of default setting
+	ImagingWaveFront(double deye, double dpupil, vec3 vp, const WaveFront image);//constructor to imaging by use of default setting
 
 	//override WaveFront::SetOrigin()
 	WaveFront& SetOrigin(vec3 p);
