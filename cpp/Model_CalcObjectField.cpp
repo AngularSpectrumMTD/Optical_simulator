@@ -265,8 +265,8 @@ void MODEL::AddFieldToMFB(WaveFront& mfb)
 	sfb.SetOrigin(vec3{ static_cast<float>(w_currentpolygon.w_center.getX() - gapx),
 		static_cast<float>(w_currentpolygon.w_center.getY() - gapy), static_cast<float>(z_mfb) });
 
-	sfb.SetNx(int(bbox.Width() / sfb.GetPx()));
-	sfb.SetNy(int(bbox.Height() / sfb.GetPy()));
+	sfb.SetNx(int(bbox.GetWidth() / sfb.GetPx()));
+	sfb.SetNy(int(bbox.GetHeight() / sfb.GetPy()));
 
 	if (sfb.GetN() <= 0 || sfb.GetN() > mfb.GetN())
 	{
@@ -359,10 +359,10 @@ bool MODEL::PolygonIsVisible()
 	vector<vec3> freq;
 	MarkingRectangularPointsInFourierSpace(freq);
 	BoundingBox originfspace = GetBoundingBox(freq);
-	double originsurface = originfspace.Width() * originfspace.Height();
+	double originsurface = originfspace.GetWidth() * originfspace.GetHeight();
 	mul(freq, rot);
 	BoundingBox fspace = GetBoundingBox(freq);
-	double transedsurface = fspace.Width() * fspace.Height();
+	double transedsurface = fspace.GetWidth() * fspace.GetHeight();
 	if (transedsurface / originsurface < 0.5)
 	{
 		visible = false;
@@ -395,7 +395,10 @@ void MODEL::SetUp(const mat3& rot)
 	*this += w_center;
 	*this *= rot;
 	CalcSurfaceNV();
-	CalcVertexNV();
+	if (w_shader == SMOOTH)
+	{
+		CalcVertexNV();
+	}
 	GenDepthList();
 	CalcPolygonCenter();
 }
@@ -418,7 +421,7 @@ void MODEL::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 	vector<depthListArray> model;
 	depthListArray tmp = w_depthlistArray;
 	double backpos = w_bbox.w_min.getZ();
-	double depth = w_bbox.Depth();
+	double depth = w_bbox.GetDepth();
 
 	for (int i = 0; i < div - 1; i++)
 	{
@@ -524,12 +527,10 @@ void MODEL::ExShieldingAddingField(WaveFront& pfb)
 	WaveFront tfb;
 	tfb.SetPx(tfbpx); tfb.SetPy(tfbpy);
 	tfb.SetLambda(w_lambda);
-	unsigned int tfbnx = (1 / fspace.Width() / pfbpx) * pfb.GetNx();
-	unsigned int tfbny = (1 / fspace.Height() / pfbpy) * pfb.GetNy();
+	unsigned int tfbnx = (1 / fspace.GetWidth() / pfbpx) * pfb.GetNx();
+	unsigned int tfbny = (1 / fspace.GetHeight() / pfbpy) * pfb.GetNy();
 	tfb.SetNx(tfbnx); tfb.SetNy(tfbny);
-	//tfb.SetNx(2*tfbnx); tfb.SetNy(2*tfbny);
-    //tfb.SetNx(4 * tfbnx); tfb.SetNy(4 * tfbny);
-
+	
 	tfb.Init();
 	tfb.pitchtrans();//handle as fourier spectrum
 	//calculate polygon field
@@ -541,7 +542,7 @@ void MODEL::ExShieldingAddingField(WaveFront& pfb)
 	tfb.fft2D(1);
 	tfb /= tfb.GetN();
 	MultiplyAperture(tfb, local);
-	//tfb.SaveBmp("ŠJŒûæŽZŒã.bmp",INTENSITY);//‚¨‚©‚µ‚­‚Í‚È‚¢
+
 	if (w_surface)
 	{
 		WaveFront surface(tfb);
@@ -613,8 +614,8 @@ void MODEL::SilhouetteShieldingAddingField(WaveFront& pfb)
 	WaveFront tfb;
 	tfb.SetPx(tfbpx); tfb.SetPy(tfbpy);
 	tfb.SetLambda(w_lambda);
-	unsigned int tfbnx = (1 / fspace.Width() / pfbpx) * pfb.GetNx();
-	unsigned int tfbny = (1 / fspace.Height() / pfbpy) * pfb.GetNy();
+	unsigned int tfbnx = (1 / fspace.GetWidth() / pfbpx) * pfb.GetNx();
+	unsigned int tfbny = (1 / fspace.GetHeight() / pfbpy) * pfb.GetNy();
 	tfb.SetNx(tfbnx); tfb.SetNy(tfbny);
 
 	tfb.Init();
@@ -835,11 +836,11 @@ void MODEL::Mapping(WaveFront& field, const CurrentPolygon& polyL)
 					+ aa * w_Object[N].w_Triangle[M].w_uv[1].w_v
 					+ bb * w_Object[N].w_Triangle[M].w_uv[2].w_v;
 
-				int U = static_cast<int>(uu * w_Material[matindex].w_TextureImg->Width());
-				int V = static_cast<int>(vv * w_Material[matindex].w_TextureImg->Height());
+				int U = static_cast<int>(uu * w_Material[matindex].w_TextureImg->GetWidth());
+				int V = static_cast<int>(vv * w_Material[matindex].w_TextureImg->GetHeight());
 
-				U = ceil(U % w_Material[matindex].w_TextureImg->Width());
-				V = ceil(V % w_Material[matindex].w_TextureImg->Height());
+				U = ceil(U % w_Material[matindex].w_TextureImg->GetWidth());
+				V = ceil(V % w_Material[matindex].w_TextureImg->GetHeight());
 
 				double r = w_Material[matindex].w_TextureImg->Load(U, V).getX();//r
 				double g = w_Material[matindex].w_TextureImg->Load(U, V).getY();//g

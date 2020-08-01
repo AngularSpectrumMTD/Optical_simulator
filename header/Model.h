@@ -157,9 +157,9 @@
 			w_min = vec3{ static_cast<float>(center.getX() - w / 2), static_cast<float>(center.getY() - h / 2), static_cast<float>(center.getZ() - d / 2) };
 			w_max = vec3{ static_cast<float>(center.getX() + w / 2), static_cast<float>(center.getY() + h / 2), static_cast<float>(center.getZ() + d / 2) };
 		}
-		double Width() { return w_max.getX() - w_min.getX(); }
-		double Height() { return w_max.getY() - w_min.getY(); }
-		double Depth() { return w_max.getZ() - w_min.getZ(); }
+		double GetWidth() const { return w_max.getX() - w_min.getX(); }
+		double GetHeight() const { return w_max.getY() - w_min.getY(); }
+		double GetDepth() const { return w_max.getZ() - w_min.getZ(); }
 	};
 #endif
 #ifndef CUP
@@ -185,8 +185,9 @@
 		{
 			if (v.size() != 3)
 			{
-				printf("\nSetVertex: input vector size is not suit!!");
-				system("pause");
+				printf(">>ERROR: SetVertex: input vector size is not suit!!\n");
+				printf(">>Process is terminated forcibly...\n");
+				exit(0);
 			}
 			w_vertex[0] = v[0];
 			w_vertex[1] = v[1];
@@ -229,9 +230,11 @@
 	//model
 	class MODEL {
 	protected:
-		double w_px;//sampling interval along to x axis of main frame buffer
-		double w_py;//along to y axis
-		double w_lambda;//wavelength
+		double w_px = 1e-6;//sampling interval along to x axis of main frame buffer
+		double w_py = 1e-6;//along to y axis
+		double w_lambda = 633e-9;//wavelength
+
+		bool w_calced_surfaceNV = false;
 
 		FILE* w_fp;//file pointer to handle mqo file
 		char w_buf[255];
@@ -262,9 +265,8 @@
 		void Material_Set();
 		void Face_Set(int Object_num);
 		std::string Split(std::string* str, char str1, char str2);
-	public:
-
 		BoundingBox w_bbox;
+	public:
 		MODEL() {
 		}
 		MODEL(const MODEL& model)
@@ -297,15 +299,15 @@
 		double GetPy() const { return w_py; }
 		double GetLambda() const { return w_lambda; }
 
-		void SetShieldMethod(Shield mtd) { w_shieldmtd = mtd; }
+		void SetShieldMethod(const Shield mtd) { w_shieldmtd = mtd; }
 
-		FILE* FilePointer() { return w_fp; }
-		char Buffer() { return *w_buf; }
-		std::string String() { return w_str; }
-		depthListArray Depthlist() { return w_depthlistArray; }
-		std::vector<MATERIAL> Material() { return w_Material; }
-		std::vector<OBJECT> Object() { return w_Object; }
-		vec3 Emvironment() { return w_EMV; }
+		FILE* GetFilePointer() const { return w_fp; }
+		char GetBuffer() const { return *w_buf; }
+		std::string GetString() const { return w_str; }
+		depthListArray  GetDepthlist() const { return w_depthlistArray; }
+		std::vector<MATERIAL> GetMaterial()  const  { return w_Material; }
+		std::vector<OBJECT> GetObject()  const  { return w_Object; }
+		vec3 GetEmvironment() const { return w_EMV; }
 
 		//Metasequoia
 		bool MQO_Load(const char* FileName);

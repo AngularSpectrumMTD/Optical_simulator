@@ -38,7 +38,7 @@ void WaveFront::SaveBmp(const char* name, Out type)
 			image->Write(i, (w_ny - j - 1), val, val, val, false);// data must be inserted from bottom
 		}
 	}
-	stbi_write_bmp(name, w_nx, w_ny, sizeof(Image::RGB), image->Pixels());
+	stbi_write_bmp(name, w_nx, w_ny, sizeof(Image::RGB), image->GetPixels());
 }
 void WaveFront::Normalize()
 {

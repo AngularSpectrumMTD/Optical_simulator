@@ -50,8 +50,8 @@ void MODEL::Material_Set() {
 			w_Material[w_Material.size() - 1].w_TextureName = Split(&w_str, '\"', '\"');//removing ""
 			char* ptr = (char*)w_Material[w_Material.size() - 1].w_TextureName.c_str();
 			w_Material[w_Material.size() - 1].w_TextureImg = w_Material[w_Material.size() - 1].w_TextureImg->Read_Bmp(ptr);//storing image data
-			for (int i = 0; i < w_Material[w_Material.size() - 1].w_TextureImg->Height(); i++) {
-				for (int j = 0; j < w_Material[w_Material.size() - 1].w_TextureImg->Width(); j++) {
+			for (int i = 0; i < w_Material[w_Material.size() - 1].w_TextureImg->GetHeight(); i++) {
+				for (int j = 0; j < w_Material[w_Material.size() - 1].w_TextureImg->GetWidth(); j++) {
 					w_Material[w_Material.size() - 1].w_TextureImg->Write(j, i,
 						w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).getX()
 						, w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).getY()
@@ -205,10 +205,16 @@ void MODEL::CalcSurfaceNV() {
 
 			(*this).w_Object[n].w_Triangle[m].w_SurfaceNV = normaloftriangle(v0, v1, v2);
 		}
+	w_calced_surfaceNV = true;
 }
 
 void MODEL::CalcVertexNV() {
-
+	if (!w_calced_surfaceNV)
+	{
+		printf(">>ERROR: surface normal vectors have not calculated yet\n");
+		printf(">>Process is terminated forcibly...\n");
+		exit(0);
+	}
 #pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 	{
@@ -295,9 +301,9 @@ void MODEL::AccommodatePolygonInBB()
 	}
 	BoundingBox originalbbox = GetBoundingBox(vec);
 
-	double rx = w_bbox.Width() / originalbbox.Width(),
-		ry = w_bbox.Height() / originalbbox.Height(),
-		rz = w_bbox.Depth() / originalbbox.Depth();
+	double rx = w_bbox.GetWidth() / originalbbox.GetWidth(),
+		ry = w_bbox.GetHeight() / originalbbox.GetHeight(),
+		rz = w_bbox.GetDepth() / originalbbox.GetDepth();
 	//calculating ratio use for accomodating
 
 	//accomodating in desire bbox
