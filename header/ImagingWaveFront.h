@@ -20,8 +20,8 @@ public:
 	void SetPupilDiameter(double dd) { d_pupil = dd; }
 	
 	//getter
-	double GetImagingDistance(void) const { return d_eye; }
-	double GetPupilDiameter(void) const { return d_pupil; }
+	double GetImagingDistance(void) { return d_eye; }
+	double GetPupilDiameter(void) { return d_pupil; }
 
 	void SetEyeParam();
 

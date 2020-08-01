@@ -58,10 +58,11 @@ WaveFront& WaveFront::operator/=(double val)
 
 WaveFront& WaveFront::operator+=(const WaveFront& val)
 {
-	if (w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda)
+	if (!(w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda))
 	{
 		printf(">>ERROR: operator +=: all parameters must be same\n");
 		printf(">>Process is terminated forcibly...\n");
+		system("pause");
 		exit(0);
 	}
 	int i, j;
@@ -78,7 +79,7 @@ WaveFront& WaveFront::operator+=(const WaveFront& val)
 
 WaveFront& WaveFront::operator-=(const WaveFront& val)
 {
-	if (w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda)
+	if (!(w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda))
 	{
 		printf(">>ERROR: operator +=: all parameters must be same\n");
 		printf(">>Process is terminated forcibly...\n");
@@ -98,7 +99,7 @@ WaveFront& WaveFront::operator-=(const WaveFront& val)
 
 WaveFront& WaveFront::operator*=(const WaveFront& val)
 {
-	if (w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda)
+	if (!(w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda))
 	{
 		printf(">>ERROR: operator +=: all parameters must be same\n");
 		printf(">>Process is terminated forcibly...\n");
@@ -118,7 +119,7 @@ WaveFront& WaveFront::operator*=(const WaveFront& val)
 
 WaveFront& WaveFront::operator/=(const WaveFront& val)
 {
-	if (w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda)
+	if (!(w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda))
 	{
 		printf(">>ERROR: operator +=: all parameters must be same\n");
 		printf(">>Process is terminated forcibly...\n");
@@ -138,7 +139,7 @@ WaveFront& WaveFront::operator/=(const WaveFront& val)
 
 WaveFront& WaveFront::operator =(const WaveFront& val)
 {
-	if (w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda)
+	if (!(w_nx == val.w_nx && w_ny == val.w_ny && w_px == val.w_px && w_py == val.w_py && w_lambda == val.w_lambda))
 	{
 		printf(">>ERROR: operator +=: all parameters must be same\n");
 		printf(">>Process is terminated forcibly...\n");
