@@ -90,14 +90,14 @@ public:
 		Image_pix.reset(new RGB[w_nx * w_ny]);
 	}
 
-	int Width() const { return w_nx; }
-	int Height() const { return w_ny; }
-	void* Pixels() const { return Image_pix.get(); }
-	int idxij(int i, int j) { return j * w_nx + i; }
+	int GetWidth() const { return w_nx; }
+	int GetHeight() const { return w_ny; }
+	void* GetPixels() const { return Image_pix.get(); }
+	int idxij(const int i, const int j) const  { return j * w_nx + i; }
 
 	//Load
-	void Write(int i, int j, double R, double G, double B, bool read = true);
-	vec3 Load(int i, int j);
+	void Write(const int i, const int j, const double R, const double G, const double B, const bool read = true);
+	vec3 Load(const int i, const int j);
 	Image* Read_Bmp(const char* filename);
 
 private:

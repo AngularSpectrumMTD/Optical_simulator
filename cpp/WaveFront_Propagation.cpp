@@ -4,7 +4,6 @@ using namespace std;
 void WaveFront::generateFRF(double distance)
 {
 	double k = 1 / w_lambda / w_lambda;
-	pitchtrans();
 	int i, j;
 #pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
 	for (i = 0; i < w_nx; i++)
@@ -55,13 +54,11 @@ void WaveFront::AsmProp(const double R)
 }
 void WaveFront::AsmPropInFourierSpace(const double R)
 {
-	pitchtrans();
 	WaveFront h(w_nx, w_ny, w_px, w_py, w_lambda);
 	h.generateFRF(R);
 	double uband = 2 / (sqrt((2 * h.w_px * R) * (2 * h.w_px * R) + 1) * h.w_lambda);
 	double vband = 2 / (sqrt((2 * h.w_py * R) * (2 * h.w_py * R) + 1) * h.w_lambda);
 	h.bandlimit(uband, vband);// bandlimit
-	pitchtrans();
 	int x, y;
 #pragma omp parallel for private(x, y) numw_threads(omp_get_num_threads())
 	for (y = 0; y < w_ny; ++y)
