@@ -38,7 +38,6 @@ int main()//2048
 	BoundingBox bb(modelwidth, modelheight, modeldepth, vec3(0, 0, -modelcenterdepth));
 
 	char name[200] = "Bunny.mqo";
-	char name[200] = "testtesttest.mqo";
 
 	Model model(name, vec3{ -1,-1,-1 }, SMOOTH, bb, DWIDTH, true);
 
