@@ -123,8 +123,8 @@ public:
 		double real = sqrt(amp * amp - val * val);
 		w_data[idxij(i, j)] = std::complex<double>(real, val);
 	}
-	void SetOrigin(const const vec3 &vec) { w_origin = vec; }
-	void SetNormal(const const vec3 &vec) { w_normal = vec; }
+	void SetOrigin(const vec3 &vec) { w_origin = vec; }
+	void SetNormal(const vec3 &vec) { w_normal = vec; }
 	// basic function
 	int idxij(const int i, const int j) const { return j * w_nx + i; }// return index
 	void CopyParam(const WaveFront& wave) {
