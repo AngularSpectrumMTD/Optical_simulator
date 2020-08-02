@@ -26,3 +26,4 @@ samplecode propagation between non parallel planes.cpp
 samplecode model calculation.cpp
 はmqo(メタセコイア)のモデルをロードし，物体光波を計算するためのものです．
 24bitBMPのテクスチャには対応しています．現在はモデル・テクスチャ共にslnと同一階層にあることが前提です．
+また，Debugでの実行はFFTなどが極端に低速化します．
