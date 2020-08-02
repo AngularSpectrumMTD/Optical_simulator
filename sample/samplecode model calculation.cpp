@@ -1,5 +1,5 @@
-#include"..\include\ImagingWaveFront.h"
-#include"..\include\Model.h"//Model‚ªWaveFront‚ðŠÜ‚ñ‚Å‚¢‚é
+#include"include\ImagingWaveFront.h"
+#include"include\Model.h"//Model‚ªWaveFront‚ðŠÜ‚ñ‚Å‚¢‚é
 
 double lambda = 630e-9;//”g’·[m]
 double Dx = 1e-6;//•W–{ŠÔŠu
@@ -40,7 +40,7 @@ int main()//2048
 	char name[200] = "Bunny.mqo";
 	//char name[200] = "testtesttest.mqo";
 
-	Model model(name, vec3{ -1,-1,-1 }, SMOOTH, bb, DWIDTH, true);
+	MODEL model(name, vec3{ -1,-1,-1 }, SMOOTH, bb, DWIDTH, true);
 
 	model.SetShieldMethod(SILHOUETTE);
 	mat3 id = mat3::identity();
@@ -55,7 +55,7 @@ int main()//2048
 	printf("mfb data");
 	mfb.DispParam();
 
-	printf("Mfb amp %lf", mfb.ComputeMaxAmplitude());
+	printf("Mfb amp %lf", mfb.GetMaxAmplitude());
 
 	vec3 modelcenter = vec3(0, 0, -modelcenterdepth);
 	vec3 view_point = vec3(0, 0, viewpointdepth *2 * 2);

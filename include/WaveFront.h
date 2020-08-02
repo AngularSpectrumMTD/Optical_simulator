@@ -206,7 +206,7 @@ public:
 	WaveFront& ShiftedAsmPropAddEx(const WaveFront& source);
 	void AsmPropInFourierSpace(const double R);
 	void Embed();// embed distribution by 4 times
-	void Extract();// extruct distribution by 4 times
+	void Extract();// extract distribution by 4 times
 	void ExactAsmProp(const double R);// exacterASM
 	double GetWpow2(double u, double v);// return power of w-element of spatial frequency(distinguish evanescent region)
 	mat3 GetRotMat(const vec3 &v) const;// get rotational matrix from 2 vectors v and normal vector of this field

@@ -75,7 +75,8 @@ void WaveFront::Embed()
 	WaveFront tmp(*this);// generate same distribution
 	w_nx *= 2;
 	w_ny *= 2;
-	w_data.reset(new complex<double>[w_nx * w_ny]);
+	//w_data.reset(new complex<double>[w_nx * w_ny]);
+	Init();
 	Clear();
 	int i, j;
 #pragma omp parallel for num_threads(omp_get_num_threads())
@@ -92,7 +93,8 @@ void WaveFront::Extract()
 	WaveFront tmp(*this);// generate same distribution
 	w_nx /= 2;
 	w_ny /= 2;
-	w_data.reset(new complex<double>[w_nx * w_ny]);
+	//w_data.reset(new complex<double>[w_nx * w_ny]);
+	Init();
 	Clear();
 	int i, j;
 #pragma omp parallel for num_threads(omp_get_num_threads())
