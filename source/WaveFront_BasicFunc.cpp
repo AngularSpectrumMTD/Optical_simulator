@@ -53,7 +53,7 @@ double WaveFront::GetPhase(unsigned int i, unsigned int j)const
 	ret = arg(GetPixel(i, j));
 	return ret;
 }
-double WaveFront::GetEnergy()const
+double WaveFront::ComputeEnergy()const
 {
 	double ret = 0;
 	int i, j;
@@ -67,7 +67,7 @@ double WaveFront::GetEnergy()const
 	}
 	return ret;
 }
-double WaveFront::GetMaxAmplitude()const
+double WaveFront::ComputeMaxAmplitude()const
 {
 	int i, j;
 	vector<double> amplitude(w_nx * w_ny);

@@ -6,7 +6,7 @@ int main()
     WaveFront input(256,256,1e-6,1e-6,633e-9);
     double radius = input.GetNx() * input.GetPx()/8;
 
-    input.SetCirc(radius);
+    input.GenerateCirc(radius);
     input.SaveBmp("aperture AMPLITUDE.bmp", AMPLITUDE);
 
     double distance = 0.5e-3;

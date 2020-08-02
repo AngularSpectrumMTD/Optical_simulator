@@ -11,9 +11,9 @@ int main()
 	double radius = 256 * 2e-6 / 8;//円形開口の半径 or ガウス関数の半値幅
 	double rectw = 256 * 2e-6 / 8;//矩形開口の横
 	double recth = 256 * 2e-6 / 8;//矩形開口の縦
-	input.SetCirc(radius);//光波として円形開口を通過した平行光を使用
-	//input.SetGaussian(radius, 2);//光波として2次ガウシアンビームを使用
-	//input.SetRect(rectw, recth);//光波として矩形開口を通過した平行光を使用
+	input.GenerateCirc(radius);//光波として円形開口を通過した平行光を使用
+	//input.GenerateGaussian(radius, 2);//光波として2次ガウシアンビームを使用
+	//input.GenerateRect(rectw, recth);//光波として矩形開口を通過した平行光を使用
 	
 	input.Normalize();//画像出力用に正規化(用意している開口には不要)
 	input.SaveBmp("input test field AMPLITUDE.bmp", AMPLITUDE);//振幅像

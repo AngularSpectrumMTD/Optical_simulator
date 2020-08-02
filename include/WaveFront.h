@@ -188,8 +188,8 @@ public:
 	double GetAmplitude(unsigned int i, unsigned int j)const;
 	double GetIntensity(unsigned int i, unsigned int j)const;
 	double GetPhase(unsigned int i, unsigned int j)const;
-	double GetEnergy()const;
-	double GetMaxAmplitude()const;
+	double ComputeEnergy()const;
+	double ComputeMaxAmplitude()const;
 	void Clear();// reset all complex value as 0
 	void DispMat(mat3 &mat)const;
 	void DispVec(vec3 &vec)const;
@@ -206,9 +206,9 @@ public:
 	WaveFront& LoadBmp(const char* filename);// load bmp
 
 	// Aperture (set basic aperture)
-	void SetCirc(double r);// circular aperture
-	void SetRect(double wx, double wy);// rectangular aperture
-	void SetGaussian(double r, double n);// gaussian beam
+	void GenerateCirc(double r);// circular aperture
+	void GenerateRect(double wx, double wy);// rectangular aperture
+	void GenerateGaussian(double r, double n);// gaussian beam
 
 	// Interpolation (interpolation method)
 	std::complex<double> GetInterpolatedValueNEAREST_NEIGHBOR(double u, double v)const;// nearest neighbor

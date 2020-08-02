@@ -1,7 +1,7 @@
 #include"..\include\WaveFront.h"
 using namespace std;
 // set basic aperture
-void WaveFront::SetCirc(double r)
+void WaveFront::GenerateCirc(double r)
 {
 	int i, j;
 #pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
@@ -23,7 +23,7 @@ void WaveFront::SetCirc(double r)
 		}
 	}
 }
-void WaveFront::SetRect(double wx, double wy)
+void WaveFront::GenerateRect(double wx, double wy)
 {
 	int i, j;
 #pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
@@ -46,7 +46,7 @@ void WaveFront::SetRect(double wx, double wy)
 	}
 		
 }
-void WaveFront::SetGaussian(double r, double n)
+void WaveFront::GenerateGaussian(double r, double n)
 {
 	int i, j;
 #pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
