@@ -18,7 +18,7 @@ int main()
 	input.Normalize();//画像出力用に正規化(用意している開口には不要)
 	input.SaveBmp("input test field AMPLITUDE.bmp", AMPLITUDE);//振幅像
 	input.SaveBmp("input test field PHASE.bmp", PHASE);//位相像
-	//↑引数: ファイル名 出力形式(REAL/IMAGE/PHASE/AMPLITUDE/INTENSITY)
+	//↑引数: ファイル名 出力形式(REAL/IMAGE/PHASE/AMPLITUDE/INTENSITY)//
 
 	//input.ModRandomphase();位相の乱数化 これにより光波が散乱する
 	
