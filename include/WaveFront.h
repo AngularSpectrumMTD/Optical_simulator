@@ -55,50 +55,12 @@ class WaveFront {
 	bool w_real = true;
 	vec3 w_normal = vec3{0.0,0.0,1.0};
 	std::unique_ptr<std::complex<double>[]> w_data;
+	static std::random_device w_rnd;
 public:
 	bool ispow2(unsigned int n) { return (n != 0) && (n & (n - 1)) == 0; }
 	WaveFront() {};
-	WaveFront(int nx, int ny, double px, double py, double lambda)
-		:w_nx(nx), w_ny(ny), w_px(px), w_py(py), w_lambda(lambda) {
-
-		double expX = log(static_cast<double>(nx)) / log(2.0);
-		double expY = log(static_cast<double>(ny)) / log(2.0);
-
-		if (ispow2(nx) == false)
-		{
-			w_nx = nearPow2(pow(2.0, expX));
-		}
-		if (ispow2(ny) == false)
-		{
-			w_ny = nearPow2(pow(2.0, expY));
-		}
-
-		std::complex<double>* mempool = (std::complex<double>*)malloc(sizeof(std::complex<double>) * w_nx * w_ny);
-
-		if (mempool == NULL)
-		{
-			printf(">>ERROR: Required memory is too large. Memory allocation is mistaken...\n");
-			printf(">>Process is terminated forcibly...\n");
-			exit(0);
-		}
-
-		w_data.reset(mempool);
-
-		w_normal = vec3{ 0.0, 0.0, 1.0 };
-	};
-	WaveFront(const WaveFront& a) :w_nx(a.w_nx), w_ny(a.w_ny), w_px(a.w_px), w_py(a.w_py), w_lambda(a.w_lambda) {
-		w_origin = a.w_origin;
-		w_real = a.w_real;
-		w_normal = a.w_normal;
-		w_data.reset(new std::complex<double>[w_nx * w_ny]);
-		for (int i = 0; i < w_nx; i++)
-		{
-			for (int j = 0; j < w_ny; j++)
-			{
-				w_data[idxij(i, j)] = a.w_data[idxij(i, j)];
-			}
-		}
-	};
+	WaveFront(int nx, int ny, double px, double py, double lambda);
+	WaveFront(const WaveFront& a);
 	~WaveFront() {};
 	// getter
 	int GetNx() const{ return w_nx; }

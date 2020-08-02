@@ -55,7 +55,7 @@ int main()//2048
 	printf("mfb data");
 	mfb.DispParam();
 
-	printf("Mfb amp %lf", mfb.GetMaxAmplitude());
+	printf("Mfb amp %lf", mfb.ComputeMaxAmplitude());
 
 	vec3 modelcenter = vec3(0, 0, -modelcenterdepth);
 	vec3 view_point = vec3(0, 0, viewpointdepth *2 * 2);

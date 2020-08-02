@@ -1,5 +1,8 @@
 #include"..\include\WaveFront.h"
 using namespace std;
+
+std::random_device WaveFront::w_rnd;
+
 WaveFront& WaveFront::ModRandomphase()
 {
 	int i, j;
@@ -18,8 +21,8 @@ WaveFront& WaveFront::ModRandomphase()
 }
 double WaveFront::getrandom(double min, double max)
 {
-	random_device rnd;// generate seed
-	mt19937 mt(rnd());// 32bitMT
+	//random_device rnd;// generate seed
+	mt19937 mt(w_rnd());// 32bitMT
 	uniform_real_distribution<> randvul(min, max);
 	return randvul(mt);
 }
