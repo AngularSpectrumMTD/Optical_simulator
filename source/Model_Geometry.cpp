@@ -1,6 +1,6 @@
 ﻿#include"..\include\Model.h"
 
-vec3 MODEL::IntersectPoint(const Ray& ray)
+vec3 Model::IntersectPoint(const Ray& ray)
 {
 	vec3 D = ray.origin();
 	vec3 F = ray.direction();

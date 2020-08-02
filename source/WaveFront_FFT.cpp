@@ -99,6 +99,8 @@ void WaveFront::fft1D(unique_ptr <complex<double>[]>& x, int n, int func)
 }
 void WaveFront::fft2D(int func)
 {
+	QueryPerformanceFrequency(&w_freq);
+	QueryPerformanceCounter(&w_start);
 	this->pitchtrans();
 	this->swap();
 	int i, j;
@@ -134,4 +136,6 @@ void WaveFront::fft2D(int func)
 		}
 	}
 	this->swap();
+	QueryPerformanceCounter(&w_end);
+	w_time_fft += getdeltatime();
 }

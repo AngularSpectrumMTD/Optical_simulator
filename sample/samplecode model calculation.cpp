@@ -40,7 +40,7 @@ int main()//2048
 	char name[200] = "Bunny.mqo";
 	//char name[200] = "testtesttest.mqo";
 
-	MODEL model(name, vec3{ -1,-1,-1 }, SMOOTH, bb, DWIDTH, true);
+	Model model(name, vec3{ -1,-1,-1 }, SMOOTH, bb, DWIDTH, true);
 
 	model.SetShieldMethod(SILHOUETTE);
 	mat3 id = mat3::identity();

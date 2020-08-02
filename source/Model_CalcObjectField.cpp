@@ -1,7 +1,7 @@
 #include"..\include\Model.h"
 #include <numeric>
 using namespace std;
-void MODEL::RotInFourierSpaceForward(const WaveFront& origin, WaveFront& reference, vec3* c, Interp interp)
+void Model::RotInFourierSpaceForward(const WaveFront& origin, WaveFront& reference, vec3* c, Interp interp)
 {
 	reference.Clear();
 	mat3 rot = reference.GetRotMat(origin.GetNormal());//get rotation matrix
@@ -49,7 +49,7 @@ void MODEL::RotInFourierSpaceForward(const WaveFront& origin, WaveFront& referen
 		*c = source0;
 	}
 }
-void MODEL::RotInFourierSpaceBackward(const WaveFront& origin, WaveFront& reference, const vec3& c, Interp interp)
+void Model::RotInFourierSpaceBackward(const WaveFront& origin, WaveFront& reference, const vec3& c, Interp interp)
 {
 	reference.Clear();
 	mat3 rot = reference.GetRotMat(origin.GetNormal());//get rotation matrix
@@ -87,14 +87,14 @@ void MODEL::RotInFourierSpaceBackward(const WaveFront& origin, WaveFront& refere
 		}
 	}
 }
-mat3 MODEL::RotMatFromG2L(const vec3 &global, const vec3 &local)
+mat3 Model::RotMatFromG2L(const vec3 &global, const vec3 &local)
 {
 	double angle = acos(dot(global, local));
 	vec3 axis = normalize(cross(global, local));
 	mat3 ret = mat3::rotation(angle, axis);
 	return ret;
 }
-mat3 MODEL::G2L()
+mat3 Model::G2L()
 {
 	mat3 ret = mat3::identity();
 	vec3 unitn = normalize(w_currentpolygon.w_surfacenormal);
@@ -106,7 +106,7 @@ mat3 MODEL::G2L()
 	ret = RotMatFromG2L(unitn, unit);
 	return ret;
 }
-BoundingBox MODEL::GetDiffractionRect(const double targetZ)
+BoundingBox Model::GetDiffractionRect(const double targetZ)
 {
 	double z;
 	z = w_currentpolygon.w_center.getZ();
@@ -149,7 +149,7 @@ BoundingBox MODEL::GetDiffractionRect(const double targetZ)
 
 	return bb;
 }
-void MODEL::SetCurrentPolygon(const depthList dpl)
+void Model::SetCurrentPolygon(const depthList dpl)
 {
 	w_currentpolygon.w_objidx = dpl.objidx;
 	w_currentpolygon.w_faceidx = dpl.faceidx;
@@ -179,7 +179,7 @@ void MODEL::SetCurrentPolygon(const depthList dpl)
 	w_currentpolygon.w_uv[2] = (*this).w_Object[n].w_Triangle[m].w_uv[2];
 
 }
-void MODEL::ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir)
+void Model::ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir)
 {
 	//matching coordinate
 	double x = (sub.itox(0) + sub.GetOrigin().getX()) - (frame.itox(0) + frame.GetOrigin().getX());
@@ -244,8 +244,13 @@ void MODEL::ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir)
 		}
 	}
 }
-void MODEL::AddFieldToMFB(WaveFront& mfb)
+void Model::AddFieldToMFB(WaveFront& mfb)
 {
+	//------------------------------------------------------
+	QueryPerformanceFrequency(&w_freq);
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
+
 	double z_mfb = mfb.GetOrigin().getZ();//z pos of mfb
 
 	double z_ap = w_currentpolygon.w_center.getZ();//z pos of aperture
@@ -268,29 +273,57 @@ void MODEL::AddFieldToMFB(WaveFront& mfb)
 	sfb.SetNx(int(bbox.GetWidth() / sfb.GetPx()));
 	sfb.SetNy(int(bbox.GetHeight() / sfb.GetPy()));
 
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
+
 	if (sfb.GetN() <= 0 || sfb.GetN() > mfb.GetN())
 	{
 		printf("return->");
 		return;
 	}
 
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
+
 	sfb.Init(); sfb.Clear();
 	//clipping field from mfb to sfb
 	ClipSubfield(sfb, mfb, true);
+
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
 
 	//-----------------------------Silhouette
 	if (w_shieldmtd == SILHOUETTE)
 	{
 		if (d > w_lambda)
 		{
+			//------------------------------------------------------
+			QueryPerformanceCounter(&w_start);
+			//------------------------------------------------------
 			sfb.AsmProp(d);//mfb to sfb
+			//------------------------------------------------------
+			QueryPerformanceCounter(&w_end);
+			w_time_fft += getdeltatime();
+			//------------------------------------------------------
 		}
 
 		SilhouetteShieldingAddingField(sfb);//execute occlusion processing
 
 		if (d > w_lambda)
 		{
+			//------------------------------------------------------
+			QueryPerformanceCounter(&w_start);
+			//------------------------------------------------------
 			sfb.AsmProp(-d);//sfb to mfb
+			//------------------------------------------------------
+			QueryPerformanceCounter(&w_end);
+			w_time_fft += getdeltatime();
+			//------------------------------------------------------
 		}
 	}
 	//-----------------------------
@@ -298,14 +331,25 @@ void MODEL::AddFieldToMFB(WaveFront& mfb)
 	//-----------------------------Ex
 	if (w_shieldmtd == EXACT)
 	{
+		//------------------------------------------------------
+		QueryPerformanceCounter(&w_start);
+		//------------------------------------------------------
 		sfb.fft2D(-1);
 
 		if (d > w_lambda)
 		{
 			sfb.AsmPropInFourierSpace(d);//mfb to sfb
 		}
+		//------------------------------------------------------
+		QueryPerformanceCounter(&w_end);
+		w_time_fft += getdeltatime();
+		//------------------------------------------------------
 
 		ExShieldingAddingField(sfb);//execute occlusion processing
+
+		//------------------------------------------------------
+		QueryPerformanceCounter(&w_start);
+		//------------------------------------------------------
 
 		if (d > w_lambda)
 		{
@@ -314,12 +358,23 @@ void MODEL::AddFieldToMFB(WaveFront& mfb)
 
 		sfb.fft2D(1);
 		sfb /= sfb.GetN();//get field on real space
+		//------------------------------------------------------
+		QueryPerformanceCounter(&w_end);
+		w_time_fft += getdeltatime();
+		//------------------------------------------------------
 	}
 	//-----------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	//pasting field from sfb to mfb
 	ClipSubfield(sfb, mfb, false);
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
 }
-void MODEL::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
+void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 {
 	//double frameZ = mfb.GetOrigin().getZ();
 	SortByDepth(list);
@@ -350,7 +405,7 @@ void MODEL::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 		n++;
 	}
 }
-bool MODEL::PolygonIsVisible()
+bool Model::PolygonIsVisible()
 {
 	bool visible = true;
 
@@ -370,7 +425,7 @@ bool MODEL::PolygonIsVisible()
 
 	return visible;
 }
-void MODEL::CalcCenterOfModel(depthListArray& model)
+void Model::CalcCenterOfModel(depthListArray& model)
 {
 	vector<vec3> vec(model.w_list.size() * 3);
 	int i = 0;
@@ -387,7 +442,7 @@ void MODEL::CalcCenterOfModel(depthListArray& model)
 	BoundingBox bbdx = GetBoundingBox(vec);
 	model.w_modelcenter = bbdx.w_center;
 }
-void MODEL::SetUp(const mat3& rot)
+void Model::SetUp(const mat3& rot)
 {
 	AccommodatePolygonInBB();
 	CalcModelCenter();
@@ -402,7 +457,7 @@ void MODEL::SetUp(const mat3& rot)
 	GenDepthList();
 	CalcPolygonCenter();
 }
-void MODEL::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& rot, bool exact, bool back)
+void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& rot, bool exact, bool back)
 {
 	switch (w_shieldmtd)
 	{
@@ -477,9 +532,15 @@ void MODEL::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 		}
 	}
 	printf("\nCalculation Fnish");
+	dispTotalTime();
 }
-void MODEL::ExShieldingAddingField(WaveFront& pfb)
+void Model::ExShieldingAddingField(WaveFront& pfb)
 {
+	//------------------------------------------------------
+	QueryPerformanceFrequency(&w_freq);
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
+
 	//saving sampling interval in real space
 	double pfbpx = 1.0 / pfb.GetNx() / pfb.GetPx();
 	double pfbpy = 1.0 / pfb.GetNy() / pfb.GetPy();
@@ -537,10 +598,32 @@ void MODEL::ExShieldingAddingField(WaveFront& pfb)
 	vec3 carrier;
     tfb.SetNormal(rot * pfb.GetNormal());
 	tfb.SetOrigin(pfb.GetOrigin());
+
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	//--------------------------------------execute on polygon surface
 	RotInFourierSpaceForward(pfb, tfb, &carrier, BICUBIC);//pfb to tfb
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_interpol += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	tfb.fft2D(1);
 	tfb /= tfb.GetN();
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_fft += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	MultiplyAperture(tfb, local);
 
 	if (w_surface)
@@ -551,14 +634,37 @@ void MODEL::ExShieldingAddingField(WaveFront& pfb)
 		GeneratePolygonField(surface, local);
 		tfb += surface;
 	}
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	tfb.fft2D(-1);
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_fft += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	//----------------------------------------------------------------
 	RotInFourierSpaceBackward(tfb, pfb, carrier, BICUBIC);//tfb to pfb
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_interpol += getdeltatime();
+	//------------------------------------------------------
 
 	pfb.SetOrigin(pfborigin);
 }
-void MODEL::SilhouetteShieldingAddingField(WaveFront& pfb)
+void Model::SilhouetteShieldingAddingField(WaveFront& pfb)
 {
+	//------------------------------------------------------
+	QueryPerformanceFrequency(&w_freq);
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
+
 	//saving sampling interval in real space
 	double pfbpx = pfb.GetPx();
 	double pfbpy = pfb.GetPy();
@@ -629,25 +735,62 @@ void MODEL::SilhouetteShieldingAddingField(WaveFront& pfb)
 	{
 		GeneratePolygonField(tfb, local);
 	}
-
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	tfb.fft2D(-1);
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_fft += getdeltatime();
+	//------------------------------------------------------
 	//----------------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	WaveFront field(pfb);
 	field.pitchtrans();
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	RotInFourierSpaceBackward(tfb, field, carrier, BICUBIC);//tfb to pfb
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_interpol += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	field.fft2D(1);
 	field /= field.GetN();
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_fft += getdeltatime();
+	//------------------------------------------------------
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_start);
+	//------------------------------------------------------
 	pfb += field;
-	
+	//------------------------------------------------------
+	QueryPerformanceCounter(&w_end);
+	w_time_other += getdeltatime();
+	//------------------------------------------------------
 	pfb.SetOrigin(pfborigin);
 }
-void MODEL::GeneratePolygonField(WaveFront& field, const CurrentPolygon& polyL)
+void Model::GeneratePolygonField(WaveFront& field, const CurrentPolygon& polyL)
 {
 	CurrentPolygon dummyl(polyL);
 	Shading(field, dummyl);
 	Mapping(field, dummyl);
 }
-void MODEL::Shading(WaveFront& field, const CurrentPolygon& polyL)
+void Model::Shading(WaveFront& field, const CurrentPolygon& polyL)
 {
 	switch (w_shader)
 	{
@@ -659,7 +802,7 @@ void MODEL::Shading(WaveFront& field, const CurrentPolygon& polyL)
 		break;
 	}
 }
-void MODEL::FlatShading(WaveFront& field, const CurrentPolygon& polyL)
+void Model::FlatShading(WaveFront& field, const CurrentPolygon& polyL)
 {
 	double brt;
 	w_currentpolygon.w_surfacenormal = normalize(w_currentpolygon.w_surfacenormal);
@@ -677,7 +820,7 @@ void MODEL::FlatShading(WaveFront& field, const CurrentPolygon& polyL)
 	PaintTriangle(field, polyL, brt);
 	field.ModRandomphase();
 }
-double MODEL::GetCorrectedAmplitude(WaveFront& tfb, double brt)
+double Model::GetCorrectedAmplitude(WaveFront& tfb, double brt)
 {
 	double samplingdensity = w_px * w_py / (tfb.GetPx() * tfb.GetPy());
 	double theta = acos(dot(tfb.GetNormal(), vec3{ 0.0, 0.0, 1.0 }));
@@ -691,7 +834,7 @@ double sign(vec3 p0, vec3 p1, vec3 p2)
 {
 	return (p0.getX() - p2.getX()) * (p1.getY() - p2.getY()) - (p1.getX() - p2.getX()) * (p0.getY() - p2.getY());
 }
-bool MODEL::IsInTriangle(vec3 p, const CurrentPolygon& polyL)
+bool Model::IsInTriangle(vec3 p, const CurrentPolygon& polyL)
 {
 	bool b0, b1, b2;
 	b0 = sign(p, polyL.w_vertex[0], polyL.w_vertex[1]) < 0.0;
@@ -700,7 +843,7 @@ bool MODEL::IsInTriangle(vec3 p, const CurrentPolygon& polyL)
 
 	return ((b0 == b1) && (b1 == b2));
 }
-void MODEL::SmoothShading(WaveFront& field, const CurrentPolygon& polyL)
+void Model::SmoothShading(WaveFront& field, const CurrentPolygon& polyL)
 {
 	int i, j;
 
@@ -781,7 +924,7 @@ double beta(vec3 p, vec3 p0, vec3 p1, vec3 p2)
 	ret /= (p1.getY() - p2.getY()) * (p0.getX() - p2.getX()) + (p2.getX() - p1.getX()) * (p0.getY() - p2.getY());
 	return ret;
 }
-void MODEL::Mapping(WaveFront& field, const CurrentPolygon& polyL)
+void Model::Mapping(WaveFront& field, const CurrentPolygon& polyL)
 {
 	int matindex = w_Object[polyL.w_objidx].w_Triangle[polyL.w_faceidx].w_MaterialID;
 	if (w_Material[matindex].w_texexist == false)
@@ -856,7 +999,7 @@ void MODEL::Mapping(WaveFront& field, const CurrentPolygon& polyL)
 		}
 	}
 }
-void MODEL::PaintTriangle(WaveFront& tfb, const CurrentPolygon& polyL, double amp)
+void Model::PaintTriangle(WaveFront& tfb, const CurrentPolygon& polyL, double amp)
 {
 	int i, j;
 	//inside: zero clear
@@ -879,7 +1022,7 @@ void MODEL::PaintTriangle(WaveFront& tfb, const CurrentPolygon& polyL, double am
 		}
 	}
 }
-void MODEL::MultiplyAperture(WaveFront& tfb, const CurrentPolygon& polyL)
+void Model::MultiplyAperture(WaveFront& tfb, const CurrentPolygon& polyL)
 {
 	int i, j;
 	//inside: zero clear
@@ -902,7 +1045,7 @@ void MODEL::MultiplyAperture(WaveFront& tfb, const CurrentPolygon& polyL)
 		}
 	}
 }
-void MODEL::MarkingRectangularPointsInFourierSpace(vector<vec3>& vec)
+void Model::MarkingRectangularPointsInFourierSpace(vector<vec3>& vec)
 {
 	double invlambda2 = 1 / w_lambda / w_lambda;
 
@@ -930,7 +1073,7 @@ void MODEL::MarkingRectangularPointsInFourierSpace(vector<vec3>& vec)
 		}
 	}
 }
-BoundingBox MODEL::GetBoundingBox(const vector<vec3> &vec)
+BoundingBox Model::GetBoundingBox(const vector<vec3> &vec)
 {
 	BoundingBox bbox;
 

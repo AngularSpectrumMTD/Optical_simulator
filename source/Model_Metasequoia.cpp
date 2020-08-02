@@ -1,18 +1,18 @@
 #include"..\include\Model.h"
 using namespace std;
 //spliting string
-string MODEL::Split(string* str, char str1, char str2) {
+string Model::Split(string* str, char str1, char str2) {
 	string::size_type start = str->find(str1);
 	string::size_type end = str->rfind(str2);
 	return str->substr(start + 1, end - start - 1);
 }
 //setting material
-void MODEL::Material_Set() {
-	int MATERIALNUM = 0;
-	fscanf_s(w_fp, "%d", &MATERIALNUM);//material num
-	for (int i = 0; i < MATERIALNUM; i++)
+void Model::Material_Set() {
+	int MaterialNUM = 0;
+	fscanf_s(w_fp, "%d", &MaterialNUM);//material num
+	for (int i = 0; i < MaterialNUM; i++)
 	{
-		MATERIAL mtl;
+		Material mtl;
 		w_Material.push_back(mtl);
 		w_Material[w_Material.size() - 1].w_MaterialID = i;
 		fscanf_s(w_fp, "%s", w_buf, 255);//skipping {
@@ -62,9 +62,9 @@ void MODEL::Material_Set() {
 	}
 }
 //setting vertex coordinate
-void MODEL::Vertex_Set() {
+void Model::Vertex_Set() {
 	int Vertex_Max;
-	VERTEX V;
+	Vertex V;
 	float x, y, z;
 	fscanf_s(w_fp, "%d", &Vertex_Max);//vertex num
 
@@ -78,7 +78,7 @@ void MODEL::Vertex_Set() {
 	fscanf_s(w_fp, "%s", w_buf, 255);
 }
 //setting faceset infomation (because of implement status, user can use only triangular polygon currently)
-void MODEL::Face_Set(int OBJECT_index) {
+void Model::Face_Set(int Object_index) {
 	int Face_Max;
 	int Face;
 	char* buf2;
@@ -88,7 +88,7 @@ void MODEL::Face_Set(int OBJECT_index) {
 	for (int i = 0; i < Face_Max; i++) {
 		fscanf_s(w_fp, "%d", &Face);
 		if (Face == 3) {
-			TRIANGLE tri;
+			Triangle tri;
 			w_Object[w_Object.size() - 1].w_Triangle.push_back(tri);
 			fgets(w_buf, 255, w_fp);
 			if ((buf2 = strstr(w_buf, "V(")) != NULL) {
@@ -116,7 +116,7 @@ void MODEL::Face_Set(int OBJECT_index) {
 			printf(">>ERROR: User can only use triangular polygon currently through my negligence...\n");
 			printf(">>Process is terminated forcibly...\n");
 			exit(0);
-			QUADRILATERAL quad;
+			Quadrilateral quad;
 			w_Object[w_Object.size() - 1].w_Quadrilateral.push_back(quad);
 			fgets(w_buf, 255, w_fp);
 			if ((buf2 = strstr(w_buf, "V(")) != NULL) {
@@ -155,14 +155,14 @@ void MODEL::Face_Set(int OBJECT_index) {
 	fscanf_s(w_fp, "%s", w_buf, 255);
 }
 //Loading mqo file
-bool MODEL::MQO_Load(const char* FileName) {
+bool Model::MQO_Load(const char* FileName) {
 	int objnum = 0;
 	if (fopen_s(&w_fp, FileName, "r") != 0) { return false; }
 	while (!feof(w_fp)) {
 		fscanf_s(w_fp, "%s", w_buf, 255);
 		if (!strcmp(w_buf, "Material")) { Material_Set(); }
 		if (!strcmp(w_buf, "Object")) {
-			OBJECT obj;
+			Object obj;
 			w_Object.push_back(obj);
 			fscanf_s(w_fp, "%s", w_buf, 255);
 			w_Object[w_Object.size() - 1].w_Name = w_buf;
@@ -187,7 +187,7 @@ vec3 normaloftriangle(vec3 v0, vec3 v1, vec3 v2)
 	return ret;
 }
 
-void MODEL::CalcSurfaceNV() {
+void Model::CalcSurfaceNV() {
 	vec3 v0, v1, v2;
 	WaveFront a;
 	int index0, index1, index2;
@@ -208,7 +208,7 @@ void MODEL::CalcSurfaceNV() {
 	w_calced_surfaceNV = true;
 }
 
-void MODEL::CalcVertexNV() {
+void Model::CalcVertexNV() {
 	if (!w_calced_surfaceNV)
 	{
 		printf(">>ERROR: surface normal vectors have not calculated yet\n");
@@ -244,7 +244,7 @@ void MODEL::CalcVertexNV() {
 	}
 
 }
-void MODEL::GenDepthList()
+void Model::GenDepthList()
 {
 	int N = 0;
 
@@ -266,11 +266,11 @@ void MODEL::GenDepthList()
 		}
 }
 //sorting from far to near according to z value of center of polygon
-void MODEL::SortByDepth(depthListArray& list)
+void Model::SortByDepth(depthListArray& list)
 {
 	sort(list.w_list.begin(), list.w_list.end());
 }
-void MODEL::DivideByDepth(depthListArray& front, depthListArray& back, double z)
+void Model::DivideByDepth(depthListArray& front, depthListArray& back, double z)
 {
 	depthListArray temp(w_depthlistArray);
 	depthListArray tempfront, tempback;
@@ -287,7 +287,7 @@ void MODEL::DivideByDepth(depthListArray& front, depthListArray& back, double z)
 	back = tempback;
 }
 
-void MODEL::AccommodatePolygonInBB()
+void Model::AccommodatePolygonInBB()
 {
 	vector<vec3> vec;
 	vec3 v;
@@ -334,7 +334,7 @@ void MODEL::AccommodatePolygonInBB()
 	}
 }
 
-vec3 MODEL::center(const vec3 &p0, const vec3 &p1, const vec3 &p2)
+vec3 Model::center(const vec3 &p0, const vec3 &p1, const vec3 &p2)
 {
 	vector<vec3> vect = { p0, p1, p2 };
 	BoundingBox bbox = GetBoundingBox(vect);
@@ -344,7 +344,7 @@ vec3 MODEL::center(const vec3 &p0, const vec3 &p1, const vec3 &p2)
 	return centerG;
 }
 
-void MODEL::CalcPolygonCenter() {
+void Model::CalcPolygonCenter() {
 #pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 		for (int m = 0; m < (*this).w_Object[n].w_Triangle.size(); ++m)
@@ -359,7 +359,7 @@ void MODEL::CalcPolygonCenter() {
 		}
 }
 
-void MODEL::CalcModelCenter() {
+void Model::CalcModelCenter() {
 	BoundingBox bb;
 	vector<vec3> vec;
 #pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())

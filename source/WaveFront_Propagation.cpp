@@ -166,6 +166,8 @@ vec3 WaveFront::GetUnitVector_alongY() const
 
 void WaveFront::RotInFourierSpace(WaveFront& source, Interp interp, vec3* carrier)
 {
+	QueryPerformanceFrequency(&w_freq);
+	QueryPerformanceCounter(&w_start);
 	WaveFront& reference = *this;
 	mat3 rot = reference.GetRotMat(source.w_normal);//get rotation matrix
 	
@@ -209,6 +211,8 @@ void WaveFront::RotInFourierSpace(WaveFront& source, Interp interp, vec3* carrie
 	{
 		*carrier = source0;
 	}
+	QueryPerformanceCounter(&w_end);
+	w_time_interpol += getdeltatime();
 }
 void WaveFront::TiltedAsmProp(WaveFront& source, Interp interp, vec3* carrier)
 {

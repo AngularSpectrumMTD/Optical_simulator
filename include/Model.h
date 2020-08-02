@@ -56,7 +56,7 @@
 #ifndef TRI
 #define TRI
 	//triangular face
-	struct TRIANGLE {
+	struct Triangle {
 		int w_MaterialID;//material No.
 		int w_Index[3];//index
 		UV w_uv[3];//uv info.
@@ -68,7 +68,7 @@
 #ifndef QUAD
 #define QUAD
 	//quadrilateral face
-	struct QUADRILATERAL {
+	struct Quadrilateral {
 		int w_MaterialID;
 		int w_Index[4];
 		UV w_uv[4];
@@ -78,7 +78,7 @@
 #ifndef VTX
 #define VTX
 	//vertex
-	struct VERTEX {
+	struct Vertex {
 		vec3 w_Coord;//coordinate
 		vec3 w_VertexNV;//vertex normal
 	};
@@ -86,17 +86,17 @@
 #ifndef OBJ
 #define OBJ
 	//object
-	struct OBJECT {
+	struct Object {
 		std::string w_Name;//object name
-		std::vector<VERTEX> w_Vertex;//vertex data
-		std::vector<TRIANGLE> w_Triangle;
-		std::vector<QUADRILATERAL> w_Quadrilateral;
+		std::vector<Vertex> w_Vertex;//vertex data
+		std::vector<Triangle> w_Triangle;
+		std::vector<Quadrilateral> w_Quadrilateral;
 	};
 #endif
 #ifndef MATE
 #define MATE
 	//material
-	struct MATERIAL {
+	struct Material {
 		int w_MaterialID;//ID
 		std::string w_MaterialName;//material name
 		Color4 w_Color;//color
@@ -228,7 +228,7 @@
 #ifndef MODELL
 #define MODELL
 	//model
-	class MODEL {
+	class Model {
 	protected:
 		double w_px = 1e-6;//sampling interval along to x axis of main frame buffer
 		double w_py = 1e-6;//along to y axis
@@ -240,8 +240,8 @@
 		char w_buf[255];
 		std::string w_str;
 		depthListArray w_depthlistArray;//array of depthlist(contain polygon index and z value of center of it)
-		std::vector<MATERIAL> w_Material;
-		std::vector<OBJECT> w_Object;
+		std::vector<Material> w_Material;
+		std::vector<Object> w_Object;
 		vec3 w_EMV = vec3{0.0,0.0,-1.0};//vector of ambient light
 
 		Shader w_shader;//shading method
@@ -266,10 +266,20 @@
 		void Face_Set(int Object_num);
 		std::string Split(std::string* str, char str1, char str2);
 		BoundingBox w_bbox;
+
+		double w_time_fft = 0;
+		double w_time_interpol = 0;
+		double w_time_other = 0;
+
+		LARGE_INTEGER w_freq;
+		LARGE_INTEGER w_start;
+		LARGE_INTEGER w_end;
+		double getdeltatime() { return (w_end.QuadPart - w_start.QuadPart) * 1000.0 / w_freq.QuadPart; }
+		void dispTotalTime() { printf("\nFFT: %lf [ms] INTERPOL: %lf [ms] OTHER: %lf [ms]\n", w_time_fft, w_time_interpol, w_time_other); }
 	public:
-		MODEL() {
+		Model() {
 		}
-		MODEL(const MODEL& model)
+		Model(const Model& model)
 		{
 			w_fp = model.w_fp;
 			strcpy(w_buf, model.w_buf);
@@ -283,7 +293,7 @@
 			w_px = model.w_px;
 			w_py = model.w_py;
 		}
-		MODEL(const char* FileName, vec3 emv, Shader shade, BoundingBox bb, Direction dir, bool surface): 
+		Model(const char* FileName, vec3 emv, Shader shade, BoundingBox bb, Direction dir, bool surface): 
 			w_shader(shade),w_dir(dir),w_surface(surface) {
 			if(MQO_Load(FileName))
               w_bbox = bb;
@@ -293,7 +303,7 @@
 				system("pause");
 			}
 		}
-		~MODEL()
+		~Model()
 		{}
 		double GetPx() const { return w_px; }
 		double GetPy() const { return w_py; }
@@ -305,8 +315,8 @@
 		char GetBuffer() const { return *w_buf; }
 		std::string GetString() const { return w_str; }
 		depthListArray  GetDepthlist() const { return w_depthlistArray; }
-		std::vector<MATERIAL> GetMaterial()  const  { return w_Material; }
-		std::vector<OBJECT> GetObject()  const  { return w_Object; }
+		std::vector<Material> GetMaterial()  const  { return w_Material; }
+		std::vector<Object> GetObject()  const  { return w_Object; }
 		vec3 GetEmvironment() const { return w_EMV; }
 
 		//Metasequoia
@@ -367,8 +377,8 @@
 		vec3 IntersectPoint(const Ray &ray);
 
 		//Operator
-		MODEL& operator +=(const vec3& vec);
-		MODEL& operator *=(const mat3& mat);
+		Model& operator +=(const vec3& vec);
+		Model& operator *=(const mat3& mat);
 		void mul(std::vector<vec3>& vec, const mat3& mat);
 		void sub(std::vector<vec3>& vec, const vec3& vv);
 		void fouriermul(std::vector<vec3>& vec, const mat3& mat);

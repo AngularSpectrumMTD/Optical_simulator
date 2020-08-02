@@ -44,7 +44,7 @@ enum Axis
 	Y_AXIS
 };
 #endif
-
+#include<windows.h>
 class WaveFront {
 	int w_nx = 0;
 	int w_ny = 0;
@@ -56,7 +56,18 @@ class WaveFront {
 	vec3 w_normal = vec3{0.0,0.0,1.0};
 	std::unique_ptr<std::complex<double>[]> w_data;
 	static std::random_device w_rnd;
+
+	double w_time_fft = 0;
+	double w_time_interpol = 0;
+	double w_time_random = 0;
+
+	LARGE_INTEGER w_freq;
+	LARGE_INTEGER w_start;
+	LARGE_INTEGER w_end;
+	double getdeltatime() { return (w_end.QuadPart - w_start.QuadPart) * 1000.0 / w_freq.QuadPart; }
+
 public:
+	void dispTotalTime() { printf("FFT: %lf [ms] INTERPOL: %lf [ms] RANDOM: %lf [ms]", w_time_fft, w_time_interpol, w_time_random); }
 	bool ispow2(unsigned int n) { return (n != 0) && (n & (n - 1)) == 0; }
 	WaveFront() {};
 	WaveFront(int nx, int ny, double px, double py, double lambda);
