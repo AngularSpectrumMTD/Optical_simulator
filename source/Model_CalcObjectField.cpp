@@ -395,6 +395,12 @@ void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 			if (div >= 20 && n % div == 0)
 			{
 				printf("%d%% ", count);
+				if (mfb.ComputeMaxAmplitude() > 100)
+				{
+					printf(">>ERROR: amplitude of frame is exceed the limit. This value is too large. \n Plz, considering to expand model size or pixel size.\n");
+					printf(">>Process is terminated forcibly...\n");
+					exit(0);
+				}
 				count += 5;
 			}
 			else

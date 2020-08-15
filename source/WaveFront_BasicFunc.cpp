@@ -2,6 +2,31 @@
 //#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include"..\include\WaveFront.h"
 using namespace std;
+WaveFront::WaveFront(int nx, int ny) :w_nx(nx), w_ny(ny)
+{
+	double expX = log(static_cast<double>(nx)) / log(2.0);
+	double expY = log(static_cast<double>(ny)) / log(2.0);
+
+	if (ispow2(nx) == false)
+	{
+		w_nx = nearPow2(pow(2.0, expX));
+	}
+	if (ispow2(ny) == false)
+	{
+		w_ny = nearPow2(pow(2.0, expY));
+	}
+
+	std::complex<double>* mempool = (std::complex<double>*)malloc(sizeof(std::complex<double>) * w_nx * w_ny);
+
+	if (mempool == NULL)
+	{
+		printf(">>ERROR: Required memory is too large. Memory allocation is mistaken...\n");
+		printf(">>Process is terminated forcibly...\n");
+		exit(0);
+	}
+
+	w_data.reset(mempool);
+}
 WaveFront::WaveFront(int nx, int ny, double px, double py, double lambda)
 	:w_nx(nx), w_ny(ny), w_px(px), w_py(py), w_lambda(lambda) {
 

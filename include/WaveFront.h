@@ -44,6 +44,28 @@ enum Axis
 	Y_AXIS
 };
 #endif
+#ifndef PLANE
+struct Plane
+{
+	vec3 w_normal;
+	vec3 w_point;
+	Plane(vec3 n, vec3 p) : w_normal(n), w_point(p) {}
+	double GetDistance(const vec3 &point)
+	{
+		double d = -(w_normal.getX() * w_point.getX()
+			+ w_normal.getY() * w_point.getY()
+			+ w_normal.getZ() * w_point.getZ());
+
+		double dp = w_normal.getX() * point.getX()
+			+ w_normal.getY() * point.getY()
+			+ w_normal.getZ() * point.getZ();
+
+		double D = length(w_normal);
+
+		return abs(dp + d) / D;
+	}
+};
+#endif
 #include<windows.h>
 class WaveFront {
 	int w_nx = 0;
@@ -70,6 +92,7 @@ public:
 	void dispTotalTime() { printf("FFT: %lf [ms] INTERPOL: %lf [ms] RANDOM: %lf [ms]", w_time_fft, w_time_interpol, w_time_random); }
 	bool ispow2(unsigned int n) { return (n != 0) && (n & (n - 1)) == 0; }
 	WaveFront() {};
+	WaveFront(int nx, int ny);
 	WaveFront(int nx, int ny, double px, double py, double lambda);
 	WaveFront(const WaveFront& a);
 	~WaveFront() {};
@@ -214,8 +237,8 @@ public:
 	mat3 L2G() const;
 	vec3 GetUnitVector_alongX() const;
 	vec3 GetUnitVector_alongY() const;
-	void RotInFourierSpace(WaveFront& reference, Interp interp, vec3 *carrier = nullptr);// rotation in fourier space
-	void TiltedAsmProp(WaveFront& reference, Interp interp, vec3* carrier = nullptr);//execute calculation of optical diffraction between non-parallel planes
+	void RotInFourierSpace(WaveFront& source, Interp interp, vec3 *carrier = nullptr);// rotation in fourier space
+	void TiltedAsmProp(WaveFront& source, Interp interp, vec3* carrier = nullptr);//execute calculation of optical diffraction between non-parallel planes
 	
 	// Random (function related to random)
 	WaveFront& ModRandomphase();// randomize phase
