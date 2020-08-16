@@ -229,8 +229,8 @@ void CalcBandLimitFreq(double* high, double* low, double xy, double z, double du
 {
 	double positive = xy + 1.0 / (2.0 * duv);
 	double negative = xy - 1.0 / (2.0 * duv);
-	double freq_limitP = 1.0 / sqrt(z * z / positive / positive + 1);
-	double freq_limitN = 1.0 / sqrt(z * z / negative / negative + 1);
+	double freq_limitP = 1.0 / sqrt(1.0 / positive / positive *z * z + 1);
+	double freq_limitN = 1.0 / sqrt(1.0 / negative / negative * z * z + 1);
 
 	if (xy > 1.0 / (2 * duv))
 	{
@@ -307,7 +307,7 @@ WaveFront& WaveFront::ShiftedAsmProp(const WaveFront& source)
 
 	double x0 = trans.getX();
 	double y0 = trans.getY();
-	printf("[x0 %f  y0 %f]",x0,y0);
+	//printf("[x0 %f  y0 %f]",x0,y0);
 
 	*this = source;//after this line, "this" object is copy of source
 	this->SetOrigin(reference_origin);
@@ -315,8 +315,8 @@ WaveFront& WaveFront::ShiftedAsmProp(const WaveFront& source)
 	//calculate band width for band-limit
 	double Sx = this->GetWidth();
 	double Sy = this->GetHeight();
-	double band_u = 1.0 / 2.0 / Sx;
-	double band_v = 1.0 / 2.0 / Sy;//Ç±ÇÍÇ»ãCÇ™Ç∑ÇÈ(2èúéZ)
+	double band_u = 1.0 / (2.0 * Sx);
+	double band_v = 1.0 / (2.0 * Sy);//Ç±ÇÍÇ»ãCÇ™Ç∑ÇÈ(2èúéZ)
 
 	double u_low, u_high;
 	CalcBandLimitFreq(&u_high, &u_low, x0, z, band_u);
@@ -382,6 +382,12 @@ WaveFront& WaveFront::ShiftedAsmPropEx(const WaveFront& source)
 WaveFront& WaveFront::ShiftedAsmPropAddEx(const WaveFront& source) //both object mustbe in real space 
 {
 	WaveFront& reference = *this;
+	if (!source.GetSpace() || !reference.GetSpace())
+	{
+		printf(">>ERROR: this function can be used for wave front only \n");
+		printf(">>Process is terminated forcibly...\n");
+		exit(0);
+	}
 	if (source.GetLambda() != reference.GetLambda())
 	{
 		printf(">>ERROR: wavelength of reference must be equal to source's one \n");
@@ -426,40 +432,35 @@ WaveFront& WaveFront::ShiftedAsmPropAddEx(const WaveFront& source) //both object
 	// in case of source size and refence size is equal
 	if (reference_divx == 1 && reference_divy == 1 && source_divx == 1 && source_divy == 1)
 	{
-		printf("\npatern1\n");
+		printf("\n<<patern>>1\n");
 		reference.ShiftedAsmPropAdd(source);
 	}
 
 	// in case of source is smaller than reference
 	else if (source_divx == 1 && source_divy == 1)
 	{
-		printf("\npatern2\n");
+		printf("\n<<patern>>2\n");
 		WaveFront sub_reference(reference.GetNx() / reference_divx, reference.GetNy() / reference_divy);
 		sub_reference.CopyParam(reference);
 		int ri, rj;
-		//èdÇ»ÇËÇ≈Ç®Ç©ÇµÇ≠Ç»Ç¡ÇƒÇ¢ÇÈñÛÇ≈Ç‡Ç»Ç¢	íPëÃÇ≈Ç®Ç©ÇµÇ¢
 		for (rj = 0; rj < reference_divy; rj++)
 		{
 			for (ri = 0; ri < reference_divx; ri++)
 			{
-				//printf("(%d,%d)",ri,rj);
 				sub_reference.SetOrigin(reference.GetOrigin()
 					+ reference.GetUnitVector_alongX() * sub_reference.GetWidth() * ((double)(1 - reference_divx) / 2.0 + ri)
-					+ reference.GetUnitVector_alongY() * sub_reference.GetHeight() * ((double)(1 - reference_divy) / 2.0 + rj));//Ç±Ç±Ç≈yï˚å¸Ç…Ç∑ÇÈÇ∆ê≥ñ Ç≈Ç‡Ç®Ç©ÇµÇ≠Ç»ÇÈ
-				//vec3 center = sub_reference.GetOrigin();
-				//printf("(%d, %d)[%f  %f  %f]",ri, rj,  center.getX(), center.getY(), center.getZ());
+					+ reference.GetUnitVector_alongY() * sub_reference.GetHeight() * ((double)(1 - reference_divy) / 2.0 + rj));
+
 				sub_reference.ShiftedAsmProp(source);
+				sub_reference.SetOrigin(-sub_reference.GetOrigin());//sentence for bug fix
 				reference.Add(sub_reference);
-				//sub_reference.Clear();//8/11í«â¡
 			}
-			//printf("\n");
 		}
 	}
-
 	// in case of reference is smaller than source
 	else if (reference_divx == 1 && reference_divy == 1)
 	{
-		printf("\npatern3\n");//Ç‹Ç∏ÇÕÇ±Ç±
+		printf("\n<<patern>>3\n");
 		WaveFront sub_source(source.GetNx() / source_divx, source.GetNy() / source_divy);
 		sub_source.CopyParam(source);
 
@@ -483,18 +484,15 @@ WaveFront& WaveFront::ShiftedAsmPropAddEx(const WaveFront& source) //both object
 						}
 					}
 				}
-				//vec3 center = sub_source.GetOrigin();
-				//printf("(%d, %d)[%f  %f  %f]", si, sj, center.getX(), center.getY(), center.getZ());
+				sub_source.SetOrigin(-sub_source.GetOrigin());//sentence for bug fix
 				reference.ShiftedAsmPropAdd(sub_source);
 			}
-			//printf("\n");
 		}
-
 	}
 	//other case
 	else
 	{
-		printf("\npatern4\n");
+		printf("\n<<patern>>4\n");
 		WaveFront sub_source(source.GetNx() / source_divx, source.GetNy() / source_divy);
 		sub_source.CopyParam(source);
 
@@ -532,18 +530,17 @@ WaveFront& WaveFront::ShiftedAsmPropAddEx(const WaveFront& source) //both object
 						sub_reference.SetOrigin(reference.GetOrigin()
 							+ reference.GetUnitVector_alongX() * sub_reference.GetWidth() * ((double)(1 - reference_divx) / 2.0 + ri)
 							+ reference.GetUnitVector_alongY() * sub_reference.GetHeight() * ((double)(1 - reference_divy) / 2.0 + rj));
+						
+						sub_source.SetOrigin(-sub_source.GetOrigin());//sentence for bug fix
 						sub_reference.ShiftedAsmProp(sub_source);
-						//vec3 center = sub_reference.GetOrigin();
-						//printf("(%d, %d)[%f  %f  %f]", ri, rj, center.getX(), center.getY(), center.getZ());
+						sub_reference.SetOrigin(-sub_reference.GetOrigin());//sentence for bug fix
 						reference.Add(sub_reference);
 					}
-					//printf("\n");
 				}
 			}
+
+
 		}
 	}
-	/*reference.Normalize();
-	reference.SaveBmp("propedfield.bmp",INTENSITY);
-	system("pause");*/
 	return *this;
 }

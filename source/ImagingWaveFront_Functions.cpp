@@ -29,6 +29,7 @@ void ImagingWaveFront::SetEyeParam()
 	this->SetNy(4096);
 	this->SetPx(1e-6);
 	this->SetPy(1e-6);
+	
 	this->d_eye = 24e-3;
 	this->d_pupil = 6e-3;
 	this->Init();
@@ -77,20 +78,20 @@ void ImagingWaveFront::View(const WaveFront& wf, const vec3 &p)		//focus to p of
 
 void ImagingWaveFront::Imaging(vec3 p)
 {
-	vec3 reserveViewPoint = this->GetOrigin();
+	vec3 reserveViewPoint = GetOrigin();
 	WaveFront source = *this;
-	this->SetNormal(this->GetOrigin() - p);
+	this->SetNormal(GetOrigin() - p);
 	vec3 freq;
 	
 	TiltedAsmProp(source, BICUBIC, &freq);
 	
-	this->MultiplyPlaneWave(freq.getX() * this->GetLambda(), freq.getY() * this->GetLambda());
+	MultiplyPlaneWave(freq.getX() * GetLambda(), freq.getY() * GetLambda());
 
 	source.pitchtrans();
 	WaveFront &lens = source;
 	SetEye(lens, p);
 	*this *= lens;
 	
-	this->ExactAsmProp(d_eye);		
-	this->SetOrigin(reserveViewPoint);
+	ExactAsmProp(d_eye);		
+	SetOrigin(reserveViewPoint);
 }

@@ -362,12 +362,15 @@ void Model::CalcPolygonCenter() {
 void Model::CalcModelCenter() {
 	BoundingBox bb;
 	vector<vec3> vec;
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
+#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())//ここでおかしくなっている(一部) おそらくスレッドセーフでない
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 		for (int m = 0; m < (*this).w_Object[n].w_Vertex.size(); ++m)
 		{
 			vec3 v = w_Object[n].w_Vertex[m].w_Coord;
-			vec.push_back(v);
+#pragma omp critical
+			{
+				vec.push_back(v);
+			}
 		}
 	bb = GetBoundingBox(vec);
 	w_center = bb.w_center;

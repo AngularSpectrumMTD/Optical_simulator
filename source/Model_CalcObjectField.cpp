@@ -477,7 +477,6 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 	w_py = mfb.GetPy();
 	w_lambda = mfb.GetLambda();
 	vec3 originpos = mfb.GetOrigin();
-
 	SetUp(rot);
 	vector<depthListArray> model;
 	depthListArray tmp = w_depthlistArray;
