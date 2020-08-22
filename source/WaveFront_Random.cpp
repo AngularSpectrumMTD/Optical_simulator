@@ -2,6 +2,7 @@
 using namespace std;
 
 std::random_device WaveFront::w_rnd;
+std::uniform_real_distribution<> WaveFront::w_randvul(-1.0, 1.0);
 
 WaveFront& WaveFront::ModRandomphase()
 {
@@ -14,7 +15,8 @@ WaveFront& WaveFront::ModRandomphase()
 		for (i = 0; i < w_nx; ++i)
 		{
 			//double phase = static_cast<double>(rand()) / RAND_MAX * 2 * PI - PI;
-			double phase = static_cast<double>(getrandom(-1,1)) * PI;
+			//double phase = static_cast<double>(getrandom(-1,1)) * PI;
+			double phase = static_cast<double>(getrandomMinusOneToOne()) * PI;
 			double amp = GetAmplitude(i, j);
 			SetPixel(i, j, complex<double>(amp * cos(phase), amp * sin(phase)));
 		}
@@ -29,4 +31,9 @@ double WaveFront::getrandom(double min, double max)
 	mt19937 mt(w_rnd());// 32bitMT
 	uniform_real_distribution<> randvul(min, max);
 	return randvul(mt);
+}
+double WaveFront::getrandomMinusOneToOne()
+{
+	mt19937 mt(w_rnd());// 32bitMT
+	return w_randvul(mt);
 }

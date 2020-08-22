@@ -78,6 +78,7 @@ class WaveFront {
 	vec3 w_normal = vec3{0.0,0.0,1.0};
 	std::unique_ptr<std::complex<double>[]> w_data;
 	static std::random_device w_rnd;
+	static std::uniform_real_distribution<> w_randvul;
 
 	double w_time_fft = 0;
 	double w_time_interpol = 0;
@@ -243,6 +244,7 @@ public:
 	// Random (function related to random)
 	WaveFront& ModRandomphase();// randomize phase
 	double getrandom(double min, double max);// generate random
+	double getrandomMinusOneToOne();// generate random from -1 to 1
 
 	// SaveCsv (function related to save as csv)
 	void SaveAsCsv(const char* fname, Axis axis, int ij);
