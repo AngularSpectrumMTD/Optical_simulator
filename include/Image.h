@@ -5,6 +5,8 @@
 
 #include "stb_image_write.h"
 
+#include "BLAS.h"
+
 #include <omp.h>
 #include <thread>
 #include <string>
@@ -12,7 +14,7 @@
 
 #ifndef VECTORMATH
 #define VECTORMATH
-#include "vectormath_aos.h"
+//#include "vectormath_aos.h"
 #endif
 
 #ifndef PI
@@ -45,17 +47,20 @@
 
 #ifndef VEC3
 #define VEC3
-typedef Vectormath::Aos::Vector3 vec3;
+//typedef Vectormath::Aos::Vector3 vec3;
+typedef BLASVector vec3;
 #endif
 
 #ifndef COL3
 #define COL3
-typedef Vectormath::Aos::Vector3 col3;
+//typedef Vectormath::Aos::Vector3 col3;
+typedef BLASVector col3;
 #endif
 
 #ifndef MAT3
 #define MAT3
-typedef Vectormath::Aos::Matrix3 mat3;
+//typedef Vectormath::Aos::Matrix3 mat3;
+typedef BLASMatrix mat3;
 #endif
 
 #ifndef FILEHEADERSIZE
