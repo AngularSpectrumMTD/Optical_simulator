@@ -260,6 +260,8 @@
 
 		Shield w_shieldmtd = EXACT;//shielding method
 
+		WaveFront *w_randomfield;
+
 		//Metasequoia
 		void Vertex_Set();
 		void Material_Set();
@@ -292,6 +294,7 @@
 			w_surface = model.w_surface;
 			w_px = model.w_px;
 			w_py = model.w_py;
+			*w_randomfield = *model.w_randomfield;
 		}
 		Model(const char* FileName, vec3 emv, Shader shade, BoundingBox bb, Direction dir, bool surface): 
 			w_shader(shade),w_dir(dir),w_surface(surface) {
@@ -302,6 +305,9 @@
 				printf("Indicated file is not exist under the this directly....");
 				system("pause");
 			}
+			w_randomfield = new WaveFront(512, 512);
+			w_randomfield->AllSet(1.0);
+			w_randomfield->ModRandomphase();
 		}
 		~Model()
 		{}
@@ -372,6 +378,8 @@
 		void Mapping(WaveFront& field, const CurrentPolygon& polyL);
 
 		void SetUp(const mat3 &rot);
+
+		void SetRandomPhase(WaveFront& field);
 
 		//Geometry
 		vec3 IntersectPoint(const Ray &ray);

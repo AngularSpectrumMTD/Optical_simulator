@@ -823,7 +823,8 @@ void Model::FlatShading(WaveFront& field, const CurrentPolygon& polyL)
 	GetCorrectedAmplitude(field, brt);
 
 	PaintTriangle(field, polyL, brt);
-	field.ModRandomphase();
+	//field.ModRandomphase();
+	SetRandomPhase(field);
 }
 double Model::GetCorrectedAmplitude(WaveFront& tfb, double brt)
 {
@@ -913,7 +914,8 @@ void Model::SmoothShading(WaveFront& field, const CurrentPolygon& polyL)
 		}
 	}
 
-	field.ModRandomphase();
+	//field.ModRandomphase();
+	SetRandomPhase(field);
 }
 double alpha(vec3 p, vec3 p0, vec3 p1, vec3 p2)
 {
@@ -1096,4 +1098,19 @@ BoundingBox Model::GetBoundingBox(const vector<vec3> &vec)
 	bbox.w_center = (bbox.w_min + bbox.w_max) / 2;
 
 	return bbox;
+}
+
+void Model::SetRandomPhase(WaveFront& field)
+{
+	int i, j;
+#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+	for (i = 0; i < field.GetNx(); i++)
+	{
+		for (j = 0; j < field.GetNy(); j++)
+		{
+			double amp = field.GetAmplitude(i, j);
+			double phase = w_randomfield->GetPhase(i%w_randomfield->GetNx(),j% w_randomfield->GetNy());
+			field.SetPixel(i, j, complex<double>(amp * cos(phase), amp * sin(phase)));
+		}
+	}
 }
