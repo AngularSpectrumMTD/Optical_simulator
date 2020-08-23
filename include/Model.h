@@ -260,7 +260,7 @@
 
 		Shield w_shieldmtd = EXACT;//shielding method
 
-		WaveFront *w_randomfield;
+		std::unique_ptr<WaveFront> w_randomfield;
 
 		//Metasequoia
 		void Vertex_Set();
@@ -305,12 +305,13 @@
 				printf("Indicated file is not exist under the this directly....");
 				system("pause");
 			}
-			w_randomfield = new WaveFront(512, 512);
+			w_randomfield = std::make_unique<WaveFront>(512, 512);
 			w_randomfield->AllSet(1.0);
 			w_randomfield->ModRandomphase();
 		}
 		~Model()
-		{}
+		{
+		}
 		double GetPx() const { return w_px; }
 		double GetPy() const { return w_py; }
 		double GetLambda() const { return w_lambda; }
