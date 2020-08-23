@@ -6,7 +6,6 @@ void WaveFront::swap()
 	int i, j;
 	int x, y;
 	WaveFront tmp(w_nx, w_ny, w_px, w_py, w_lambda);
-#pragma omp parallel for private(x, y) num_threads(1)
 	for (y = 0; y < w_ny; y++)
 	{
 		if (w_ny / 2 <= y && y < w_ny)
@@ -30,7 +29,6 @@ void WaveFront::swap()
 			tmp.SetPixel(i, j, this->GetPixel(x, y));
 		}
 	}
-#pragma omp parallel for private(i, j) num_threads(1)
 	for (j = 0; j < w_ny; j++)
 	{
 		for (i = 0; i < w_nx; i++)
@@ -55,9 +53,11 @@ void WaveFront::fft1D(unique_ptr <complex<double>[]>& x, int n, int func)
 	mx = n;
 	phase_int = 2.0 * PI / static_cast<double>(n);
 
+	int switchloop;
+
 	for (mainloop = 0; mainloop < pow_2; mainloop++)
 	{
-		int switchloop;
+		//int switchloop;
 		int mx_1 = mx - 1;
 		mx /= 2;
 		double arg = 0.0;
@@ -78,6 +78,7 @@ void WaveFront::fft1D(unique_ptr <complex<double>[]>& x, int n, int func)
 		}
 		phase_int *= 2.0;
 	}
+
 	j = 0;
 	for (i = 0; i < n - 1; i++)
 	{
@@ -104,10 +105,10 @@ void WaveFront::fft2D(int func)
 	this->pitchtrans();
 	this->swap();
 	int i, j;
+
 	unique_ptr <complex<double>[]> tempx;
 	tempx.reset(new complex<double>[w_nx]);
 
-#pragma omp parallel for private(i, j) num_threads(1)
 	for (j = 0; j < w_ny; j++)
 	{
 		for (i = 0; i < w_nx; i++)
@@ -120,9 +121,10 @@ void WaveFront::fft2D(int func)
 			SetPixel(i, j, tempx[i]);
 		}
 	}
+
 	unique_ptr <complex<double>[]> tempy;
 	tempy.reset(new complex<double>[w_ny]);
-#pragma omp parallel for private(i, j) num_threads(1)
+
 	for (i = 0; i < w_nx; i++)
 	{
 		for (j = 0; j < w_ny; j++)
@@ -135,6 +137,7 @@ void WaveFront::fft2D(int func)
 			SetPixel(i, j, tempy[j]);
 		}
 	}
+
 	this->swap();
 	QueryPerformanceCounter(&w_end);
 	w_time_fft += getdeltatime();
