@@ -79,6 +79,7 @@ class WaveFront {
 	std::unique_ptr<std::complex<double>[]> w_data;
 	static std::random_device w_rnd;
 	static std::uniform_real_distribution<> w_randvul;
+	static std::mt19937 w_mt;
 
 	double w_time_fft = 0;
 	double w_time_interpol = 0;

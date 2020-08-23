@@ -3,6 +3,7 @@ using namespace std;
 
 std::random_device WaveFront::w_rnd;
 std::uniform_real_distribution<> WaveFront::w_randvul(-1.0, 1.0);
+std::mt19937 WaveFront::w_mt(w_rnd());
 
 WaveFront& WaveFront::ModRandomphase()
 {
@@ -28,12 +29,16 @@ WaveFront& WaveFront::ModRandomphase()
 double WaveFront::getrandom(double min, double max)
 {
 	//random_device rnd;// generate seed
-	mt19937 mt(w_rnd());// 32bitMT
+	//mt19937 mt(w_rnd());// 32bitMT
 	uniform_real_distribution<> randvul(min, max);
-	return randvul(mt);
+	//return randvul(mt);
+
+	return randvul(w_mt);
 }
 double WaveFront::getrandomMinusOneToOne()
 {
-	mt19937 mt(w_rnd());// 32bitMT
-	return w_randvul(mt);
+	//mt19937 mt(w_rnd());// 32bitMT
+	//return w_randvul(mt);
+
+	return w_randvul(w_mt);
 }
