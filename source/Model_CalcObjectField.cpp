@@ -10,7 +10,7 @@ void Model::RotInFourierSpaceForward(const WaveFront& origin, WaveFront& referen
 	vec3 source0{ 0.0,0.0,static_cast<float>(invL1) };
 	source0 = rot * source0;//carrier frequency
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < reference.GetNy(); ++j)
 	{
 		for (i = 0; i < reference.GetNx(); ++i)
@@ -56,7 +56,7 @@ void Model::RotInFourierSpaceBackward(const WaveFront& origin, WaveFront& refere
 	mat3 invrot = transpose(rot);//get inverce matrix of it
 	double invL1 = 1 / origin.GetLambda();
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < reference.GetNy(); ++j)
 	{
 		for (i = 0; i < reference.GetNx(); ++i)
@@ -222,7 +222,7 @@ void Model::ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir)
 	if (dir)
 	{
 		// clipping field from frame to sub
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 		for (int j = js0; j < js1; j++)
 		{
 			for (int i = is0; i < is1; i++)
@@ -234,7 +234,7 @@ void Model::ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir)
 	else
 	{
 		// adding field from sub to frame
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 		for (int j = js0; j < js1; j++)
 		{
 			for (int i = is0; i < is1; i++)
@@ -876,7 +876,7 @@ void Model::SmoothShading(WaveFront& field, const CurrentPolygon& polyL)
 	vec3 ƒ¿ = cross(d, e2);
 	float det = dot(e1, ƒ¿);
 
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < field.GetNy(); j++)
 	{
 		for (i = 0; i < field.GetNx(); i++)
@@ -966,7 +966,7 @@ void Model::Mapping(WaveFront& field, const CurrentPolygon& polyL)
 	float det = dot(e1, ƒ¿);
 
 	double x, y;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < field.GetNy(); j++)
 	{
 		for (i = 0; i < field.GetNx(); i++)
@@ -1019,7 +1019,7 @@ void Model::PaintTriangle(WaveFront& tfb, const CurrentPolygon& polyL, double am
 	int i, j;
 	//inside: zero clear
 	//outside: inverse
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < tfb.GetNy(); j++)
 	{
 		for (i = 0; i < tfb.GetNx(); i++)
@@ -1042,7 +1042,7 @@ void Model::MultiplyAperture(WaveFront& tfb, const CurrentPolygon& polyL)
 	int i, j;
 	//inside: zero clear
 	//outside: inverse
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < tfb.GetNy(); j++)
 	{
 		for (i = 0; i < tfb.GetNx(); i++)
@@ -1111,7 +1111,7 @@ BoundingBox Model::GetBoundingBox(const vector<vec3> &vec)
 void Model::SetRandomPhase(WaveFront& field)
 {
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (i = 0; i < field.GetNx(); i++)
 	{
 		for (j = 0; j < field.GetNy(); j++)

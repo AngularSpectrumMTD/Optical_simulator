@@ -3,7 +3,7 @@
 WaveFront& WaveFront::operator+=(double val)
 {
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -17,7 +17,7 @@ WaveFront& WaveFront::operator+=(double val)
 WaveFront& WaveFront::operator-=(double val)
 {
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -31,7 +31,7 @@ WaveFront& WaveFront::operator-=(double val)
 WaveFront& WaveFront::operator*=(double val)
 {
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -45,7 +45,7 @@ WaveFront& WaveFront::operator*=(double val)
 WaveFront& WaveFront::operator/=(double val)
 {
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -65,7 +65,7 @@ WaveFront& WaveFront::operator+=(const WaveFront& val)
 		exit(0);
 	}
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -85,7 +85,7 @@ WaveFront& WaveFront::operator-=(const WaveFront& val)
 		exit(0);
 	}
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -105,7 +105,7 @@ WaveFront& WaveFront::operator*=(const WaveFront& val)
 		exit(0);
 	}
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -125,7 +125,7 @@ WaveFront& WaveFront::operator/=(const WaveFront& val)
 		exit(0);
 	}
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -145,7 +145,7 @@ WaveFront& WaveFront::operator =(const WaveFront& val)
 		exit(0);
 	}
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)

@@ -123,7 +123,7 @@ double WaveFront::ComputeEnergy()const
 {
 	double ret = 0;
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -137,7 +137,7 @@ double WaveFront::ComputeMaxAmplitude()const
 {
 	int i, j;
 	vector<double> amplitude(w_nx * w_ny);
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -153,7 +153,7 @@ double WaveFront::ComputeMaxAmplitude()const
 void WaveFront::Clear()
 {
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -192,7 +192,7 @@ unsigned int WaveFront::nearPow2(int n)// return most near power of 2
 WaveFront& WaveFront::AllSet(double val)
 {
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -217,7 +217,7 @@ WaveFront& WaveFront::MultiplyPlaneWave(double u, double v, double phase)
 
 	int i, j;
 
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < GetNy(); j++)
 		for (i = 0; i < GetNx(); i++)
 		{
@@ -274,7 +274,7 @@ WaveFront& WaveFront::Add(const WaveFront& source)
 	}
 
 	// adding field from source to frame
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (int j = js0; j < js1; j++)
 	{
 		for (int i = is0; i < is1; i++)

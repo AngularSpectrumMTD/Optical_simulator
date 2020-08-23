@@ -2,7 +2,7 @@
 
 Model& Model::operator +=(const vec3& vec)
 {
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
+#pragma omp parallel for schedule(dynamic, 1) num_threads(omp_get_max_threads())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 	{
 		for (int m = 0; m < (*this).w_Object[n].w_Vertex.size(); ++m)
@@ -17,7 +17,7 @@ Model& Model::operator +=(const vec3& vec)
 
 Model& Model::operator *=(const mat3& mat)
 {
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
+#pragma omp parallel for schedule(dynamic, 1) num_threads(omp_get_max_threads())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 	{
 		for (int m = 0; m < (*this).w_Object[n].w_Vertex.size(); ++m)

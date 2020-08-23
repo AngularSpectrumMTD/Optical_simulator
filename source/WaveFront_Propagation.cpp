@@ -5,7 +5,7 @@ void WaveFront::generateFRF(double distance)
 {
 	double k = 1 / w_lambda / w_lambda;
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (i = 0; i < w_nx; i++)
 	{
 		for (j = 0; j < w_ny; j++)
@@ -28,7 +28,7 @@ void WaveFront::generateFRF(double distance)
 void WaveFront::bandlimit(double uband, double vband)
 {
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -60,7 +60,7 @@ void WaveFront::AsmPropInFourierSpace(const double R)
 	double vband = 2 / (sqrt((2 * h.w_py * R) * (2 * h.w_py * R) + 1) * h.w_lambda);
 	h.bandlimit(uband, vband);// bandlimit
 	int x, y;
-#pragma omp parallel for private(x, y) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(x, y) num_threads(omp_get_max_threads())
 	for (y = 0; y < w_ny; ++y)
 	{
 		for (x = 0; x < w_nx; ++x)
@@ -78,7 +78,7 @@ void WaveFront::Embed()
 	Init();
 	Clear();
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < tmp.w_ny; ++j)
 	{
 		for (i = 0; i < tmp.w_nx; ++i)
@@ -95,7 +95,7 @@ void WaveFront::Extract()
 	Init();
 	Clear();
 	int i, j;
-#pragma omp parallel for num_threads(omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -176,7 +176,7 @@ void WaveFront::RotInFourierSpace(WaveFront& source, Interp interp, vec3* carrie
 	vec3 source0{ 0.0,0.0,(float)invL1 };
 	source0 = rot * source0;//carrier frequency
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < reference.w_ny; ++j)
 	{
 		for (i = 0; i < reference.w_nx; ++i)
@@ -344,7 +344,7 @@ WaveFront& WaveFront::ShiftedAsmProp(const WaveFront& source)
 
 	double invLambdaPow = 1.0 / result.GetLambda() / result.GetLambda();
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < result.w_ny; ++j)
 	{
 		for (i = 0; i < result.w_nx; ++i)
@@ -475,7 +475,7 @@ WaveFront& WaveFront::ShiftedAsmPropAddEx(const WaveFront& source) //both object
 				{
 					int nx = sub_source.GetNx(), ny = sub_source.GetNy();
 					int i, j;
-#					pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#					pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 					for (j = 0; j < ny; j++)
 					{
 						for (i = 0; i < nx; i++)
@@ -512,7 +512,7 @@ WaveFront& WaveFront::ShiftedAsmPropAddEx(const WaveFront& source) //both object
 				{
 					int nx = sub_source.GetNx(), ny = sub_source.GetNy();
 					int i, j;
-#					pragma omp parallel for private(i,j) num_threads(omp_get_num_threads())
+#					pragma omp parallel for private(i,j) num_threads(omp_get_max_threads())
 					for (j = 0; j < ny; j++)
 					{
 						for (i = 0; i < nx; i++)

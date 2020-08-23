@@ -4,7 +4,7 @@ WaveFront& WaveFront::SetQuadraticPhase(const double f)
 {
 	double k = 2*PI/w_lambda;
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)
@@ -21,7 +21,7 @@ WaveFront& WaveFront::MultiplyQuadraticPhase(const double f)
 {
 	double k = 2 * PI / w_lambda;
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)

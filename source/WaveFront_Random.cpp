@@ -10,7 +10,7 @@ WaveFront& WaveFront::ModRandomphase()
 	QueryPerformanceFrequency(&w_freq);
 	QueryPerformanceCounter(&w_start);
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
 	{
 		for (i = 0; i < w_nx; ++i)

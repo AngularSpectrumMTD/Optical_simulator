@@ -11,7 +11,7 @@ void WaveFront::SaveBmp(const char* name, Out type)
 {
 	Image* image = new Image(w_nx, w_ny);
 	int i, j;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (i = 0; i < w_nx; i++)
 	{
 		for (j = 0; j < w_ny; j++)
@@ -81,7 +81,7 @@ WaveFront& WaveFront::LoadBmp(const char* filename)
 	unsigned int offsetY = (w_ny - loopny) / 2;
 	
 	unsigned int index;
-#pragma omp parallel for private(i, j) num_threads(omp_get_num_threads())
+#pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (i = 0; i < loopnx; i++)
 	{
 		for (j = 0; j < loopny; j++)

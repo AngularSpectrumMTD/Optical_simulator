@@ -191,7 +191,7 @@ void Model::CalcSurfaceNV() {
 	vec3 v0, v1, v2;
 	WaveFront a;
 	int index0, index1, index2;
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
+#pragma omp parallel for schedule(dynamic, 1) num_threads(omp_get_max_threads())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 		for (int m = 0; m < (*this).w_Object[n].w_Triangle.size(); ++m)
 		{
@@ -215,7 +215,7 @@ void Model::CalcVertexNV() {
 		printf(">>Process is terminated forcibly...\n");
 		exit(0);
 	}
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
+#pragma omp parallel for schedule(dynamic, 1) num_threads(omp_get_max_threads())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 	{
 		for (int m = 0; m < (*this).w_Object[n].w_Triangle.size(); ++m)
@@ -345,7 +345,7 @@ vec3 Model::center(const vec3 &p0, const vec3 &p1, const vec3 &p2)
 }
 
 void Model::CalcPolygonCenter() {
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())
+#pragma omp parallel for schedule(dynamic, 1) num_threads(omp_get_max_threads())
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 		for (int m = 0; m < (*this).w_Object[n].w_Triangle.size(); ++m)
 		{
@@ -362,7 +362,7 @@ void Model::CalcPolygonCenter() {
 void Model::CalcModelCenter() {
 	BoundingBox bb;
 	vector<vec3> vec;
-#pragma omp parallel for schedule(dynamic, 1) num_threads(std::thread::hardware_concurrency())//ここでおかしくなっている(一部) おそらくスレッドセーフでない
+#pragma omp parallel for schedule(dynamic, 1) num_threads(omp_get_max_threads())//ここでおかしくなっている(一部) おそらくスレッドセーフでない
 	for (int n = 0; n < (*this).w_Object.size(); ++n)
 		for (int m = 0; m < (*this).w_Object[n].w_Vertex.size(); ++m)
 		{
