@@ -1,6 +1,6 @@
 //#define STB_IMAGE_IMPLEMENTATION
 //#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include"..\include\WaveFront.h"
+#include"../include/WaveFront.h"
 using namespace std;
 WaveFront::WaveFront(int nx, int ny) :w_nx(nx), w_ny(ny)
 {

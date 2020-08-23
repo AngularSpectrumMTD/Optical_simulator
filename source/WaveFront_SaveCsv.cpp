@@ -1,4 +1,4 @@
-#include"..\include\WaveFront.h"
+#include"../include/WaveFront.h"
 
 void WaveFront::SaveAsCsv(const char* fname, Axis axis, int ij)
 {

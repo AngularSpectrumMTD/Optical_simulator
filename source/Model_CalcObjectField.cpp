@@ -1,4 +1,4 @@
-#include"..\include\Model.h"
+#include"../include/Model.h"
 #include <numeric>
 using namespace std;
 void Model::RotInFourierSpaceForward(const WaveFront& origin, WaveFront& reference, vec3* c, Interp interp)

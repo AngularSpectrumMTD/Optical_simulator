@@ -1,4 +1,4 @@
-#include"..\include\WaveFront.h"
+#include"../include/WaveFront.h"
 
 WaveFront& WaveFront::operator+=(double val)
 {

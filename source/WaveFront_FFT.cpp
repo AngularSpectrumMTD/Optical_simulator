@@ -1,4 +1,4 @@
-#include"..\include\WaveFront.h"
+#include"../include/WaveFront.h"
 using namespace std;
 // function related to fft
 void WaveFront::swap()

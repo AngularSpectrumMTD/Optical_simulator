@@ -1,4 +1,4 @@
-#include "..\include\LinearAlgebra.h"
+#include "../include/LinearAlgebra.h"
 
 LAVector& LAVector::operator = (const LAVector& v)
 {

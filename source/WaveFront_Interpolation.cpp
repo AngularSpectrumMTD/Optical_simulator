@@ -1,4 +1,4 @@
-#include"..\include\WaveFront.h"
+#include"../include/WaveFront.h"
 using namespace std;
 // interpolation method
 complex<double> WaveFront::GetInterpolatedValueNEAREST_NEIGHBOR(double u, double v)const

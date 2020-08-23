@@ -1,4 +1,4 @@
-﻿#include"..\include\Model.h"
+﻿#include"../include/Model.h"
 
 vec3 Model::IntersectPoint(const Ray& ray)
 {

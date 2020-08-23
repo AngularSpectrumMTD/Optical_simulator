@@ -1,4 +1,4 @@
-#include"..\include\WaveFront.h"
+#include"../include/WaveFront.h"
 using namespace std;
 WaveFront& WaveFront::SetQuadraticPhase(const double f)
 {

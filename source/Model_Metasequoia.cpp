@@ -1,4 +1,4 @@
-#include"..\include\Model.h"
+#include"../include/Model.h"
 using namespace std;
 //spliting string
 string Model::Split(string* str, char str1, char str2) {

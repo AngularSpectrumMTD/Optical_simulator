@@ -1,4 +1,4 @@
-#include"..\include\Model.h"
+#include"../include/Model.h"
 
 Model& Model::operator +=(const vec3& vec)
 {

@@ -4,7 +4,7 @@
 #ifndef STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #endif
-#include"..\include\WaveFront.h"
+#include"../include/WaveFront.h"
 using namespace std;
 // function related to save as image and load real part from image
 void WaveFront::SaveBmp(const char* name, Out type)
