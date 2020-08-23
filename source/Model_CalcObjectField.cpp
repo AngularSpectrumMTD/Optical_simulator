@@ -287,8 +287,16 @@ void Model::AddFieldToMFB(WaveFront& mfb)
 	//------------------------------------------------------
 	QueryPerformanceCounter(&w_start);
 	//------------------------------------------------------
-
-	sfb.Init(); sfb.Clear();
+	if (sfb.GetN() < 256 * 256)
+	{
+		sfb.Init();
+		sfb.Embed();
+	}
+	else
+	{
+		sfb.Init();
+	}
+	sfb.Clear();
 	//clipping field from mfb to sfb
 	ClipSubfield(sfb, mfb, true);
 
@@ -405,7 +413,7 @@ void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 			}
 			else
 			{
-				printf("(%d)", n);
+				//printf("(%d)", n);
 			}
 		}
 		n++;

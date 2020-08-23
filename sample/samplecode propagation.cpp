@@ -5,12 +5,12 @@ int main()
 	//openmpを用いる前提です
 	//長さの単位は m です
 
-	WaveFront input(256, 256, 2e-6, 2e-6, 630e-9);
+	WaveFront input(512, 512, 1e-6, 1e-6, 630e-9);
 	//↑引数: 横ピクセル数 縦ピクセル数 横標本間隔 縦標本間隔 波長
 
-	double radius = 256 * 2e-6 / 8;//円形開口の半径 or ガウス関数の半値幅
-	double rectw = 256 * 2e-6 / 8;//矩形開口の横
-	double recth = 256 * 2e-6 / 8;//矩形開口の縦
+	double radius = input.GetWidth() / 8;//円形開口の半径 or ガウス関数の半値幅
+	double rectw = input.GetWidth() / 8;//矩形開口の横
+	double recth = input.GetWidth() / 8;//矩形開口の縦
 	input.GenerateCirc(radius);//光波として円形開口を通過した平行光を使用
 	//input.GenerateGaussian(radius, 2);//光波として2次ガウシアンビームを使用
 	//input.GenerateRect(rectw, recth);//光波として矩形開口を通過した平行光を使用

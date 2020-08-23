@@ -3,8 +3,8 @@
 
 int main()
 {
-    WaveFront input(256,256,1e-6,1e-6,633e-9);
-    double radius = input.GetNx() * input.GetPx()/8;
+    WaveFront input(512,512,1e-6,1e-6,630e-9);
+    double radius = input.GetWidth()/8;
 
     input.GenerateCirc(radius);
     input.SaveBmp("aperture AMPLITUDE.bmp", AMPLITUDE);
@@ -20,7 +20,7 @@ int main()
     save.Normalize();
     save.SaveBmp("propagated distribution AMPLITUDE.bmp",AMPLITUDE);
 
-    mat3 rot = mat3::rotationY(80 * DEG);//80“xyŽ²Žü‚è‚É‰ñ“]//
+    mat3 rot = mat3::rotationY(60 * DEG);//60“xyŽ²Žü‚è‚É‰ñ“]//
 
     WaveFront output(input);
     output.SetNormal(rot * input.GetNormal());
