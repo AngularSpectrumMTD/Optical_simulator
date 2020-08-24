@@ -227,8 +227,8 @@ public:
 	void AsmProp(const double R);// execute calculation of optical diffraction by use of angular spectrum method
 	WaveFront& ShiftedAsmProp(const WaveFront& source);// off-axis propagation 
 	WaveFront& ShiftedAsmPropAdd(const WaveFront& source);
-	WaveFront& ShiftedAsmPropEx(const WaveFront& source);
-	WaveFront& ShiftedAsmPropAddEx(const WaveFront& source);
+	WaveFront& ShiftedAsmPropGeneralPurpose(const WaveFront& source);
+	WaveFront& ShiftedAsmPropAddGeneralPurpose(const WaveFront& source);
 	void AsmPropInFourierSpace(const double R);
 	void Embed();// embed distribution by 4 times
 	void Extract();// extract distribution by 4 times

@@ -28,6 +28,7 @@ int main()
     //input.TiltedAsmProp(output, BICUBIC);
     output.Normalize();
     output.SaveBmp("rotated distribution AMPLITUDE.bmp", AMPLITUDE);
+    output.SaveBmp("rotated distribution PHASE.bmp", PHASE);
 
     output.dispTotalTime();
 }

@@ -106,30 +106,24 @@ complex<double> WaveFront::GetInterpolatedValueBICUBIC(double u, double v)const
 	double tx_dec = tx - tx_int;
 	double ty_dec = ty - ty_int;
 
-	int is = 0;
-	int js = 0;
-	int in = 4;
-	int jn = 4;
-	int iflag = 1;
+	int il = 0;int jl = 0;
+	int ir = 4;int jr = 4;
 	int i_bufpos = tx_int - 1;
 	int j_bufpos = ty_int - 1;
 
-
 	if (i_bufpos < 0) {
-		is = -i_bufpos;
-		iflag = 0;
+		il = -i_bufpos;
 	}
 	if (j_bufpos < 0) {
-		js = -j_bufpos;
+		jl = -j_bufpos;
 	}
-	if (in > w_nx - i_bufpos) {
-		in = w_nx - i_bufpos;
-		iflag = 0;
+	if (ir > w_nx - i_bufpos) {
+		ir = w_nx - i_bufpos;
 	}
-	if (jn > w_ny - j_bufpos) {
-		jn = w_ny - j_bufpos;
+	if (jr > w_ny - j_bufpos) {
+		jr = w_ny - j_bufpos;
 	}
-	if (is >= in || js >= jn) {
+	if (il >= ir || jl >= jr) {
 		return complex<double>(0.0, 0.0);
 	}
 
@@ -137,10 +131,10 @@ complex<double> WaveFront::GetInterpolatedValueBICUBIC(double u, double v)const
 	double bufy[4];
 	double dbuf[4][8] = { 0 };
 
-	for (j = js; j < jn; j++) {
-		for (i = is; i < in; i++) {
-			dbuf[j][i * 2] = (GetPixel(i + i_bufpos, j + j_bufpos + js).real());
-			dbuf[j][i * 2 + 1] = (GetPixel(i + i_bufpos, j + j_bufpos + js).imag());
+	for (j = jl; j < jr; j++) {
+		for (i = il; i < ir; i++) {
+			dbuf[j][i * 2] = (GetPixel(i + i_bufpos, j + j_bufpos + jl).real());
+			dbuf[j][i * 2 + 1] = (GetPixel(i + i_bufpos, j + j_bufpos + jl).imag());
 		}
 	}
 

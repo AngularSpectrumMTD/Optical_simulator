@@ -374,12 +374,12 @@ WaveFront& WaveFront::ShiftedAsmProp(const WaveFront& source)
 
 	return *this;
 }
-WaveFront& WaveFront::ShiftedAsmPropEx(const WaveFront& source)
+WaveFront& WaveFront::ShiftedAsmPropGeneralPurpose(const WaveFront& source)
 {
 	this->Clear();
-	return this->ShiftedAsmPropAddEx(source);
+	return this->ShiftedAsmPropAddGeneralPurpose(source);
 }
-WaveFront& WaveFront::ShiftedAsmPropAddEx(const WaveFront& source) //both object mustbe in real space 
+WaveFront& WaveFront::ShiftedAsmPropAddGeneralPurpose(const WaveFront& source) //both object mustbe in real space 
 {
 	WaveFront& reference = *this;
 	if (!source.GetSpace() || !reference.GetSpace())

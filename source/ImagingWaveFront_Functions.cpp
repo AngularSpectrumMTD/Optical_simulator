@@ -1,7 +1,7 @@
 #include"..\include\ImagingWaveFront.h"
 
 ImagingWaveFront::ImagingWaveFront()
-	:WaveFront(4096, 4096, 1e-6, 1e-6, 630e-9), d_eye(20e-3), d_pupil(4e-3)
+	:WaveFront(4096, 4096, 1e-6, 1e-6, 630e-9), w_d_eye(20e-3), w_d_pupil(4e-3)
 {
 	vec3 origin{ 0.0, 0.0, 20e-3 };
 	SetOrigin(origin);
@@ -9,7 +9,7 @@ ImagingWaveFront::ImagingWaveFront()
 }
 
 ImagingWaveFront::ImagingWaveFront(double deye, double dpupil, vec3 vp, const WaveFront image)
-	:WaveFront(image), d_eye(deye), d_pupil(dpupil)
+	:WaveFront(image), w_d_eye(deye), w_d_pupil(dpupil)
 {
 	vec3 origin{ vp };
 	SetOrigin(origin);
@@ -30,15 +30,15 @@ void ImagingWaveFront::SetEyeParam()
 	this->SetPx(1e-6);
 	this->SetPy(1e-6);
 	
-	this->d_eye = 24e-3;
-	this->d_pupil = 6e-3;
+	this->w_d_eye = 24e-3;
+	this->w_d_pupil = 6e-3;
 	this->Init();
 }
 void ImagingWaveFront::SetEye(WaveFront& eye, const vec3 & p)
 {
 	double gd = length(this->GetOrigin() - p);	//distance between viewpoint and focus point
 
-	double f = gd * d_eye / (gd + d_eye);		//focus distance of lens
+	double f = gd * w_d_eye / (gd + w_d_eye);		//focus distance of lens
 
 	eye.AllSet(1.0);
 	eye.SetQuadraticPhase(f);
@@ -51,7 +51,7 @@ void ImagingWaveFront::SetEye(WaveFront& eye, const vec3 & p)
 			double x = eye.itox(i);
 			double y = eye.jtoy(j);
 
-			if (x * x + y * y > d_pupil* d_pupil / 4.0)
+			if (x * x + y * y > w_d_pupil* w_d_pupil / 4.0)
 			{
 				eye.SetPixel(i, j, std::complex<double>(0.0, 0.0));
 			}
@@ -70,7 +70,7 @@ void ImagingWaveFront::View(const WaveFront& wf, const vec3 &p)		//focus to p of
 	SetLambda(wf.GetLambda());
 	SetNormal(vec3(0, 0, 1.0));	
 	Clear();
-	ShiftedAsmPropEx(wf);
+	ShiftedAsmPropGeneralPurpose(wf);
 
 	printf("<imaging START>");
 	Imaging(p);
@@ -92,6 +92,6 @@ void ImagingWaveFront::Imaging(vec3 p)
 	SetEye(lens, p);
 	*this *= lens;
 	
-	ExactAsmProp(d_eye);		
+	ExactAsmProp(w_d_eye);		
 	SetOrigin(reserveViewPoint);
 }

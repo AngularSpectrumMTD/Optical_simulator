@@ -11,9 +11,9 @@ int WIDTH = 1024*64/scale;//画像横幅
 int HEIGHT = 1024*64/scale;//画像縦幅
 
 //物体サイズ
-double modelwidth = 10e-3/scale;
-double modelheight = 10e-3 / scale;
-double modeldepth = 10e-3 / scale;
+double modelwidth = 30e-3/scale;
+double modelheight = 30e-3 / scale;
+double modeldepth = 30e-3 / scale;
 
 double modelcenterdepth = 50e-3 / scale;//物体中心奥行き
 double backposdepth = 100e-3 / scale;//背景奥行き
@@ -25,6 +25,9 @@ double viewpointgap = d * 1e-3 / scale;
 int main()//2048
 {
 	WaveFront mfb(WIDTH, HEIGHT, Dx, Dy, lambda);
+
+	/*printf("numthreads:: %d maxthreads:: %d",omp_get_num_threads(), omp_get_max_threads());
+	system("pause");*/
 
 	char filenamefield[200];
 	char filenameimagee[200];
@@ -41,8 +44,8 @@ int main()//2048
 
 	BoundingBox bb(modelwidth, modelheight, modeldepth, vec3(0, 0, -modelcenterdepth));
 
-	//char name[200] = "Bunny.mqo";
-	char name[200] = "STF DRAGON DOWN.mqo";
+	char name[200] = "Bunny.mqo";
+	//char name[200] = "STF DRAGON DOWN.mqo";
 	//char name[200] = "kinoko.mqo";
 
 	Model model(name, vec3{ -1,-1,-1 }, SMOOTH, bb, DWIDTH, true);
