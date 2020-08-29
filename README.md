@@ -35,4 +35,4 @@ samplecode model calculation.cpp
 ![図2](https://user-images.githubusercontent.com/65929274/90981262-e6e96080-e59a-11ea-8f53-1fe3afc6b97c.png)
 
 ・物体光波の回折伝搬計算
-![図3](https://user-images.githubusercontent.com/65929274/90981273-f8326d00-e59a-11ea-8560-f5698786126a.png)
+![物体光波](https://user-images.githubusercontent.com/65929274/91642074-56f85a80-ea63-11ea-8d8d-5ae9f5232313.png)
