@@ -233,7 +233,13 @@ void Model::CalcVertexNV() {
 							if (dot(normalize(current), normalize((*this).w_Object[n].w_Triangle[mSERCH].w_SurfaceNV)) < 0)
 								continue;
 							else
-								vec += (*this).w_Object[n].w_Triangle[mSERCH].w_SurfaceNV;
+							{
+#pragma omp critical
+								{
+									vec += (*this).w_Object[n].w_Triangle[mSERCH].w_SurfaceNV;
+								}
+								//vec += (*this).w_Object[n].w_Triangle[mSERCH].w_SurfaceNV;
+							}
 						}
 					}
 				}

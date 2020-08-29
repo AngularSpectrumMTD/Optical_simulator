@@ -128,7 +128,11 @@ double WaveFront::ComputeEnergy()const
 	{
 		for (i = 0; i < w_nx; ++i)
 		{
-			ret += GetIntensity(i, j);
+#pragma omp critical
+			{
+				ret += GetIntensity(i, j);
+			}
+			
 		}
 	}
 	return ret;

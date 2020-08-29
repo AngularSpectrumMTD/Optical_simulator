@@ -16,11 +16,11 @@ void WaveFront::generateFRF(double distance)
 			if (w > 0)
 			{
 				double phase = 2 * PI * sqrt(w) * distance;
-				this->SetPixel(i, j, complex<double>(cos(phase), sin(phase)));
+				SetPixel(i, j, complex<double>(cos(phase), sin(phase)));
 			}
 			else//evanescent element
 			{
-				this->SetPixel(i, j, complex<double>(1.0, 0.0));
+				SetPixel(i, j, complex<double>(1.0, 0.0));
 			}
 		}
 	}
