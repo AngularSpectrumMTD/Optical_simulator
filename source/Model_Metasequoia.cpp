@@ -203,7 +203,13 @@ void Model::CalcSurfaceNV() {
 			v1 = (*this).w_Object[n].w_Vertex[index1].w_Coord;
 			v2 = (*this).w_Object[n].w_Vertex[index2].w_Coord;
 
-			(*this).w_Object[n].w_Triangle[m].w_SurfaceNV = normaloftriangle(v0, v1, v2);
+			vec3 normal = normaloftriangle(v0, v1, v2);
+			if (normal.getZ() < 0)
+			{
+				normal *= -1;
+			}
+
+			(*this).w_Object[n].w_Triangle[m].w_SurfaceNV = normal;
 		}
 	w_calced_surfaceNV = true;
 }

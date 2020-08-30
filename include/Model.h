@@ -325,6 +325,7 @@
 		std::vector<Material> GetMaterial()  const  { return w_Material; }
 		std::vector<Object> GetObject()  const  { return w_Object; }
 		vec3 GetEmvironment() const { return w_EMV; }
+		Shield GetShieldMethod() { return w_shieldmtd; }
 
 		//Metasequoia
 		bool MQO_Load(const char* FileName);
