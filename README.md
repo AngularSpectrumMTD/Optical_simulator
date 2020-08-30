@@ -36,3 +36,7 @@ samplecode model calculation.cpp
 
 ・物体光波の回折伝搬計算
 ![物体光波](https://user-images.githubusercontent.com/65929274/91642074-56f85a80-ea63-11ea-8d8d-5ae9f5232313.png)
+
+・隠面消去
+![図6](https://user-images.githubusercontent.com/65929274/91662330-be261580-eb1c-11ea-89c9-521075bcdaeb.png)
+
