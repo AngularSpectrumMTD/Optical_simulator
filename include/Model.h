@@ -154,12 +154,12 @@
 		BoundingBox(vec3 min, vec3 max) :w_min(min), w_max(max), w_center( (max + min)/2 ) {};
 		BoundingBox(double w, double h, double d, vec3 center):w_center(center)
 		{
-			w_min = vec3{ static_cast<float>(center.getX() - w / 2), static_cast<float>(center.getY() - h / 2), static_cast<float>(center.getZ() - d / 2) };
-			w_max = vec3{ static_cast<float>(center.getX() + w / 2), static_cast<float>(center.getY() + h / 2), static_cast<float>(center.getZ() + d / 2) };
+			w_min = vec3{ static_cast<float>(center.w_x - w / 2), static_cast<float>(center.w_y - h / 2), static_cast<float>(center.w_z - d / 2) };
+			w_max = vec3{ static_cast<float>(center.w_x + w / 2), static_cast<float>(center.w_y + h / 2), static_cast<float>(center.w_z + d / 2) };
 		}
-		double GetWidth() const { return w_max.getX() - w_min.getX(); }
-		double GetHeight() const { return w_max.getY() - w_min.getY(); }
-		double GetDepth() const { return w_max.getZ() - w_min.getZ(); }
+		double GetWidth() const { return w_max.w_x - w_min.w_x; }
+		double GetHeight() const { return w_max.w_y - w_min.w_y; }
+		double GetDepth() const { return w_max.w_z - w_min.w_z; }
 	};
 #endif
 #ifndef CUP

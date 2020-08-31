@@ -169,14 +169,14 @@ void WaveFront::Clear()
 void WaveFront::DispMat(mat3& mat)const
 {
 	printf("\n%f %f %f\n%f %f %f\n%f %f %f"
-		, mat.getCol0().getX(), mat.getCol1().getX(), mat.getCol2().getX()
-		, mat.getCol0().getY(), mat.getCol1().getY(), mat.getCol2().getY()
-		, mat.getCol0().getZ(), mat.getCol1().getZ(), mat.getCol2().getZ());
+		, mat.getCol0().w_x, mat.getCol1().w_x, mat.getCol2().w_x
+		, mat.getCol0().w_y, mat.getCol1().w_y, mat.getCol2().w_y
+		, mat.getCol0().w_z, mat.getCol1().w_z, mat.getCol2().w_z);
 }
 void WaveFront::DispVec(vec3& vec)const
 {
 	printf("\n%f \n%f \n%f\n"
-		, vec.getX(), vec.getY(), vec.getZ());
+		, vec.w_x, vec.w_y, vec.w_z);
 }
 void WaveFront::DispParam()const
 {
@@ -217,7 +217,7 @@ WaveFront& WaveFront::MultiplyPlaneWave(double u, double v, double phase)
 
 	double k = 2 * PI / w_lambda;
 
-	double	phase0 = k * (u * GetOrigin().getX() + v * GetOrigin().getY());
+	double	phase0 = k * (u * GetOrigin().w_x + v * GetOrigin().w_y);
 
 	int i, j;
 
@@ -238,8 +238,8 @@ WaveFront& WaveFront::Add(const WaveFront& source)
 {
 	WaveFront& frame = *this;
 	//matching coordinate
-	double x = (source.itox(0) + source.GetOrigin().getX()) - (frame.itox(0) + frame.GetOrigin().getX());
-	double y = (source.jtoy(0) + source.GetOrigin().getY()) - (frame.jtoy(0) + frame.GetOrigin().getY());
+	double x = (source.itox(0) + source.GetOrigin().w_x) - (frame.itox(0) + frame.GetOrigin().w_x);
+	double y = (source.jtoy(0) + source.GetOrigin().w_y) - (frame.jtoy(0) + frame.GetOrigin().w_y);
 
 	//converting from real coordinate value to integer index
 	int ii = int(x / source.GetPx() + 0.5);

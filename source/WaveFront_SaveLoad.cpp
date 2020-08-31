@@ -15,9 +15,9 @@ void WaveFront::SaveAsWaveFront(const char* filename)
 	file << GetLambda() << " ";
 	file << "\n";
 
-	file << GetOrigin().getX() << " ";
-	file << GetOrigin().getY() << " ";
-	file << GetOrigin().getZ() << " ";
+	file << GetOrigin().w_x << " ";
+	file << GetOrigin().w_y << " ";
+	file << GetOrigin().w_z << " ";
 	file << "\n";
 
 	int i = 0, j = 0;

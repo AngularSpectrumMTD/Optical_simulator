@@ -118,7 +118,7 @@ double WaveFront::GetWpow2(double u, double v)
 mat3 WaveFront::GetRotMat(const vec3& v) const
 {
 	mat3 ret = mat3::identity();
-	if ((v.getX() == w_normal.getX()) && (v.getY() == w_normal.getY()) && (v.getY() == w_normal.getY()))
+	if ((v.w_x == w_normal.w_x) && (v.w_y == w_normal.w_y) && (v.w_y == w_normal.w_y))
 	{
 		return ret;
 	}
@@ -184,7 +184,7 @@ void WaveFront::RotInFourierSpace(WaveFront& source, Interp interp, vec3* carrie
 			//frequency in shifted fourier space
 			vec3 ref = vec3{ static_cast<float>(reference.itox(i)),static_cast<float>(reference.jtoy(j)),static_cast<float>(invL1) };
 			//w element of ref
-			double w_ref = reference.GetWpow2(ref.getX(), ref.getY());
+			double w_ref = reference.GetWpow2(ref.w_x, ref.w_y);
 			if (w_ref < 0)//if frequency is evanescent, must be ignored
 			{
 				reference.SetPixel(i, j, complex<double>(0.0, 0.0));
@@ -193,16 +193,16 @@ void WaveFront::RotInFourierSpace(WaveFront& source, Interp interp, vec3* carrie
 			//frequency in reference fourier space
 			vec3 shift = ref + source0;
 			//w element of shift
-			double w_shift = reference.GetWpow2(shift.getX(), shift.getY());
+			double w_shift = reference.GetWpow2(shift.w_x, shift.w_y);
 			if (w_shift < 0)//if frequency is evanescent, must be ignored
 			{
 				reference.SetPixel(i, j, complex<double>(0.0, 0.0));
 				continue;
 			}
-			shift.setZ(static_cast<float>(sqrt(w_shift)));
+			shift.w_z = static_cast<float>(sqrt(w_shift));
 			//frequency in source fourier space
 			vec3 sourcefreq = invrot * shift;
-			reference.SetPixel(i, j, source.GetInterpolatedValue(sourcefreq.getX(), sourcefreq.getY(), interp));
+			reference.SetPixel(i, j, source.GetInterpolatedValue(sourcefreq.w_x, sourcefreq.w_y, interp));
 		}
 	}
 	//reference *= static_cast<float>(sqrt(GetEnergy() / reference.GetEnergy()));
@@ -261,9 +261,9 @@ WaveFront& WaveFront::ShiftedAsmPropAdd(const WaveFront& source)
 		printf(">>Process is terminated forcibly...\n");
 		exit(0);
 	}
-	if ((source.GetNormal().getX() != reference.GetNormal().getX())
-		|| (source.GetNormal().getY() != reference.GetNormal().getY())
-		|| (source.GetNormal().getZ() != reference.GetNormal().getZ()))
+	if ((source.GetNormal().w_x != reference.GetNormal().w_x)
+		|| (source.GetNormal().w_y != reference.GetNormal().w_y)
+		|| (source.GetNormal().w_z != reference.GetNormal().w_z))
 	{
 		printf(">>ERROR: normalvector of reference must be equal to source's one \n");
 		printf(">>Process is terminated forcibly...\n");
@@ -291,9 +291,9 @@ WaveFront& WaveFront::ShiftedAsmProp(const WaveFront& source)
 		exit(0);
 	}
 
-	if ((source.GetNormal().getX() != reference.GetNormal().getX())
-		|| (source.GetNormal().getY() != reference.GetNormal().getY())
-		|| (source.GetNormal().getZ() != reference.GetNormal().getZ()))
+	if ((source.GetNormal().w_x != reference.GetNormal().w_x)
+		|| (source.GetNormal().w_y != reference.GetNormal().w_y)
+		|| (source.GetNormal().w_z != reference.GetNormal().w_z))
 	{
 		printf(">>ERROR: normalvector of reference must be equal to source's one \n");
 		printf(">>Process is terminated forcibly...\n");
@@ -305,8 +305,8 @@ WaveFront& WaveFront::ShiftedAsmProp(const WaveFront& source)
 	vec3 reference_origin = reference.GetOrigin();
 	vec3 trans = reference.GetOrigin() - source.GetOrigin();
 
-	double x0 = trans.getX();
-	double y0 = trans.getY();
+	double x0 = trans.w_x;
+	double y0 = trans.w_y;
 	//printf("[x0 %f  y0 %f]",x0,y0);
 
 	*this = source;//after this line, "this" object is copy of source
@@ -394,9 +394,9 @@ WaveFront& WaveFront::ShiftedAsmPropAddGeneralPurpose(const WaveFront& source) /
 		printf(">>Process is terminated forcibly...\n");
 		exit(0);
 	}
-	if ((source.GetNormal().getX() != reference.GetNormal().getX())
-		|| (source.GetNormal().getY() != reference.GetNormal().getY())
-		|| (source.GetNormal().getZ() != reference.GetNormal().getZ()))
+	if ((source.GetNormal().w_x != reference.GetNormal().w_x)
+		|| (source.GetNormal().w_y != reference.GetNormal().w_y)
+		|| (source.GetNormal().w_z != reference.GetNormal().w_z))
 	{
 		printf(">>ERROR: normalvector of reference must be equal to source's one \n");
 		printf(">>Process is terminated forcibly...\n");

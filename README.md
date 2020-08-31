@@ -29,10 +29,10 @@ samplecode model calculation.cpp
 
 計算例
 ・平行平面間の回折伝搬計算
-![図1](https://user-images.githubusercontent.com/65929274/90981248-d507bd80-e59a-11ea-89b6-61a7d55046b3.png)
+![prop](https://user-images.githubusercontent.com/65929274/91724081-b9726780-ebd7-11ea-8cdf-a6ec5f6bd4ef.gif)
 
 ・非平行平面間の回折伝搬計算
-![図2](https://user-images.githubusercontent.com/65929274/90981262-e6e96080-e59a-11ea-8f53-1fe3afc6b97c.png)
+![prop2](https://user-images.githubusercontent.com/65929274/91724222-f2124100-ebd7-11ea-8b38-07849d783e93.gif)
 
 ・物体光波の回折伝搬計算
 ![物体光波](https://user-images.githubusercontent.com/65929274/91642074-56f85a80-ea63-11ea-8d8d-5ae9f5232313.png)

@@ -53,9 +53,9 @@ void Model::Material_Set() {
 			for (int i = 0; i < w_Material[w_Material.size() - 1].w_TextureImg->GetHeight(); i++) {
 				for (int j = 0; j < w_Material[w_Material.size() - 1].w_TextureImg->GetWidth(); j++) {
 					w_Material[w_Material.size() - 1].w_TextureImg->Write(j, i,
-						w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).getX()
-						, w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).getY()
-						, w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).getZ());
+						w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).w_x
+						, w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).w_y
+						, w_Material[w_Material.size() - 1].w_TextureImg->Load(j, i).w_z);
 				}
 			}
 		}
@@ -71,7 +71,7 @@ void Model::Vertex_Set() {
 	fscanf_s(w_fp, "%s", w_buf, 255);//skipping {
 	for (int i = 0; i < Vertex_Max; i++) {
 		fscanf_s(w_fp, "%f %f %f", &x, &y, &z);
-		V.w_Coord.setX(x); V.w_Coord.setY(y); V.w_Coord.setZ(z);
+		V.w_Coord.w_x = x; V.w_Coord.w_y = y; V.w_Coord.w_z = z;
 		w_Object[w_Object.size() - 1].w_Vertex.push_back(V);//inserting vertex for table
 	}
 	fscanf_s(w_fp, "%s", w_buf, 255);//skipping }
@@ -204,7 +204,7 @@ void Model::CalcSurfaceNV() {
 			v2 = (*this).w_Object[n].w_Vertex[index2].w_Coord;
 
 			vec3 normal = normaloftriangle(v0, v1, v2);
-			if (normal.getZ() < 0)
+			if (normal.w_z < 0)
 			{
 				normal *= -1;
 			}
@@ -273,7 +273,7 @@ void Model::GenDepthList()
 	for (int obj = 0; obj < (*this).w_Object.size(); ++obj)
 		for (int face = 0; face < (*this).w_Object[obj].w_Triangle.size(); ++face)
 		{
-			w_depthlistArray.w_list[i] = depthList(obj, face, this->w_Object[obj].w_Triangle[face].w_center.getZ());
+			w_depthlistArray.w_list[i] = depthList(obj, face, this->w_Object[obj].w_Triangle[face].w_center.w_z);
 			i++;
 		}
 }
@@ -290,7 +290,7 @@ void Model::DivideByDepth(depthListArray& front, depthListArray& back, double z)
 	for (int n = 0; n < temp.w_list.size(); n++)
 	{
 		list = temp.w_list[n];
-		if ((*this).w_Object[list.objidx].w_Triangle[list.faceidx].w_center.getZ() >= z)
+		if ((*this).w_Object[list.objidx].w_Triangle[list.faceidx].w_center.w_z >= z)
 			tempfront.w_list.push_back(list);
 		else
 			tempback.w_list.push_back(list);
@@ -328,17 +328,17 @@ void Model::AccommodatePolygonInBB()
 			{
 			case DWIDTH:
 			{
-				v.setX(v.getX() * rx); v.setY(v.getY() * rx); v.setZ(v.getZ() * rx);
+				v.w_x = v.w_x * rx; v.w_y = v.w_y * rx; v.w_z = v.w_z * rx;
 				w_Object[n].w_Vertex[m].w_Coord = v;
 				break; }
 			case DHEIGHT:
 			{
-				v.setX(v.getX() * ry); v.setY(v.getY() * ry); v.setZ(v.getZ() * ry);
+				v.w_x = v.w_x * ry; v.w_y = v.w_y * ry; v.w_z = v.w_z * ry;
 				w_Object[n].w_Vertex[m].w_Coord = v;
 				break; }
 			case DDEPTH:
 			{
-				v.setX(v.getX() * rz); v.setY(v.getY() * rz); v.setZ(v.getZ() * rz);
+				v.w_x = v.w_x * rz; v.w_y = v.w_y * rz; v.w_z = v.w_z * rz;
 				w_Object[n].w_Vertex[m].w_Coord = v;
 				break; }
 			}

@@ -52,13 +52,13 @@ struct Plane
 	Plane(vec3 n, vec3 p) : w_normal(n), w_point(p) {}
 	double GetDistance(const vec3 &point)
 	{
-		double d = -(w_normal.getX() * w_point.getX()
-			+ w_normal.getY() * w_point.getY()
-			+ w_normal.getZ() * w_point.getZ());
+		double d = -(w_normal.w_x * w_point.w_x
+			+ w_normal.w_y * w_point.w_y
+			+ w_normal.w_z * w_point.w_z);
 
-		double dp = w_normal.getX() * point.getX()
-			+ w_normal.getY() * point.getY()
-			+ w_normal.getZ() * point.getZ();
+		double dp = w_normal.w_x * point.w_x
+			+ w_normal.w_y * point.w_y
+			+ w_normal.w_z * point.w_z;
 
 		double D = length(w_normal);
 

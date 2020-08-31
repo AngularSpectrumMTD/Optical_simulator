@@ -18,7 +18,7 @@ void Model::RotInFourierSpaceForward(const WaveFront& origin, WaveFront& referen
 			//frequency in shifted fourier space
 			vec3 ref = vec3{ static_cast<float>(reference.itox(i)),static_cast<float>(reference.jtoy(j)),static_cast<float>(invL1) };
 			//w element of ref
-			double w_ref = reference.GetWpow2(ref.getX(), ref.getY());
+			double w_ref = reference.GetWpow2(ref.w_x, ref.w_y);
 			if (w_ref < 0.0)//if frequency is evanescent, must be ignored
 			{
 				continue;
@@ -26,22 +26,22 @@ void Model::RotInFourierSpaceForward(const WaveFront& origin, WaveFront& referen
 			//frequency in reference fourier space
 			vec3 shift = ref + source0;
 			//w element of shift
-			double w_shift = reference.GetWpow2(shift.getX(), shift.getY());
+			double w_shift = reference.GetWpow2(shift.w_x, shift.w_y);
 			if (w_shift == 0.0)//if frequency is evanescent, must be ignored
 			{
 				continue;
 			}
-			shift.setZ(static_cast<float>(sqrt(w_shift)));
+			shift.w_z = static_cast<float>(sqrt(w_shift));
 			//frequency in source fourier space
 			vec3 source = invrot * shift;
 			//w element of source
-			double w_source = reference.GetWpow2(source.getX(), source.getY());
+			double w_source = reference.GetWpow2(source.w_x, source.w_y);
 			if (w_source < 0.0)//remove the backface element
 			{
 				continue;
 			}
 
-			reference.SetPixel(i, j, origin.GetInterpolatedValue(source.getX(), source.getY(), interp));
+			reference.SetPixel(i, j, origin.GetInterpolatedValue(source.w_x, source.w_y, interp));
 		}
 	}
 	if (c != nullptr)
@@ -64,26 +64,26 @@ void Model::RotInFourierSpaceBackward(const WaveFront& origin, WaveFront& refere
 			//frequency in shifted fourier space
 			vec3 ref = vec3{ static_cast<float>(reference.itox(i)),static_cast<float>(reference.jtoy(j)),static_cast<float>(invL1) };
 			//w element of ref
-			double w_ref = reference.GetWpow2(ref.getX(), ref.getY());
+			double w_ref = reference.GetWpow2(ref.w_x, ref.w_y);
 			if (w_ref < 0.0)//if frequency is evanescent, must be ignored
 			{
 				continue;
 			}
 
-			ref.setZ(static_cast<float>(sqrt(w_ref)));
+			ref.w_z = static_cast<float>(sqrt(w_ref));
 			//frequency in reference fourier space
 			vec3 shift = invrot * ref;
 			//w element of shift
-			double w_shift = reference.GetWpow2(shift.getX(), shift.getY());
+			double w_shift = reference.GetWpow2(shift.w_x, shift.w_y);
 			if (w_shift < 0.0)//if frequency is evanescent, must be ignored
 			{
 				continue;
 			}
 
-			shift.setZ(static_cast<float>(sqrt(w_shift)));
+			shift.w_z = static_cast<float>(sqrt(w_shift));
 			//frequency in source fourier space
 			vec3 source = shift - c;
-			reference.SetPixel(i, j, origin.GetInterpolatedValue(source.getX(), source.getY(), interp));
+			reference.SetPixel(i, j, origin.GetInterpolatedValue(source.w_x, source.w_y, interp));
 		}
 	}
 }
@@ -98,7 +98,7 @@ mat3 Model::G2L()
 {
 	mat3 ret = mat3::identity();
 	vec3 unitn = normalize(w_currentpolygon.w_surfacenormal);
-	if (unitn.getZ() > 0.995)//if surface normal vector's z_elem nearly 1, matrix is invalid, so return identity matrix
+	if (unitn.w_z > 0.995)//if surface normal vector's z_elem nearly 1, matrix is invalid, so return identity matrix
 	{
 		return ret;
 	}
@@ -109,7 +109,7 @@ mat3 Model::G2L()
 BoundingBox Model::GetDiffractionRect(const double targetZ)
 {
 	double z;
-	z = w_currentpolygon.w_center.getZ();
+	z = w_currentpolygon.w_center.w_z;
 
 	double Z = abs(z - targetZ);
 
@@ -123,9 +123,9 @@ BoundingBox Model::GetDiffractionRect(const double targetZ)
 	double diffy = Z * phasey / sqrt(1 - phasey * phasey);
 
 	//calcurate x side
-	bb0xp = w_currentpolygon.w_vertex[0].getX() + diffx;
-	bb1xp = w_currentpolygon.w_vertex[1].getX() + diffx;
-	bb2xp = w_currentpolygon.w_vertex[2].getX() + diffx;
+	bb0xp = w_currentpolygon.w_vertex[0].w_x + diffx;
+	bb1xp = w_currentpolygon.w_vertex[1].w_x + diffx;
+	bb2xp = w_currentpolygon.w_vertex[2].w_x + diffx;
 	vector<double> xp{ bb0xp, bb1xp ,bb2xp };
 	vector<double>::iterator xmaxiter = max_element(xp.begin(), xp.end());
 	vector<double>::iterator xminiter = min_element(xp.begin(), xp.end());
@@ -133,9 +133,9 @@ BoundingBox Model::GetDiffractionRect(const double targetZ)
 	float xnn = *xminiter - 2 * diffx;
 
 	//calcurate y side
-	bb0yp = w_currentpolygon.w_vertex[0].getY() + diffy;
-	bb1yp = w_currentpolygon.w_vertex[1].getY() + diffy;
-	bb2yp = w_currentpolygon.w_vertex[2].getY() + diffy;
+	bb0yp = w_currentpolygon.w_vertex[0].w_y + diffy;
+	bb1yp = w_currentpolygon.w_vertex[1].w_y + diffy;
+	bb2yp = w_currentpolygon.w_vertex[2].w_y + diffy;
 	vector<double> yp{ bb0yp, bb1yp ,bb2yp };
 	vector<double>::iterator ymaxiter = max_element(yp.begin(), yp.end());
 	vector<double>::iterator yminiter = min_element(yp.begin(), yp.end());
@@ -182,8 +182,8 @@ void Model::SetCurrentPolygon(const depthList dpl)
 void Model::ClipSubfield(WaveFront& sub, WaveFront& frame, bool dir)
 {
 	//matching coordinate
-	double x = (sub.itox(0) + sub.GetOrigin().getX()) - (frame.itox(0) + frame.GetOrigin().getX());
-	double y = (sub.jtoy(0) + sub.GetOrigin().getY()) - (frame.jtoy(0) + frame.GetOrigin().getY());
+	double x = (sub.itox(0) + sub.GetOrigin().w_x) - (frame.itox(0) + frame.GetOrigin().w_x);
+	double y = (sub.jtoy(0) + sub.GetOrigin().w_y) - (frame.jtoy(0) + frame.GetOrigin().w_y);
 
 	//converting from real coordinate value to integer index
 	int ii = int(x / sub.GetPx() + 0.5);
@@ -251,9 +251,9 @@ void Model::AddFieldToMFB(WaveFront& mfb)
 	QueryPerformanceCounter(&w_start);
 	//------------------------------------------------------
 
-	double z_mfb = mfb.GetOrigin().getZ();//z pos of mfb
+	double z_mfb = mfb.GetOrigin().w_z;//z pos of mfb
 
-	double z_ap = w_currentpolygon.w_center.getZ();//z pos of aperture
+	double z_ap = w_currentpolygon.w_center.w_z;//z pos of aperture
 
 	double d = z_ap - z_mfb;//propagate distance
 
@@ -263,12 +263,12 @@ void Model::AddFieldToMFB(WaveFront& mfb)
 	sfb.CopyParam(mfb);
 
 	double gapx, gapy;
-	gapx = fmod(w_currentpolygon.w_center.getX(), sfb.GetPx());
-	gapy = fmod(w_currentpolygon.w_center.getY(), sfb.GetPy());
+	gapx = fmod(w_currentpolygon.w_center.w_x, sfb.GetPx());
+	gapy = fmod(w_currentpolygon.w_center.w_y, sfb.GetPy());
 
 	//setting center of polygon as origin of sfb
-	sfb.SetOrigin(vec3{ static_cast<float>(w_currentpolygon.w_center.getX() - gapx),
-		static_cast<float>(w_currentpolygon.w_center.getY() - gapy), static_cast<float>(z_mfb) });
+	sfb.SetOrigin(vec3{ static_cast<float>(w_currentpolygon.w_center.w_x - gapx),
+		static_cast<float>(w_currentpolygon.w_center.w_y - gapy), static_cast<float>(z_mfb) });
 
 	sfb.SetNx(int(bbox.GetWidth() / sfb.GetPx()));
 	sfb.SetNy(int(bbox.GetHeight() / sfb.GetPy()));
@@ -384,7 +384,7 @@ void Model::AddFieldToMFB(WaveFront& mfb)
 }
 void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 {
-	//double frameZ = mfb.GetOrigin().getZ();
+	//double frameZ = mfb.GetOrigin().w_z;
 	SortByDepth(list);
 	int n = 0;
 	int div = static_cast<int>(list.w_list.size()/20);
@@ -396,24 +396,24 @@ void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 		SetCurrentPolygon(dl);
 		if (PolygonIsVisible())
 		{
-			double polyZ = w_currentpolygon.w_center.getZ();
+			double polyZ = w_currentpolygon.w_center.w_z;
 			//occlusion processing
 			AddFieldToMFB(mfb);
 			
+			if (mfb.ComputeMaxAmplitude() > 30)
+			{
+				printf(">>ERROR: amplitude of frame is exceed the limit. This value is too large. \n Plz, considering to expand model size or pixel size.\n");
+				printf(">>Process is terminated forcibly...\n");
+				exit(0);
+			}
 			if (div >= 20 && n % div == 0)
 			{
 				printf("%d%% ", count);
-				if (mfb.ComputeMaxAmplitude() > 100)
-				{
-					printf(">>ERROR: amplitude of frame is exceed the limit. This value is too large. \n Plz, considering to expand model size or pixel size.\n");
-					printf(">>Process is terminated forcibly...\n");
-					exit(0);
-				}
 				count += 5;
 			}
 			else
 			{
-				//printf("(%d)", n);
+				printf("(%d)", list.w_list.size() - n);
 			}
 		}
 		n++;
@@ -488,7 +488,7 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 	SetUp(rot);
 	vector<depthListArray> model;
 	depthListArray tmp = w_depthlistArray;
-	double backpos = w_bbox.w_min.getZ();
+	double backpos = w_bbox.w_min.w_z;
 	double depth = w_bbox.GetDepth();
 
 	for (int i = 0; i < div - 1; i++)
@@ -507,7 +507,7 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 		CalcCenterOfModel(dla);
 	}
 
-	double d0 = (double)model[0].w_modelcenter.getZ() - (double)originpos.getZ();
+	double d0 = (double)model[0].w_modelcenter.w_z - (double)originpos.w_z;
 
 	if (back)// move the pos of frame from first pos to center of first submodel
 	{
@@ -523,7 +523,7 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 	else
 	{
 		vec3 neworigin = mfb.GetOrigin();
-		neworigin.setZ(model[0].w_modelcenter.getZ());
+		neworigin.w_z = model[0].w_modelcenter.w_z;
 		mfb.SetOrigin(neworigin);
 		mfb.Clear();
 	}
@@ -533,7 +533,7 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 		AddObjectFieldPersubmodel(mfb, model[n]);
 		if (n < model.size() - 1)
 		{
-			double dn = model[n + 1].w_modelcenter.getZ() - originpos.getZ();
+			double dn = model[n + 1].w_modelcenter.w_z - originpos.w_z;
 			if (exact)
 			{
 				mfb.ExactAsmProp(dn);
@@ -567,28 +567,28 @@ void Model::ExShieldingAddingField(WaveFront& pfb)
 	MarkingRectangularPointsInFourierSpace(freq);
 	mul(freq, rot);
 	BoundingBox fspace = GetBoundingBox(freq);
-	float u = (fspace.w_max.getX() + fspace.w_min.getX()) / 2,
-		v = (fspace.w_max.getY() + fspace.w_min.getY()) / 2, w;
+	float u = (fspace.w_max.w_x + fspace.w_min.w_x) / 2,
+		v = (fspace.w_max.w_y + fspace.w_min.w_y) / 2, w;
 	vec3 shiftsource{ u, v, static_cast<float>(sqrt(1 / w_lambda / w_lambda - u * u - v * v)) };
 	sub(freq, shiftsource);
 	fspace = GetBoundingBox(freq);
 	//calculate sampling interval on fourier space
 	double tfbpx, tfbpy;
-	if (-fspace.w_min.getX() < fspace.w_max.getX())
+	if (-fspace.w_min.w_x < fspace.w_max.w_x)
 	{
-		tfbpx = 0.5 / fspace.w_max.getX();
+		tfbpx = 0.5 / fspace.w_max.w_x;
 	}
 	else
 	{
-		tfbpx = -0.5 / fspace.w_min.getX();
+		tfbpx = -0.5 / fspace.w_min.w_x;
 	}
-	if (-fspace.w_min.getY() < fspace.w_max.getY())
+	if (-fspace.w_min.w_y < fspace.w_max.w_y)
 	{
-		tfbpy = 0.5 / fspace.w_max.getY();
+		tfbpy = 0.5 / fspace.w_max.w_y;
 	}
 	else
 	{
-		tfbpy = -0.5 / fspace.w_min.getY();
+		tfbpy = -0.5 / fspace.w_min.w_y;
 	}
 	//transform origin to local coordinate
 	vec3 pfborigin{ pfb.GetOrigin() };
@@ -685,9 +685,9 @@ void Model::SilhouetteShieldingAddingField(WaveFront& pfb)
 	CurrentPolygon grobal = w_currentpolygon;
 	CurrentPolygon local = grobal;
 	//shielding on parallel plane
-	grobal.w_vertex[0].setZ(w_currentpolygon.w_center.getZ());
-	grobal.w_vertex[1].setZ(w_currentpolygon.w_center.getZ());
-	grobal.w_vertex[2].setZ(w_currentpolygon.w_center.getZ());
+	grobal.w_vertex[0].w_z = w_currentpolygon.w_center.w_z;
+	grobal.w_vertex[1].w_z = w_currentpolygon.w_center.w_z;
+	grobal.w_vertex[2].w_z = w_currentpolygon.w_center.w_z;
 	vector<vec3> grobalpoint = grobal.GetVertex();
 	sub(grobalpoint, grobal.w_center);
 	grobal.SetVertex(grobalpoint);
@@ -699,28 +699,28 @@ void Model::SilhouetteShieldingAddingField(WaveFront& pfb)
 	MarkingRectangularPointsInFourierSpace(freq);
 	mul(freq, rot);
 	BoundingBox fspace = GetBoundingBox(freq);
-	float u = (fspace.w_max.getX() + fspace.w_min.getX()) / 2,
-		v = (fspace.w_max.getY() + fspace.w_min.getY()) / 2, w;
+	float u = (fspace.w_max.w_x + fspace.w_min.w_x) / 2,
+		v = (fspace.w_max.w_y + fspace.w_min.w_y) / 2, w;
 	vec3 shiftsource{ u, v, static_cast<float>(sqrt(1 / w_lambda / w_lambda - u * u - v * v)) };
 	sub(freq, shiftsource);
 	fspace = GetBoundingBox(freq);
 	//calculate sampling interval on fourier space
 	double tfbpx, tfbpy;
-	if (-fspace.w_min.getX() < fspace.w_max.getX())
+	if (-fspace.w_min.w_x < fspace.w_max.w_x)
 	{
-		tfbpx = 0.5 / fspace.w_max.getX();
+		tfbpx = 0.5 / fspace.w_max.w_x;
 	}
 	else
 	{
-		tfbpx = -0.5 / fspace.w_min.getX();
+		tfbpx = -0.5 / fspace.w_min.w_x;
 	}
-	if (-fspace.w_min.getY() < fspace.w_max.getY())
+	if (-fspace.w_min.w_y < fspace.w_max.w_y)
 	{
-		tfbpy = 0.5 / fspace.w_max.getY();
+		tfbpy = 0.5 / fspace.w_max.w_y;
 	}
 	else
 	{
-		tfbpy = -0.5 / fspace.w_min.getY();
+		tfbpy = -0.5 / fspace.w_min.w_y;
 	}
 	//transform origin to local coordinate
 	vec3 pfborigin{ pfb.GetOrigin() };
@@ -846,7 +846,7 @@ double Model::GetCorrectedAmplitude(WaveFront& tfb, double brt)
 }
 double sign(vec3 p0, vec3 p1, vec3 p2)
 {
-	return (p0.getX() - p2.getX()) * (p1.getY() - p2.getY()) - (p1.getX() - p2.getX()) * (p0.getY() - p2.getY());
+	return (p0.w_x - p2.w_x) * (p1.w_y - p2.w_y) - (p1.w_x - p2.w_x) * (p0.w_y - p2.w_y);
 }
 bool Model::IsInTriangle(vec3 p, const CurrentPolygon& polyL)
 {
@@ -928,15 +928,15 @@ void Model::SmoothShading(WaveFront& field, const CurrentPolygon& polyL)
 double alpha(vec3 p, vec3 p0, vec3 p1, vec3 p2)
 {
 	double ret = 0;
-	ret = (p1.getY() - p2.getY()) * (p.getX() - p2.getX()) + (p2.getX() - p1.getX()) * (p.getY() - p2.getY());
-	ret /= (p1.getY() - p2.getY()) * (p0.getX() - p2.getX()) + (p2.getX() - p1.getX()) * (p0.getY() - p2.getY());
+	ret = (p1.w_y - p2.w_y) * (p.w_x - p2.w_x) + (p2.w_x - p1.w_x) * (p.w_y - p2.w_y);
+	ret /= (p1.w_y - p2.w_y) * (p0.w_x - p2.w_x) + (p2.w_x - p1.w_x) * (p0.w_y - p2.w_y);
 	return ret;
 }
 double beta(vec3 p, vec3 p0, vec3 p1, vec3 p2)
 {
 	double ret = 0;
-	ret = (p2.getY() - p0.getY()) * (p.getX() - p2.getX()) + (p0.getX() - p2.getX()) * (p.getY() - p2.getY());
-	ret /= (p1.getY() - p2.getY()) * (p0.getX() - p2.getX()) + (p2.getX() - p1.getX()) * (p0.getY() - p2.getY());
+	ret = (p2.w_y - p0.w_y) * (p.w_x - p2.w_x) + (p0.w_x - p2.w_x) * (p.w_y - p2.w_y);
+	ret /= (p1.w_y - p2.w_y) * (p0.w_x - p2.w_x) + (p2.w_x - p1.w_x) * (p0.w_y - p2.w_y);
 	return ret;
 }
 void Model::Mapping(WaveFront& field, const CurrentPolygon& polyL)
@@ -1000,9 +1000,9 @@ void Model::Mapping(WaveFront& field, const CurrentPolygon& polyL)
 				U = ceil(U % w_Material[matindex].w_TextureImg->GetWidth());
 				V = ceil(V % w_Material[matindex].w_TextureImg->GetHeight());
 
-				double r = w_Material[matindex].w_TextureImg->Load(U, V).getX();//r
-				double g = w_Material[matindex].w_TextureImg->Load(U, V).getY();//g
-				double b = w_Material[matindex].w_TextureImg->Load(U, V).getZ();//b
+				double r = w_Material[matindex].w_TextureImg->Load(U, V).w_x;//r
+				double g = w_Material[matindex].w_TextureImg->Load(U, V).w_y;//g
+				double b = w_Material[matindex].w_TextureImg->Load(U, V).w_z;//b
 
 				double gray = (r + g + b) / 3;
 				gray /= 255.99f;

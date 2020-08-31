@@ -53,50 +53,50 @@ LAVector& LAVector::operator /= (const float k)
 LAVector operator +(const LAVector& u, const LAVector& v)
 {
 	LAVector w;
-	w.setX(u.getX() + v.getX());
-	w.setY(u.getY() + v.getY());
-	w.setZ(u.getZ() + v.getZ());
+	w.w_x = u.w_x + v.w_x;
+	w.w_y = u.w_y + v.w_y;
+	w.w_z = u.w_z + v.w_z;
 	return w;
 }
 
 LAVector operator -(const LAVector& u, const LAVector& v)
 {
 	LAVector w;
-	w.setX(u.getX() - v.getX());
-	w.setY(u.getY() - v.getY());
-	w.setZ(u.getZ() - v.getZ());
+	w.w_x = u.w_x - v.w_x;
+	w.w_y = u.w_y - v.w_y;
+	w.w_z = u.w_z - v.w_z;
 	return w;
 }
 
 float operator *(const LAVector& u, const LAVector& v)//innerproduct
 {
-	return u.getX() * v.getX() + u.getY() * v.getY() + u.getZ() * v.getZ();
+	return u.w_x * v.w_x + u.w_y * v.w_y + u.w_z * v.w_z;
 }
 
 LAVector operator *(const float k, const LAVector& v)
 {
-	LAVector w(k * v.getX(), k * v.getY(), k * v.getZ());
+	LAVector w(k * v.w_x, k * v.w_y, k * v.w_z);
 	return w;
 }
 
 LAVector operator *(const LAVector& v, const float k)
 {
-	LAVector w(k * v.getX(), k * v.getY(), k * v.getZ());
+	LAVector w(k * v.w_x, k * v.w_y, k * v.w_z);
 	return w;
 }
 
 LAVector operator /(const LAVector& v, const float k)
 {
-	LAVector w(v.getX() / k, v.getY() / k,  v.getZ() / k);
+	LAVector w(v.w_x / k, v.w_y / k,  v.w_z / k);
 	return w;
 }
 
 LAVector operator &&(const LAVector& u, const LAVector& v)
 {
 	LAVector w(
-		u.getY() * v.getZ() - u.getZ() * v.getY()
-		, u.getZ() * v.getX() - u.getX() * v.getZ()
-		, u.getX() * v.getY() - u.getY() * v.getX());
+		u.w_y * v.w_z - u.w_z * v.w_y
+		, u.w_z * v.w_x - u.w_x * v.w_z
+		, u.w_x * v.w_y - u.w_y * v.w_x);
 	return w;
 }
 
@@ -193,8 +193,8 @@ LAMatrix operator *(const LAMatrix& mat, const float k)
 LAVector operator *(const LAMatrix& mat ,const LAVector& vec)
 {
 	return LAVector(
-		(((mat.getCol0().getX() * vec.getX()) + (mat.getCol1().getX() * vec.getY())) + (mat.getCol2().getX() * vec.getZ())),
-		(((mat.getCol0().getY() * vec.getX()) + (mat.getCol1().getY() * vec.getY())) + (mat.getCol2().getY() * vec.getZ())),
-		(((mat.getCol0().getZ() * vec.getX()) + (mat.getCol1().getZ() * vec.getY())) + (mat.getCol2().getZ() * vec.getZ()))
+		(((mat.getCol0().w_x * vec.w_x) + (mat.getCol1().w_x * vec.w_y)) + (mat.getCol2().w_x * vec.w_z)),
+		(((mat.getCol0().w_y * vec.w_x) + (mat.getCol1().w_y * vec.w_y)) + (mat.getCol2().w_y * vec.w_z)),
+		(((mat.getCol0().w_z * vec.w_x) + (mat.getCol1().w_z * vec.w_y)) + (mat.getCol2().w_z * vec.w_z))
 	);
 }

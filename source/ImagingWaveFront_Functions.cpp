@@ -60,7 +60,7 @@ void ImagingWaveFront::SetEye(WaveFront& eye, const vec3 & p)
 }
 void ImagingWaveFront::View(const WaveFront& wf, const vec3 &p)		//focus to p of wavefront
 {
-	if (wf.GetNormal().getX() != 0 && wf.GetNormal().getY() != 0 && wf.GetNormal().getZ() != 1)
+	if (wf.GetNormal().w_x != 0 && wf.GetNormal().w_y != 0 && wf.GetNormal().w_z != 1)
 	{
 		printf(">>ERROR: Normal vector of the WaveField object must be (0, 0, 1)\n");
 		printf(">>Process is terminated forcibly...\n");
@@ -85,7 +85,7 @@ void ImagingWaveFront::Imaging(vec3 p)
 	
 	TiltedAsmProp(source, BICUBIC, &freq);
 	
-	MultiplyPlaneWave(freq.getX() * GetLambda(), freq.getY() * GetLambda());
+	MultiplyPlaneWave(freq.w_x * GetLambda(), freq.w_y * GetLambda());
 
 	source.pitchtrans();
 	WaveFront &lens = source;

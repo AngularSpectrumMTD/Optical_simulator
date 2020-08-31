@@ -19,9 +19,9 @@ void Image::Write(const int i, const int j, const double R, const double G, cons
 vec3 Image:: Load(const int i, const int j) {
 	vec3 texcolor(0);
 	int Image_index = idxij(i, j);
-	texcolor.setX(Image_pix[Image_index].R);
-	texcolor.setY(Image_pix[Image_index].G);
-	texcolor.setZ(Image_pix[Image_index].B);
+	texcolor.w_x = Image_pix[Image_index].R;
+	texcolor.w_y = Image_pix[Image_index].G;
+	texcolor.w_z = Image_pix[Image_index].B;
 	return texcolor;
 }
 

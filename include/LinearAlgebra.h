@@ -8,12 +8,10 @@ class LAMatrix;
 
 class LAVector
 {
-private:
+public:
 	float w_x;
 	float w_y;
 	float w_z;
-
-public:
 	
 	//constructor
 	LAVector(): w_x(0), w_y(0), w_z(0){}
@@ -29,19 +27,11 @@ public:
 	LAVector& operator *= (const float k);
 	LAVector& operator /= (const float k);
 
-	float getX() const { return w_x; }
-	float getY() const { return w_y; }
-	float getZ() const { return w_z; }
-
 	static inline const LAVector getEx();
 	static inline const LAVector getEy();
 	static inline const LAVector getEz();
 
 	float getElem(int idx) const { return *(&w_x + idx); }
-
-	void setX(float x) { w_x = x; }
-	void setY(float y) { w_y = y; } 
-	void setZ(float z) { w_z = z; }
 
 	LAVector& setElem(int idx, float val)
 	{
@@ -56,18 +46,18 @@ inline const LAVector LAVector::getEz() { return LAVector(0.0, 0.0, 1.0); }
 inline float dot(const LAVector & vec0, const LAVector & vec1)
 {
 	float result;
-	result = (vec0.getX() * vec1.getX());
-	result = (result + (vec0.getY() * vec1.getY()));
-	result = (result + (vec0.getZ() * vec1.getZ()));
+	result = (vec0.w_x * vec1.w_x);
+	result = (result + (vec0.w_y * vec1.w_y));
+	result = (result + (vec0.w_z * vec1.w_z));
 	return result;
 }
 
 inline float lengthSqr(const LAVector & vec)
 {
 	float result;
-	result = (vec.getX() * vec.getX());
-	result = (result + (vec.getY() * vec.getY()));
-	result = (result + (vec.getZ() * vec.getZ()));
+	result = (vec.w_x * vec.w_x);
+	result = (result + (vec.w_y * vec.w_y));
+	result = (result + (vec.w_z * vec.w_z));
 	return result;
 }
 
@@ -82,36 +72,36 @@ inline const LAVector normalize(const LAVector& vec)
 	lenSqr = lengthSqr(vec);
 	lenInv = (1.0f / sqrtf(lenSqr));
 	return LAVector(
-		(vec.getX() * lenInv),
-		(vec.getY() * lenInv),
-		(vec.getZ() * lenInv)
+		(vec.w_x * lenInv),
+		(vec.w_y * lenInv),
+		(vec.w_z * lenInv)
 	);
 }
 
 inline const LAVector cross(const LAVector& vec0, const LAVector& vec1)
 {
 	return LAVector(
-		((vec0.getY() * vec1.getZ()) - (vec0.getZ() * vec1.getY())),
-		((vec0.getZ() * vec1.getX()) - (vec0.getX() * vec1.getZ())),
-		((vec0.getX() * vec1.getY()) - (vec0.getY() * vec1.getX()))
+		((vec0.w_y * vec1.w_z) - (vec0.w_z * vec1.w_y)),
+		((vec0.w_z * vec1.w_x) - (vec0.w_x * vec1.w_z)),
+		((vec0.w_x * vec1.w_y) - (vec0.w_y * vec1.w_x))
 	);
 }
 
 inline const LAVector minPerElem(const LAVector& vec0, const LAVector& vec1)
 {
 	return LAVector(
-		(vec0.getX() < vec1.getX()) ? vec0.getX() : vec1.getX(),
-		(vec0.getY() < vec1.getY()) ? vec0.getY() : vec1.getY(),
-		(vec0.getZ() < vec1.getZ()) ? vec0.getZ() : vec1.getZ()
+		(vec0.w_x < vec1.w_x) ? vec0.w_x : vec1.w_x,
+		(vec0.w_y < vec1.w_y) ? vec0.w_y : vec1.w_y,
+		(vec0.w_z < vec1.w_z) ? vec0.w_z : vec1.w_z
 	);
 }
 
 inline const LAVector maxPerElem(const LAVector& vec0, const LAVector& vec1)
 {
 	return LAVector(
-		(vec0.getX() > vec1.getX()) ? vec0.getX() : vec1.getX(),
-		(vec0.getY() > vec1.getY()) ? vec0.getY() : vec1.getY(),
-		(vec0.getZ() > vec1.getZ()) ? vec0.getZ() : vec1.getZ()
+		(vec0.w_x > vec1.w_x) ? vec0.w_x : vec1.w_x,
+		(vec0.w_y > vec1.w_y) ? vec0.w_y : vec1.w_y,
+		(vec0.w_z > vec1.w_z) ? vec0.w_z : vec1.w_z
 	);
 }
 
@@ -271,9 +261,9 @@ inline const LAMatrix LAMatrix::rotation(const float rad, const LAVector& unit_d
 	cosval = cosf(rad);
 
 	float x, y, z;
-	x = unit_dir.getX();
-	y = unit_dir.getY();
-	z = unit_dir.getZ();
+	x = unit_dir.w_x;
+	y = unit_dir.w_y;
+	z = unit_dir.w_z;
 	float xy, yz, zx;
 	xy = x * y;
 	yz = y * z;
@@ -290,9 +280,9 @@ inline const LAMatrix LAMatrix::rotation(const float rad, const LAVector& unit_d
 inline const LAMatrix transpose(const LAMatrix& mat)
 {
 	return LAMatrix(
-		LAVector(mat.getCol0().getX(), mat.getCol1().getX(), mat.getCol2().getX()),
-		LAVector(mat.getCol0().getY(), mat.getCol1().getY(), mat.getCol2().getY()),
-		LAVector(mat.getCol0().getZ(), mat.getCol1().getZ(), mat.getCol2().getZ())
+		LAVector(mat.getCol0().w_x, mat.getCol1().w_x, mat.getCol2().w_x),
+		LAVector(mat.getCol0().w_y, mat.getCol1().w_y, mat.getCol2().w_y),
+		LAVector(mat.getCol0().w_z, mat.getCol1().w_z, mat.getCol2().w_z)
 	);
 }
 
@@ -305,8 +295,8 @@ inline const LAMatrix inverse(const LAMatrix& mat)
 	tmp2 = cross(mat.getCol0(), mat.getCol1());
 	detinv = (1.0f / dot(mat.getCol2(), tmp2));
 	return LAMatrix(
-		LAVector((tmp0.getX() * detinv), (tmp1.getX() * detinv), (tmp2.getX() * detinv)),
-		LAVector((tmp0.getY() * detinv), (tmp1.getY() * detinv), (tmp2.getY() * detinv)),
-		LAVector((tmp0.getZ() * detinv), (tmp1.getZ() * detinv), (tmp2.getZ() * detinv))
+		LAVector((tmp0.w_x * detinv), (tmp1.w_x * detinv), (tmp2.w_x * detinv)),
+		LAVector((tmp0.w_y * detinv), (tmp1.w_y * detinv), (tmp2.w_y * detinv)),
+		LAVector((tmp0.w_z * detinv), (tmp1.w_z * detinv), (tmp2.w_z * detinv))
 	);
 }
