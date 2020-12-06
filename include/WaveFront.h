@@ -251,8 +251,8 @@ public:
 	void SaveAsCsv(const char* fname, Axis axis, int ij);
 
 	// QuadraticPhase
-	WaveFront& SetQuadraticPhase(const double f);
-	WaveFront& MultiplyQuadraticPhase(const double f);
+	WaveFront& SetQuadraticPhase(const double f, const bool biconcave = false);
+	WaveFront& MultiplyQuadraticPhase(const double f, const bool biconcave = false);
 
 	// SaveLoad (function related to complex distribution)
 	void SaveAsWaveFront(const char* filename);

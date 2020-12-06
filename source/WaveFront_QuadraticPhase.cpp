@@ -1,8 +1,14 @@
 #include"../include/WaveFront.h"
 using namespace std;
-WaveFront& WaveFront::SetQuadraticPhase(const double f)
+WaveFront& WaveFront::SetQuadraticPhase(const double f, const bool biconcave)
 {
 	double k = 2*PI/w_lambda;
+
+	if (biconcave)
+	{
+		k  *= -1;
+	}
+
 	int i, j;
 #pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
@@ -17,9 +23,15 @@ WaveFront& WaveFront::SetQuadraticPhase(const double f)
 	}
 	return *this;
 }
-WaveFront& WaveFront::MultiplyQuadraticPhase(const double f)
+WaveFront& WaveFront::MultiplyQuadraticPhase(const double f, const bool biconcave)
 {
 	double k = 2 * PI / w_lambda;
+
+	if (biconcave)
+	{
+		k *= -1;
+	}
+
 	int i, j;
 #pragma omp parallel for private(i, j) num_threads(omp_get_max_threads())
 	for (j = 0; j < w_ny; ++j)
