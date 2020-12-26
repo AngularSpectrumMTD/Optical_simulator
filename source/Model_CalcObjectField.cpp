@@ -98,7 +98,7 @@ mat3 Model::G2L()
 {
 	mat3 ret = mat3::identity();
 	vec3 unitn = normalize(w_currentpolygon.w_surfacenormal);
-	if (unitn.w_z > 0.995)//if surface normal vector's z_elem nearly 1, matrix is invalid, so return identity matrix
+	if (unitn.w_z > 0.95)//if surface normal vector's z_elem nearly 1, matrix is invalid, so return identity matrix
 	{
 		return ret;
 	}
@@ -273,21 +273,28 @@ void Model::AddFieldToMFB(WaveFront& mfb)
 	sfb.SetNx(int(bbox.GetWidth() / sfb.GetPx()));
 	sfb.SetNy(int(bbox.GetHeight() / sfb.GetPy()));
 
+	//sfb.DispParam();
 	//------------------------------------------------------
 	QueryPerformanceCounter(&w_end);
 	w_time_other += getdeltatime();
 	//------------------------------------------------------
 
-	if (sfb.GetN() <= 0 || sfb.GetN() > mfb.GetN())
+	if (sfb.GetN() <= 0)
 	{
-		printf("return->");
+		printf("invalid: return->");
+		return;
+	}
+
+	if (sfb.GetN() > mfb.GetN())
+	{
+		printf("too large: return->");
 		return;
 	}
 
 	//------------------------------------------------------
 	QueryPerformanceCounter(&w_start);
 	//------------------------------------------------------
-	if (sfb.GetN() < 256 * 256)
+	if (sfb.GetN() < 128 * 128)
 	{
 		sfb.Init();
 		sfb.Embed();
@@ -296,7 +303,8 @@ void Model::AddFieldToMFB(WaveFront& mfb)
 	{
 		sfb.Init();
 	}
-	sfb.Clear();
+	//sfb.Init();
+	//sfb.Clear();
 	//clipping field from mfb to sfb
 	ClipSubfield(sfb, mfb, true);
 
@@ -400,10 +408,14 @@ void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 			//occlusion processing
 			AddFieldToMFB(mfb);
 			
-			if (mfb.ComputeMaxAmplitude() > 30)
+			auto max = mfb.ComputeMaxAmplitude();
+
+			if (max > 100)
 			{
 				printf(">>ERROR: amplitude of frame is exceed the limit. This value is too large. \n Plz, considering to expand model size or pixel size.\n");
 				printf(">>Process is terminated forcibly...\n");
+				printf(">>normal(%f, %f, %f)\n", w_currentpolygon.w_surfacenormal.w_x, w_currentpolygon.w_surfacenormal.w_y, w_currentpolygon.w_surfacenormal.w_z);
+				printf(">>amplitude(%f)\n", max);
 				exit(0);
 			}
 			if (div >= 20 && n % div == 0)
@@ -413,7 +425,7 @@ void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 			}
 			else
 			{
-				printf("(%d)", list.w_list.size() - n);
+				//printf("(%d)[%.0f]", list.w_list.size() - n, max);
 			}
 		}
 		n++;
@@ -432,7 +444,7 @@ bool Model::PolygonIsVisible()
 	mul(freq, rot);
 	BoundingBox fspace = GetBoundingBox(freq);
 	double transedsurface = fspace.GetWidth() * fspace.GetHeight();
-	if (transedsurface / originsurface < 0.5)
+	if (transedsurface / originsurface < 0.7)
 	{
 		visible = false;
 	}
@@ -458,11 +470,27 @@ void Model::CalcCenterOfModel(depthListArray& model)
 }
 void Model::SetUp(const mat3& rot)
 {
-	AccommodatePolygonInBB();
+	/*AccommodatePolygonInBB();
 	CalcModelCenter();
 	w_center = w_bbox.w_center;
 	*this += w_center;
 	*this *= rot;
+	CalcSurfaceNV();
+	if (w_shader == SMOOTH)
+	{
+		CalcVertexNV();
+	}
+	GenDepthList();
+	CalcPolygonCenter();*/
+
+	CalcModelCenter();
+	*this += -w_center;
+	*this *= rot;
+
+	AccommodatePolygonInBB();
+	w_center = w_bbox.w_center;
+	*this += w_center;
+	
 	CalcSurfaceNV();
 	if (w_shader == SMOOTH)
 	{
@@ -486,7 +514,13 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 	w_lambda = mfb.GetLambda();
 	vec3 originpos = mfb.GetOrigin();
 	SetUp(rot);
+
+	//vector<depthListArray> model = GetDividedPolygonList(div);
+
+
+
 	vector<depthListArray> model;
+
 	depthListArray tmp = w_depthlistArray;
 	double backpos = w_bbox.w_min.w_z;
 	double depth = w_bbox.GetDepth();
@@ -501,7 +535,12 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 			model.push_back(ddiv);
 		}
 	}
+	if(tmp.w_list.size() != 0)
 	model.push_back(tmp);
+
+
+
+
 	for (auto& dla : model)
 	{
 		CalcCenterOfModel(dla);
@@ -528,12 +567,19 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 		mfb.Clear();
 	}
 
+	//vec3 neworigin = mfb.GetOrigin();
+
+	printf("\nsubmodel_div_num[%d](%d polygons)\n>>", div, w_depthlistArray.w_list.size());
+
 	for (int n = 0; n < model.size(); n++)
 	{
+		printf("\nsubmodel[%d](%d polygons)\n>>",n, model[n].w_list.size());
 		AddObjectFieldPersubmodel(mfb, model[n]);
+		dispTotalTime();
 		if (n < model.size() - 1)
 		{
-			double dn = model[n + 1].w_modelcenter.w_z - originpos.w_z;
+			//double dn = model[n + 1].w_modelcenter.w_z - originpos.w_z;
+			double dn = model[n + 1].w_modelcenter.w_z - mfb.GetOrigin().w_z;
 			if (exact)
 			{
 				mfb.ExactAsmProp(dn);
@@ -546,6 +592,13 @@ void Model::AddObjectField(WaveFront& mfb, const unsigned int div, const mat3& r
 	}
 	printf("\nCalculation Fnish");
 	dispTotalTime();
+
+	//if (div != 1)
+	//{
+	//	double dc = mfb.GetOrigin().w_z - neworigin.w_z;
+	//	mfb.ExactAsmProp(dc);
+	//}
+	
 }
 void Model::ExShieldingAddingField(WaveFront& pfb)
 {

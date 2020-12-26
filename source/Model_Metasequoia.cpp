@@ -282,15 +282,24 @@ void Model::SortByDepth(depthListArray& list)
 {
 	sort(list.w_list.begin(), list.w_list.end());
 }
+Triangle Model::GetPolygon(depthList list)
+{
+	return (*this).w_Object[list.objidx].w_Triangle[list.faceidx];
+}
 void Model::DivideByDepth(depthListArray& front, depthListArray& back, double z)
 {
-	depthListArray temp(w_depthlistArray);
+	//depthListArray temp(w_depthlistArray);
+	depthListArray temp(front);
+
 	depthListArray tempfront, tempback;
 	depthList list;
 	for (int n = 0; n < temp.w_list.size(); n++)
 	{
 		list = temp.w_list[n];
-		if ((*this).w_Object[list.objidx].w_Triangle[list.faceidx].w_center.w_z >= z)
+
+		double current_z = GetPolygon(list).w_center.w_z;
+
+		if (current_z >= z)
 			tempfront.w_list.push_back(list);
 		else
 			tempback.w_list.push_back(list);
@@ -298,7 +307,31 @@ void Model::DivideByDepth(depthListArray& front, depthListArray& back, double z)
 	front = tempfront;
 	back = tempback;
 }
+vector<depthListArray> Model::GetDividedPolygonList(int divnum)
+{
+	vector<depthListArray> model(divnum);
 
+	depthListArray tmp = w_depthlistArray;
+	double backpos = w_bbox.w_min.w_z;
+	double depth = w_bbox.GetDepth();
+
+	for (int i = 0; i < divnum; i++)
+	{
+		for (int n = 0; n < tmp.w_list.size(); n++)
+		{
+			depthList list = tmp.w_list[n];
+
+			double current_z = GetPolygon(list).w_center.w_z;
+
+			if (current_z >= backpos + depth / divnum * (i) && current_z < backpos + depth / divnum * (i + 1))
+			{
+				model[i].w_list.push_back(list);
+			}
+		}
+	}
+
+	return model;
+}
 void Model::AccommodatePolygonInBB()
 {
 	vector<vec3> vec;

@@ -277,7 +277,7 @@
 		LARGE_INTEGER w_start;
 		LARGE_INTEGER w_end;
 		double getdeltatime() { return (w_end.QuadPart - w_start.QuadPart) * 1000.0 / w_freq.QuadPart; }
-		void dispTotalTime() { printf("\nFFT: %lf [ms] INTERPOL: %lf [ms] OTHER: %lf [ms]\n", w_time_fft, w_time_interpol, w_time_other); }
+		void dispTotalTime() { printf("\nFFT: %.1f [s] INTERPOL: %.1f [s] OTHER: %.1f [s]    TOTAL: %.1f [s] \n", w_time_fft/1000, w_time_interpol/1000, w_time_other/1000, w_time_fft / 1000 + w_time_interpol / 1000 + w_time_other / 1000); }
 	public:
 		Model() {
 		}
@@ -393,6 +393,10 @@
 		void sub(std::vector<vec3>& vec, const vec3& vv);
 		void fouriermul(std::vector<vec3>& vec, const mat3& mat);
 		void fouriersub(std::vector<vec3>& vec, const vec3& vv);
+
+		Triangle GetPolygon(depthList list);
+
+		std::vector<depthListArray> GetDividedPolygonList(int divnum);
 	};
 #endif
 #endif
