@@ -383,12 +383,16 @@ void Model::AddFieldToMFB(WaveFront& mfb)
 	//------------------------------------------------------
 	QueryPerformanceCounter(&w_start);
 	//------------------------------------------------------
-	//pasting field from sfb to mfb
-	ClipSubfield(sfb, mfb, false);
-	//------------------------------------------------------
-	QueryPerformanceCounter(&w_end);
-	w_time_other += getdeltatime();
-	//------------------------------------------------------
+
+	if (sfb.ComputeMaxAmplitude() < 100)
+	{
+		//pasting field from sfb to mfb
+		ClipSubfield(sfb, mfb, false);
+		//------------------------------------------------------
+		QueryPerformanceCounter(&w_end);
+		w_time_other += getdeltatime();
+		//------------------------------------------------------
+	}
 }
 void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 {
@@ -410,14 +414,14 @@ void Model::AddObjectFieldPersubmodel(WaveFront& mfb, depthListArray& list)
 			
 			auto max = mfb.ComputeMaxAmplitude();
 
-			if (max > 100)
+		/*	if (max > 100)
 			{
 				printf(">>ERROR: amplitude of frame is exceed the limit. This value is too large. \n Plz, considering to expand model size or pixel size.\n");
 				printf(">>Process is terminated forcibly...\n");
 				printf(">>normal(%f, %f, %f)\n", w_currentpolygon.w_surfacenormal.w_x, w_currentpolygon.w_surfacenormal.w_y, w_currentpolygon.w_surfacenormal.w_z);
 				printf(">>amplitude(%f)\n", max);
 				exit(0);
-			}
+			}*/
 			if (div >= 20 && n % div == 0)
 			{
 				printf("%d%% ", count);
@@ -470,19 +474,6 @@ void Model::CalcCenterOfModel(depthListArray& model)
 }
 void Model::SetUp(const mat3& rot)
 {
-	/*AccommodatePolygonInBB();
-	CalcModelCenter();
-	w_center = w_bbox.w_center;
-	*this += w_center;
-	*this *= rot;
-	CalcSurfaceNV();
-	if (w_shader == SMOOTH)
-	{
-		CalcVertexNV();
-	}
-	GenDepthList();
-	CalcPolygonCenter();*/
-
 	CalcModelCenter();
 	*this += -w_center;
 	*this *= rot;
