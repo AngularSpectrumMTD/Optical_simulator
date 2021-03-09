@@ -542,15 +542,14 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//中心からターゲット方面 係数が負なら逆側へのベクトル
 	float2 dir = targetPos - center;
 
-	float length = dir.x * dir.x + dir.y * dir.y;
-
 	uint table_index = randomTblIndex.Load(0);
 
 	float randomValue = randomTbl.data[table_index / 4][table_index % 4];
 
 	//中心からのベクトル
 	float2 vec = randomValue * dir;
-	float lengthCenter = vec.x * vec.x + vec.y * vec.y;
+	float lengthCenter = length(vec);
+	lengthCenter *= lengthCenter;
 	float weight = abs(randomValue - uint(randomValue));
 	weight *= 100;
 	weight = weight % 10;
@@ -566,10 +565,12 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//0から1の値n をmin maxに変換    y = n(max - min) + min
 	float changevalue = lengthCenter / 0.5 / sqrt(2) + 1;
 	changevalue *= changevalue;
-	//changevalue *= changevalue;
+	changevalue *= changevalue;
 
 	float2 scalingParam = clamp((21 - computeConstants.ghostScale),1, 20) * (1/computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
-		(1 /  (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value * float2(coef + 1, coef + changevalue);// y成分が大きいほどに光軸方向に伸びる
+		(1 /  (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value * 
+		((((perlinNoise(float2(weight, weight + 3)) * 100) % 10) > 2) ? float2(coef + 1, coef + changevalue) : float2(coef + changevalue, coef + 1))
+		;
 
 	scalingParam += float2(1, 1);//1より小さいとはみ出る 大きいと小さい
 
@@ -592,10 +593,10 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	float lambdaDelta = lambdarange / samplenumPerRGB / 3;
 
-	float3 result = float3(0.0, 0.0, 0.0);
+	float3 result = 0.xxx;
 
-	float gapG = 100 * lengthCenter;
-	float gapB = 200 * lengthCenter;
+	float gapG = 50 * lengthCenter;
+	float gapB = 70 * lengthCenter;
 
 	int sampleX = 1;
 	int sampleY = 1;
@@ -639,19 +640,13 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		1.0
 		);
 
-
-	//if (sum.x + sum.y + sum.z < 0.1)//極小な輝度が大きくらないように切る
-	//{
-	//	destinationImageR[index] = float4(0, 0, 0, 1);
-	//	return;
-	//}
-	float2 rr = float2(randomValue, randomValue + 100);
-	float2 gg = float2(randomValue + 100, 2 * randomValue + 200);
-	float2 bb = float2(randomValue + 300, randomValue + 400);
+	float2 rr = float2(randomValue, randomValue + 1);
+	float2 gg = float2(randomValue + 1, randomValue + 2);
+	float2 bb = float2(randomValue + 3, randomValue + 4);
 
 	float amplitudescale = frac(scalingParam.x) * frac(scalingParam.y) + 2.0;
 	amplitudescale *= amplitudescale;
-	destinationImageR[index] = float4(frac(computeConstants.r) * amplitudescale * float3(perlinNoise(rr) * sum.x, perlinNoise(gg) * sum.y, perlinNoise(bb) * sum.z)
+	destinationImageR[index] = float4(frac(computeConstants.r) * amplitudescale * sum.xyz * float3(perlinNoise(rr), perlinNoise(gg), perlinNoise(bb))
 		, 1.0);
 }
 
@@ -682,9 +677,11 @@ void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//中心からターゲット方面 係数が負なら逆側へのベクトル
 	//float2 dir = (targetPos - center) / sqrt(size.x * size.x + size.y * size.y);
 
-	float2 rr = float2(randomValue, randomValue + 100);
-	float2 gg = float2(randomValue + 1, randomValue + 200);
-	float2 move = 5 * float2(perlinNoise(rr), perlinNoise(gg));
+	float2 rr = float2(randomValue, randomValue + 1);
+	float2 gg = float2(randomValue + 1, randomValue + 2);
+
+	//散らばり
+	float2 move = float2(perlinNoise(rr), perlinNoise(gg));
 
 	float2 dir = (targetPos - center + move) / sqrt(size.x * size.x + size.y * size.y);
 
@@ -785,26 +782,13 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//if (sourcePointx >= 0 && sourcePointx <= HEIGHT - 1) // この条件が原因で切れているように見える
 	if ((sourcePointx - WIDTH / 2) * (sourcePointx - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) < (0.1 * computeConstants.ghostScale) * (WIDTH * WIDTH + HEIGHT * HEIGHT)) // この条件が原因で切れているように見える
 	{
-		float4 ghostmask = sourceImageR[float2(sourcePointx, index.y)];
+		//float weight = smoothstep(0.8, 0.9, 2 * sourcePointx / WIDTH  * length/(1 + length));
+		float weight = smoothstep(0.8, 0.9, sqrt(sourcePointx * sourcePointx + index.y * index.y) / sqrt(WIDTH * WIDTH + HEIGHT * HEIGHT)  * length/(1 + length));
 
-		//destinationImageR[index] = (computeConstants.r * ghostmask + (1 - computeConstants.r) * (1 - ghostmask)) * sourceImageI[index];
-		//destinationImageR[index] = ghostmask* sourceImageI[index];//この場合はケラレがぱきっとせず　しかしぼけまくる
-		
-		destinationImageR[index] = (computeConstants.r * ghostmask + (1 - computeConstants.r) * (1 - ghostmask)) * sourceImageI[index];
+		destinationImageR[index] = (1 - weight) * sourceImageI[index];
 	}
 	else
 	{
-		//if (sourcePointx < 0)
-		//{
-		//	sourcePointx += HEIGHT / 2;
-		//}
-		//else if (sourcePointx > HEIGHT - 1)
-		//{
-		//	sourcePointx -= HEIGHT / 2;
-		//}
-
-		//float4 ghostmask = sourceImageR[float2(sourcePointx, index.y)];
-		//destinationImageR[index] = ghostmask * sourceImageI[index];
 		destinationImageR[index] = float4(0,0,0,1);
 	}
 
