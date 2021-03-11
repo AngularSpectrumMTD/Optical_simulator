@@ -479,10 +479,10 @@ void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 size = float2(WIDTH, HEIGHT);
 
 	//中心からのベクトル
-	float X = (index.x - size.x / 2) * ghostGotateMat.elem.x + (index.y - size.y / 2) * ghostGotateMat.elem.z + size.x / 2;
-	float Y = (index.x - size.x / 2) * ghostGotateMat.elem.y + (index.y - size.y / 2) * ghostGotateMat.elem.w + size.y / 2;
+	float X = (index.x - WIDTH / 2) * ghostGotateMat.elem.x + (index.y - HEIGHT / 2) * ghostGotateMat.elem.z + WIDTH / 2;
+	float Y = (index.x - WIDTH / 2) * ghostGotateMat.elem.y + (index.y - HEIGHT / 2) * ghostGotateMat.elem.w + HEIGHT / 2;
 
-	if (X >= 0 && X <= size.x && Y >= 0 && Y <= size.y)
+	if (X >= 0 && X < WIDTH && Y >= 0 && Y < HEIGHT)
 	{
 		destinationImageR[index] = sourceImageR[float2(X, Y)];
 	}
@@ -499,10 +499,10 @@ void mainInverseRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 size = float2(WIDTH, HEIGHT);
 
 	//中心からのベクトル
-	float X = (index.x - size.x / 2) * ghostGotateMat.elem.x + (index.y - size.y / 2) * ghostGotateMat.elem.y + size.x / 2;
-	float Y = (index.x - size.x / 2) * ghostGotateMat.elem.z + (index.y - size.y / 2) * ghostGotateMat.elem.w + size.y / 2;
+	float X = (index.x - WIDTH / 2) * ghostGotateMat.elem.x + (index.y - HEIGHT / 2) * ghostGotateMat.elem.y + WIDTH / 2;
+	float Y = (index.x - WIDTH / 2) * ghostGotateMat.elem.z + (index.y - HEIGHT / 2) * ghostGotateMat.elem.w + HEIGHT / 2;
 
-	if (X >= 0 && X <= size.x && Y >= 0 && Y <= size.y)
+	if (X >= 0 && X < WIDTH && Y >= 0 && Y < HEIGHT)
 	{
 		destinationImageR[index] = sourceImageR[float2(X, Y)];
 	}
@@ -569,7 +569,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	float2 scalingParam = clamp((21 - computeConstants.ghostScale),1, 20) * (1/computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
 		(1 /  (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value * 
-		((((perlinNoise(float2(weight, weight + 3)) * 100) % 10) > 2) ? float2(coef + 1, coef + changevalue) : float2(coef + changevalue, coef + 1))
+		((((perlinNoise(float2(weight, weight + 3)) * 1000) % 10) > 1) ? float2(coef + 1, coef + changevalue) : float2(coef + changevalue, coef + 1))
 		;
 
 	scalingParam += float2(1, 1);//1より小さいとはみ出る 大きいと小さい
@@ -601,52 +601,70 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	int sampleX = 1;
 	int sampleY = 1;
 
-	for (int x = 0; x < sampleX; x++)
+	//for (int x = 0; x < sampleX; x++)
+	//{
+	//	for (int y = 0; y < sampleY; y++)
+	//	{
+	//		float2 innnnn = index + float2(x - sampleX/2, y - sampleY/2);
+
+	//		if (innnnn.x >= 0 && innnnn.x < WIDTH && innnnn.y >= 0 && innnnn.y < HEIGHT)
+	//		{
+	//			for (int i = 0; i < samplenumPerRGB; i++)
+	//			{
+	//				float lamred = maxlambda - i * lambdaDelta;
+	//				float lamgreen = maxlambda - (i + samplenumPerRGB) * lambdaDelta;//より小さい波長からスタート
+	//				float lamblue = maxlambda - (i + 2 * samplenumPerRGB) * lambdaDelta;//同上
+
+	//				//波長が大きいほどサイズは大きくする=波長が大きいほどスケーリング係数を小さくする
+	//				float2 targetIndexR = indexfunc2(innnnn, scalingParam * (maxlambda / lamred)) + weight.xx;
+	//				float2 targetIndexG = indexfunc2(innnnn, scalingParam * (maxlambda / lamgreen)) + weight.xx;
+	//				float2 targetIndexB = indexfunc2(innnnn, scalingParam * (maxlambda / lamblue)) + weight.xx;
+
+	//				targetIndexG. x -= gapG;
+	//				targetIndexB. x -= gapB;
+
+	//				result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
+	//					lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
+	//					lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
+	//			}
+	//		}
+
+	//		
+	//	}
+	//}
+
 	{
-		for (int y = 0; y < sampleY; y++)
-		{
-			float2 innnnn = index + float2(x - sampleX/2, y - sampleY/2);
+		float lamred = maxlambda - lambdaDelta;
+		float lamgreen = maxlambda - (samplenumPerRGB)*lambdaDelta;//より小さい波長からスタート
+		float lamblue = maxlambda - (2 * samplenumPerRGB) * lambdaDelta;//同上
 
-			if (innnnn.x >= 0 && innnnn.x < WIDTH && innnnn.y >= 0 && innnnn.y < HEIGHT)
-			{
-				for (int i = 0; i < samplenumPerRGB; i++)
-				{
-					float lamred = maxlambda - i * lambdaDelta;
-					float lamgreen = maxlambda - (i + samplenumPerRGB) * lambdaDelta;//より小さい波長からスタート
-					float lamblue = maxlambda - (i + 2 * samplenumPerRGB) * lambdaDelta;//同上
+		//波長が大きいほどサイズは大きくする=波長が大きいほどスケーリング係数を小さくする
+		float2 targetIndexR = indexfunc2(index, scalingParam * (maxlambda / lamred)) + weight.xx;
+		float2 targetIndexG = indexfunc2(index, scalingParam * (maxlambda / lamgreen)) + weight.xx;
+		float2 targetIndexB = indexfunc2(index, scalingParam * (maxlambda / lamblue)) + weight.xx;
 
-					//波長が大きいほどサイズは大きくする=波長が大きいほどスケーリング係数を小さくする
-					float2 targetIndexR = indexfunc2(innnnn, scalingParam * (maxlambda / lamred)) + weight.xx;
-					float2 targetIndexG = indexfunc2(innnnn, scalingParam * (maxlambda / lamgreen)) + weight.xx;
-					float2 targetIndexB = indexfunc2(innnnn, scalingParam * (maxlambda / lamblue)) + weight.xx;
+		targetIndexG.x -= gapG;
+		targetIndexB.x -= gapB;
 
-					targetIndexG. x -= gapG;
-					targetIndexB. x -= gapB;
-
-					result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
-						lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
-						lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
-				}
-			}
-
-			
-		}
+		result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
+			lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
+			lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
 	}
+
 
 
 	result /= samplenumPerRGB* sampleX* sampleY;
 
-	float4 sum = float4(result,
-		1.0
-		);
-
 	float2 rr = float2(randomValue, randomValue + 1);
-	float2 gg = float2(randomValue + 1, randomValue + 2);
-	float2 bb = float2(randomValue + 3, randomValue + 4);
+
+	float rrr = perlinNoise(rr);
+
+	float2 gg = float2(rrr + randomValue + 1, randomValue + 2);
+	float2 bb = float2(randomValue * rrr + 3 + 2 * rrr, randomValue + 4 + rrr);
 
 	float amplitudescale = frac(scalingParam.x) * frac(scalingParam.y) + 2.0;
 	amplitudescale *= amplitudescale;
-	destinationImageR[index] = float4(frac(computeConstants.r) * amplitudescale * sum.xyz * float3(perlinNoise(rr), perlinNoise(gg), perlinNoise(bb))
+	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, perlinNoise(gg), perlinNoise(bb))//なんかfrac(radis)はだめみたい 1のとき
 		, 1.0);
 }
 
@@ -694,7 +712,7 @@ void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//インデックスとして計算(中心基準)
 	float2 sourcePoint = index - randomValue * dir * size;// randomTbl.data : 0.5で注目点付近 randomTbl.data : -0.5
 
-	if (sourcePoint.x >= 0 && sourcePoint.x <= WIDTH - 1 && sourcePoint.y >= 0 && sourcePoint.y <= HEIGHT - 1)
+	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
 		destinationImageR[index] = sourceImageR[sourcePoint];
 	}
@@ -728,7 +746,7 @@ void mainShiftImageByTargetPos(uint3 dispatchID : SV_DispatchThreadID)
 	//インデックスとして計算(中心基準)
 	float2 sourcePoint = index - targetPos + center;
 
-	if (sourcePoint.x >= 0 && sourcePoint.x <= WIDTH - 1 && sourcePoint.y >= 0 && sourcePoint.y <= HEIGHT - 1)
+	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
 		destinationImageR[index] = sourceImageR[sourcePoint];
 	}
@@ -780,12 +798,16 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float sourcePointx = index.x - randomValue * pnsave *pn *  length;
 
 	//if (sourcePointx >= 0 && sourcePointx <= HEIGHT - 1) // この条件が原因で切れているように見える
-	if ((sourcePointx - WIDTH / 2) * (sourcePointx - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) < (0.1 * computeConstants.ghostScale) * (WIDTH * WIDTH + HEIGHT * HEIGHT)) // この条件が原因で切れているように見える
+	if ((sourcePointx - WIDTH / 2) * (sourcePointx - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) < (computeConstants.ghostScale) * (WIDTH * WIDTH + HEIGHT * HEIGHT)) // この条件が原因で切れているように見える
 	{
 		//float weight = smoothstep(0.8, 0.9, 2 * sourcePointx / WIDTH  * length/(1 + length));
-		float weight = smoothstep(0.8, 0.9, sqrt(sourcePointx * sourcePointx + index.y * index.y) / sqrt(WIDTH * WIDTH + HEIGHT * HEIGHT)  * length/(1 + length));
+		float weight = smoothstep(0.8, 0.9, sourcePointx / (1 + sourcePointx) * abs(randomValue * length) / (abs(randomValue * length) + 1));
 
-		destinationImageR[index] = (1 - weight) * sourceImageI[index];
+		if (pn > 5)
+		{
+			weight = 0;
+		}
+		destinationImageR[index] = (1.2 - computeConstants.r) * (1 - weight) * sourceImageI[index];
 	}
 	else
 	{
