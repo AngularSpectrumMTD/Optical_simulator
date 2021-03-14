@@ -273,43 +273,100 @@ void mainDrawPolygon(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[index] = float4(col, col, col, 1.0);
 }
 
+float fade_aperture_edge(float radius, float fade, float signed_distance) {
+	float l = radius;
+	float u = radius + fade;
+	float s = u - l;
+	float c = 1.f - saturate(saturate(signed_distance - l) / s);
+	return smoothstep(0, 1, c);
+}
+
 [numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
 void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 {
-	float2 index = dispatchID.xy;
-	float2 size = float2(WIDTH, HEIGHT);
-	float2 uv = index / size - float2(0.5, 0.5);
+	{
+		float2 index = dispatchID.xy;
+		float2 size = float2(WIDTH, HEIGHT);
+		float2 uv = index / size - float2(0.5, 0.5);
 
-	//”»’è‚µ‚½‚¢“_‚ÌˆÊ’u
-	float pos = length(uv);
+		//”»’è‚µ‚½‚¢“_‚ÌˆÊ’u
+		float pos = length(uv);
 
-	//”»’è‚µ‚½‚¢“_‚Ì‚È‚·Šp
-	float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//‚±‚±‚ÅŠp“x‘«‚µ‚½‚ç‰ñ‚é
-	rad = rad % (2.0 * PI / computeConstants.N);
+		//”»’è‚µ‚½‚¢“_‚Ì‚È‚·Šp
+		float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//‚±‚±‚ÅŠp“x‘«‚µ‚½‚ç‰ñ‚é
+		rad = rad % (2.0 * PI / computeConstants.N);
 
-	//float r_circ = 0.2;
-	float r_circ = 0.4;//max
+		//float r_circ = 0.2;
+		float r_circ = 0.4;//max
 
-	//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
-	float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
-	r_polygon *= r_circ;
+		//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
+		float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
+		r_polygon *= r_circ;
 
-	//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ğ‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
-	//lerp(x,y,s) = x + s(y - x)
-	float s = computeConstants.r;
-	//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
+		//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ğ‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
+		//lerp(x,y,s) = x + s(y - x)
+		float s = computeConstants.r;
+		//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
 
-	float ratio = (1 +  cos(rad)) / 2.0;
-	//ratio *= ratio;
+		float ratio = (1 + cos(rad * 2)) / 2.0;
+		//ratio *= ratio;
 
-	float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
+		float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
 
-	//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ğ”»’è
-	float col = step(pos, r_aperture);
-	//float col = step(pos, r_aperture * (1 + 2 * cos(rad/4.0f)) * 3.0              );
+		//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ğ”»’è
+		float col = step(pos, r_aperture);
+		//float col = step(pos, r_aperture * (1 + 2 * cos(rad/4.0f)) * 3.0              );
+
+
+		destinationImageR[index] = float4(col, col, col, 1.0);
+	}
+
 	
 
-	destinationImageR[index] = float4(col, col, col, 1.0);
+
+
+
+	//float2 uv = pos.xy / aperture_resolution;
+
+
+	//{
+
+	//	float2 index = dispatchID.xy;
+	//	float2 size = float2(WIDTH, HEIGHT);
+	//	float2 uv = index / size;
+
+
+
+	//	float2 ndc = ((uv - 0.5f) * 2.f);
+
+	//	float aperture_opening = computeConstants.r;
+	//	//float opening = 0.2f + saturate(aperture_opening / 10.f);
+	//	//ndc = ndc * opening;
+
+	//	int num_of_blades = int(computeConstants.N);
+
+	//	float a = (atan2(ndc.x, ndc.y) + aperture_opening) / 2 / PI + 3.f / 4.f;
+	//	float o = frac(a * num_of_blades + 0.5);
+	//	float w1 = lerp(0.010, 0.001f, saturate((num_of_blades - 4) / 10.f));
+	//	float w2 = lerp(0.025, 0.001f, saturate((num_of_blades - 4) / 10.f));
+	//	float s0 = sin(o * 2 * PI);
+	//	float s1 = s0 * w1;
+	//	float s2 = s0 * w2;
+
+	//	// fft aperture shape
+	//	float signed_distance = 0.f;
+	//	for (int i = 0; i < num_of_blades; ++i) {
+	//		float angle = aperture_opening + (i / float(num_of_blades)) * 2 * PI;
+	//		float2 axis = float2(cos(angle), sin(angle));
+	//		signed_distance = max(signed_distance, dot(axis, ndc));
+	//	}
+
+	//	//signed_distance += s1;
+	//	float aperture_fft = fade_aperture_edge(0.7, 0.00001, signed_distance);
+
+	//	destinationImageR[index] = float4(aperture_fft.xxx, 1.0);
+	//}
+	
 }
 
 [numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
@@ -567,14 +624,16 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	changevalue *= changevalue;
 	changevalue *= changevalue;
 
-	float2 scalingParam = clamp((21 - computeConstants.ghostScale),1, 20) * (1/computeConstants.r) * //‚±‚±‚ğ‘å‚«‚­‚·‚ê‚ÎƒS[ƒXƒg‚Í‘S‘Ì“I‚Ék¬ŒXŒü
+	float2 scalingParam = clamp((41 - computeConstants.ghostScale),0, 40) * (1/computeConstants.r) * //‚±‚±‚ğ‘å‚«‚­‚·‚ê‚ÎƒS[ƒXƒg‚Í‘S‘Ì“I‚Ék¬ŒXŒü
 		(1 /  (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value * 
 		((((perlinNoise(float2(weight, weight + 3)) * 1000) % 10) > 1) ? float2(coef + 1, coef + changevalue) : float2(coef + changevalue, coef + 1))
 		;
 
-	scalingParam += float2(1, 1);//1‚æ‚è¬‚³‚¢‚Æ‚Í‚İo‚é ‘å‚«‚¢‚Æ¬‚³‚¢
+	//scalingParam += (0.5).xx;
+	scalingParam += (1).xx;
 
 	scalingParam *= ((randomValue >= 0) ? 2 : 1);
+	//scalingParam  = 1.xx;
 
 		float2 texSize;
 	float  level;
@@ -584,8 +643,8 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	scalingParam *= (randomValue > 0) ? -1 : 1;
 
-	float maxlambda = 700;
-	float minlambda = 600;
+	float maxlambda = 800;
+	float minlambda = 700;
 
 	int samplenumPerRGB = 1;
 
@@ -662,9 +721,9 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 gg = float2(rrr + randomValue + 1, randomValue + 2);
 	float2 bb = float2(randomValue * rrr + 3 + 2 * rrr, randomValue + 4 + rrr);
 
-	float amplitudescale = frac(scalingParam.x) * frac(scalingParam.y) + 2.0;
-	amplitudescale *= amplitudescale;
-	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚İ‚½‚¢ 1‚Ì‚Æ‚«
+	float amplitudescale = frac(lengthCenter + 1) + 0.5;
+	//amplitudescale = amplitudescale / (1 + amplitudescale);
+	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, 0.5 * perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚İ‚½‚¢ 1‚Ì‚Æ‚«
 		, 1.0);
 }
 
@@ -790,28 +849,44 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	pnsave = (pn >= 5) ? -1 : 1;
 
 	float2 distVec = targetPos - center;
-	float length = distVec.x * distVec.x + distVec.y * distVec.y;
-	//length = sqrt(length);
-	length *= sqrt(size.x * size.x + size.y * size.y) * length / 2;
+	float len = distVec.x * distVec.x + distVec.y * distVec.y;
 
 	//ƒCƒ“ƒfƒbƒNƒX‚Æ‚µ‚ÄŒvZ(’†SŠî€)
-	float sourcePointx = index.x - randomValue * pnsave *pn *  length;
+	float sourcePointx = index.x - len * length(size);
+	float aperture_mask = fade_aperture_edge(0.7, 0.1, len);
 
-	//if (sourcePointx >= 0 && sourcePointx <= HEIGHT - 1) // ‚±‚ÌğŒ‚ªŒ´ˆö‚ÅØ‚ê‚Ä‚¢‚é‚æ‚¤‚ÉŒ©‚¦‚é
-	if ((sourcePointx - WIDTH / 2) * (sourcePointx - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) < (computeConstants.ghostScale) * (WIDTH * WIDTH + HEIGHT * HEIGHT)) // ‚±‚ÌğŒ‚ªŒ´ˆö‚ÅØ‚ê‚Ä‚¢‚é‚æ‚¤‚ÉŒ©‚¦‚é
+	//if ((sourcePointx - WIDTH / 2) * (sourcePointx - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) < (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4) // ‚±‚ÌğŒ‚ªŒ´ˆö‚ÅØ‚ê‚Ä‚¢‚é‚æ‚¤‚ÉŒ©‚¦‚é
+	//{
+	//	//float weight = smoothstep(0.8, 0.9, 2 * sourcePointx / WIDTH  * length/(1 + length));
+	//	float weight = smoothstep(0.8, 0.9, sourcePointx / (1 + sourcePointx) * abs(randomValue * len) / (abs(randomValue * len) + 1));
+
+	//	if (pn > 5)
+	//	{
+	//		weight = 0;
+	//	}
+	//	//destinationImageR[index] = (1.2 - computeConstants.r) * (1 - weight) * sourceImageI[index];
+	//	destinationImageR[index] = aperture_mask *  sourceImageI[index];
+	//}
+	//else
+	//{
+	//	destinationImageR[index] = float4(0, 0, 0, 1);
+	//}
+
+			float2 texSize;
+		float  level;
+		destinationImageR.GetDimensions(texSize.x, texSize.y);
+
+	if ((index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) <   (abs(randomValue) / (1 + abs(randomValue))) * (WIDTH * WIDTH + HEIGHT  * HEIGHT ) / 4) // ‚±‚ÌğŒ‚ªŒ´ˆö‚ÅØ‚ê‚Ä‚¢‚é‚æ‚¤‚ÉŒ©‚¦‚é
 	{
-		//float weight = smoothstep(0.8, 0.9, 2 * sourcePointx / WIDTH  * length/(1 + length));
-		float weight = smoothstep(0.8, 0.9, sourcePointx / (1 + sourcePointx) * abs(randomValue * length) / (abs(randomValue * length) + 1));
+		float aaaaaaaa =  (abs(randomValue) / (1 + abs(randomValue))) * (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4 - (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2);
 
-		if (pn > 5)
-		{
-			weight = 0;
-		}
-		destinationImageR[index] = (1.2 - computeConstants.r) * (1 - weight) * sourceImageI[index];
+		aaaaaaaa /= (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4;
+		float weight = smoothstep(0.0, 0.9, aaaaaaaa);
+		destinationImageR[index] = 3 * weight * 
+			sourceImageI[index];
 	}
 	else
 	{
-		destinationImageR[index] = float4(0,0,0,1);
+		destinationImageR[index] = float4(0, 0, 0, 1);
 	}
-
 }
