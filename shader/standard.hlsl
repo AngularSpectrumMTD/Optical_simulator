@@ -881,7 +881,14 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		float aaaaaaaa =  (abs(randomValue) / (1 + abs(randomValue))) * (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4 - (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2);
 
 		aaaaaaaa /= (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4;
-		float weight = smoothstep(0.0, 0.9, aaaaaaaa);
+		//float weight = smoothstep(0.0, 0.9, aaaaaaaa);
+
+		float rrrrr = (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) * (texSize.x / texSize.y)* (texSize.x / texSize.y);
+		rrrrr /= (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4;
+
+		float sigsig = 0.1;
+
+		float weight = exp(-(rrrrr * rrrrr) / sigsig * abs(randomValue));
 		destinationImageR[index] = 3 * weight * 
 			sourceImageI[index];
 	}
