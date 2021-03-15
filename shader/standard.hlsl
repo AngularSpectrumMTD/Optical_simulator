@@ -576,6 +576,15 @@ float lambdafuncFF(float lambdamax,float lambda)
 	return ((lambda / lambdamax))/(2 + lambda / lambdamax);
 }
 
+float3 ACESFilm(float3 x) {
+	float a = 2.51f;
+	float b = 0.03f;
+	float c = 2.43f;
+	float d = 0.59f;
+	float e = 0.14f;
+	return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
 [numthreads(WIDTH, 1, 1)]
 void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 {
@@ -620,14 +629,12 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	coef *= (-(lengthCenter - 0.5) * (lengthCenter - 0.5) + 1);
 
 	//0‚©‚ç1‚Ì’ln ‚ðmin max‚É•ÏŠ·    y = n(max - min) + min
-	float changevalue = lengthCenter / 0.5 / sqrt(2) + 1;
-	changevalue *= changevalue;
-	changevalue *= changevalue;
+	float changevalue = lengthCenter / 0.5 / sqrt(2);
 
-	float2 scalingParam = clamp((41 - computeConstants.ghostScale),0, 40) * (1/computeConstants.r) * //‚±‚±‚ð‘å‚«‚­‚·‚ê‚ÎƒS[ƒXƒg‚Í‘S‘Ì“I‚Ék¬ŒXŒü
-		(1 /  (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value * 
-		((((perlinNoise(float2(weight, weight + 3)) * 1000) % 10) > 1) ? float2(coef + 1, coef + changevalue) : float2(coef + changevalue, coef + 1))
-		;
+	float2 scalingParam = clamp((41 - computeConstants.ghostScale), 0, 40) * (1 / computeConstants.r) * //‚±‚±‚ð‘å‚«‚­‚·‚ê‚ÎƒS[ƒXƒg‚Í‘S‘Ì“I‚Ék¬ŒXŒü
+		(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value 
+		//* float2(coef + 1, coef + 1);
+	*((((perlinNoise(float2(weight, weight + 3)) * 1000) % 10) > 1) ? float2(coef, coef + changevalue) : float2(coef + changevalue, coef));
 
 	//scalingParam += (0.5).xx;
 	scalingParam += (1).xx;
@@ -705,6 +712,28 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		targetIndexG.x -= gapG;
 		targetIndexB.x -= gapB;
 
+		//float importance = 4;
+
+		//float3 S = 0.xxx;
+		//for (int i = 0; i < importance; i++)
+		//{
+		//	for (int j = 0; j < importance; j++)
+		//	{
+		//		float2 iiii = float2(i - importance / 2, j - importance / 2);
+
+		//		float3 ssssssss = sourceImageRValue(index + iiii).xyz;
+		//		S += ssssssss;
+		//	}
+		//}
+		//S /= importance * importance;
+
+		//float3 lamlam = float3(lambdafuncFF(maxlambda, lamred),
+		//	lambdafuncFF(maxlambda, lamgreen),
+		//	lambdafuncFF(maxlambda, lamblue));
+
+		//S *= lamlam;
+		//result = result + S;/*
+
 		result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
 			lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
 			lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
@@ -721,10 +750,12 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 gg = float2(rrr + randomValue + 1, randomValue + 2);
 	float2 bb = float2(randomValue * rrr + 3 + 2 * rrr, randomValue + 4 + rrr);
 
-	float amplitudescale = frac(lengthCenter + 1) + 0.5;
-	//amplitudescale = amplitudescale / (1 + amplitudescale);
-	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, 0.5 * perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚Ý‚½‚¢ 1‚Ì‚Æ‚«
-		, 1.0);
+	float amplitudescale = frac(abs(randomValue));
+	amplitudescale *= frac(abs(randomValue));
+	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, 0.2 * perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚Ý‚½‚¢ 1‚Ì‚Æ‚«
+		, 1.0);	
+	//destinationImageR[index] = float4(amplitudescale * ACESFilm(result)//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚Ý‚½‚¢ 1‚Ì‚Æ‚«
+	//	, 1.0);
 }
 
 [numthreads(WIDTH, 1, 1)]
@@ -886,7 +917,7 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		float rrrrr = (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) * (texSize.x / texSize.y)* (texSize.x / texSize.y);
 		rrrrr /= (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4;
 
-		float sigsig = 0.1;
+		float sigsig = 10;
 
 		float weight = exp(-(rrrrr * rrrrr) / sigsig * abs(randomValue));
 		destinationImageR[index] = 3 * weight * 

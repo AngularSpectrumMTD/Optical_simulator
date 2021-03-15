@@ -95,6 +95,8 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 
 	float3 result = float3(0.0, 0.0, 0.0);
 
+	float importance = 4;
+
 	//スケーリングした先の対応画素値を参照して加算していく
 	for (int i = 0; i < samplenum; i++)
 	{
@@ -110,11 +112,21 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 		float2 indG = indexfunc(indexR, maxlambda, lamgreen);
 		float2 indB = indexfunc(indexR, maxlambda, lamblue);
 
-		cr *= sourceImageR[indR].r;
-		cg *= sourceImageR[indG].g;
-		cb *= sourceImageR[indB].b;
+		float3 S = 0.xxx;
+		for (int i = 0; i < importance; i++)
+		{
+			for (int j = 0; j < importance; j++)
+			{
+				float2 iiii = float2(i - importance/ 2, j - importance / 2);
 
-		result = result + float3(cr, cg, cb);
+				float3 ssssssss = sourceImageR[indR + iiii];
+				S += ssssssss;
+			}
+		}
+		S /= importance * importance;
+
+		S *= float3(cr,cg,cb);
+		result = result + S;
 	}
 
 	//足しただけ割る
@@ -123,6 +135,79 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[indexR] = float4(result, 1.0);
 	destinationImageI[indexR] = float4(result, 1.0);
 }
+
+float3 wl2rgbTannenbaum(float w) {
+	float3 r;
+
+	if (w < 350.0)
+		r = float3(0.5, 0.0, 1.0);
+	else if ((w >= 350.0) && (w < 440.0))
+		r = float3((440.0 - w) / 90.0, 0.0, 1.0);
+	else if ((w >= 440.0) && (w <= 490.0))
+		r = float3(0.0, (w - 440.0) / 50.0, 1.0);
+	else if ((w >= 490.0) && (w < 510.0))
+		r = float3(0.0, 1.0, (-(w - 510.0)) / 20.0);
+	else if ((w >= 510.0) && (w < 580.0))
+		r = float3((w - 510.0) / 70.0, 1.0, 0.0);
+	else if ((w >= 580.0) && (w < 645.0))
+		r = float3(1.0, (-(w - 645.0)) / 65.0, 0.0);
+	else
+		r = float3(1.0, 0.0, 0.0);
+
+	if (w < 350.0)
+		r *= 0.3;
+	else if ((w >= 350.0) && (w < 420.0))
+		r *= 0.3 + (0.7 * ((w - 350.0) / 70.0));
+	else if ((w >= 420.0) && (w <= 700.0))
+		r *= 1.0;
+	else if ((w > 700.0) && (w <= 780.0))
+		r *= 0.3 + (0.7 * ((780.0 - w) / 80.0));
+	else
+		r *= 0.3;
+
+	return r;
+}
+
+//[numthreads(WIDTH, 1, 1)]
+//void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
+//{
+//	float2 indexR = dispatchID.xy;
+//	float2 size = float2(WIDTH, HEIGHT);
+//	float2 uv = indexR / size - 0.5;
+//	float d = length(uv) * 2;
+//
+//	float scale1 = 0.50f;
+//	float scale2 = -0.75f;
+//	float fft_scale = 0.00001f;
+//
+//	float3 result = 0.f;
+//	int num_steps = 256;
+//
+//	//スケーリングした先の対応画素値を参照して加算していく
+//	for (int i = 0; i < num_steps; ++i)
+//	{
+//		float n = (float)i / (float)num_steps;
+//
+//		float2 scaled_uv1 = uv * lerp(1.f + scale1, 1.f, n);
+//		float2 scaled_uv2 = uv * lerp(1.f + scale2, 1.f, n);
+//
+//		float r1 = sourceImageR[scaled_uv1 * size].r;
+//		float i1 = sourceImageI[scaled_uv1 * size].r;
+//
+//		float2 p1 = float2(r1, i1);
+//
+//		float starburst = pow(length(p1), 2.f) * fft_scale * lerp(0.0f, 25.f, d);
+//
+//		float lambda = lerp(380.f, 700.f, n);
+//		float3 rgb = wl2rgbTannenbaum(lambda);
+//		rgb = lerp(1.f, rgb, 0.75f);
+//
+//		result += (starburst + rgb * 0.25f);
+//	}
+//
+//	result /= (float)num_steps;
+//	destinationImageR[indexR] = float4(result, 1);
+//}
 
 ///////////////////////////////////////////////////////////////////////////////////グレア旧
 //[numthreads(WIDTH, 1, 1)]
