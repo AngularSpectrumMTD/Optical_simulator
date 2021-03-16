@@ -752,7 +752,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	float amplitudescale = frac(abs(randomValue));
 	amplitudescale *= frac(abs(randomValue));
-	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, 0.2 * perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚Ý‚½‚¢ 1‚Ì‚Æ‚«
+	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚Ý‚½‚¢ 1‚Ì‚Æ‚«
 		, 1.0);	
 	//destinationImageR[index] = float4(amplitudescale * ACESFilm(result)//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚Ý‚½‚¢ 1‚Ì‚Æ‚«
 	//	, 1.0);

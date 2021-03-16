@@ -51,21 +51,7 @@ float gauss(float x, float x0, float sigma)
 
 float lambdafunc(float lambdamin, float lambdamax, float lambda)
 {
-	return lambda / (lambdamax -lambdamin);
-	return 1;
-
-	float red = 800;
-	float green = 600;
-	float blue = 400;
-	float sigma = 16 * 16;
-	//“™”ä¬‡
-	return 0.33 * (exp(-(lambda - red) * (lambda - red)/ sigma) + exp(-(lambda - green) * (lambda - green)/ sigma) + exp(-(lambda - blue) * (lambda - blue)/ sigma));
-	//Ô—D¨
-	return 0.66 * exp(-(lambda - red) * (lambda - red)/ sigma) + 0.16 * exp(-(lambda - green) * (lambda - green)/ sigma) + 0.16 * exp(-(lambda - blue) * (lambda - blue)/ sigma);
-	//—Î—D¨
-	return 0.16 * exp(-(lambda - red) * (lambda - red)/ sigma) + 0.66  * exp(-(lambda - green) * (lambda - green) / sigma) + 0.16 * exp(-(lambda - blue) * (lambda - blue) / sigma);
-	//Â—D¨
-	return 0.16 * exp(-(lambda - red) * (lambda - red)/ sigma) + 0.16 * exp(-(lambda - green) * (lambda - green)/ sigma) + 0.66 * exp(-(lambda - blue) * (lambda - blue)/ sigma);
+	return (lambda / (lambdamax -lambdamin)) * (lambda / (lambdamax - lambdamin));
 }
 
 float2 indexfunc(float2 IndexStandard, float lambdamax, float lambda)
@@ -119,7 +105,7 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 			{
 				float2 iiii = float2(i - importance/ 2, j - importance / 2);
 
-				float3 ssssssss = sourceImageR[indR + iiii];
+				float3 ssssssss = float3(sourceImageR[indR + iiii].r, sourceImageR[indG + iiii].g, sourceImageR[indB + iiii].b);
 				S += ssssssss;
 			}
 		}
