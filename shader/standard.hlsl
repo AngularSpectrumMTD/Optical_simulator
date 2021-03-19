@@ -509,12 +509,20 @@ void mainResetRandomTblIndex(uint3 dispatchID : SV_DispatchThreadID)
 	randomTblIndex.Store(0, 0);
 }
 
-float2 indexfunc2(float2 IndexStandard, float2 scaling)
+float2 indexfunc2(float2 IndexStandard, float2 scaling, inout bool isinside)
 {
 	float2 uvstandard = IndexStandard - float2(0.5 * WIDTH, 0.5 * HEIGHT);
 	float2 uv = uvstandard * scaling;
+	float2 ret = uv + float2(0.5 * WIDTH, 0.5 * HEIGHT);
 
-	return uv + float2(0.5 * WIDTH, 0.5 * HEIGHT);
+	isinside = true;
+
+	if (ret.x < 0 || ret.x > WIDTH - 1 || ret.y < 0 || ret.y > HEIGHT - 1)
+	{
+		isinside = false;
+	}
+
+	return ret;
 }
 
 float4 sourceImageRValue(uint2 index)
@@ -529,6 +537,165 @@ float4 sourceImageRValue(uint2 index)
 	}
 }
 
+float4 sourceImageRValueBilinearClamp(float2 index)
+{
+	uint i1 =(uint)floor(index.x);
+	uint j1 = (uint)floor(index.y);
+
+	float2 texSize;
+	sourceImageR.GetDimensions(texSize.x, texSize.y);
+
+	if (i1 >= 0 && i1 < texSize.x && j1 >= 0 && j1 < texSize.y)
+	{
+		uint i2, j2;
+
+		if (index.x == texSize.x - 1)
+		{
+			i2 = i1;
+		}
+		else
+		{
+			i2 = i1 + 1;
+		}
+
+		if (index.y == texSize.y - 1)
+		{
+			j2 = j1;
+		}
+		else
+		{
+			j2 = j1 + 1;
+		}
+
+		float t = (index.x - i1);
+		float u = (index.y - j1);
+		float t1 = 1.0f - t;
+		float u1 = 1.0f - u;
+
+		return sourceImageR[float2(i2, j2)] * (t * u)
+			+ sourceImageR[float2(i1, j2)] * (t1 * u)
+			+ sourceImageR[float2(i1, j1)] * (t1 * u1)
+			+ sourceImageR[float2(i2, j1)] * (t * u1);
+
+		//return sourceImageR[index];
+	}
+	else
+	{
+		return float4(0, 0, 0, 1.0);
+	}
+}
+
+void Cubic4(inout float bufx[4], float x1)
+{
+	float t1 = x1 - 1.0;
+	float t2 = x1 * t1;
+	float t3 = t2 - 1.0;
+
+	float p[4] = { -t1, t1, -x1, x1 };
+	float q[4] = { t2,  t3, t3,  t2 };
+	int i;
+
+	for (i = 0; i < 4; i++) {
+		bufx[i] = p[i] * q[i];
+	}
+	return;
+}
+
+float4 sourceImageRValueBicubicClamp(float2 index)
+{
+	float tx = index.x;
+	float ty = index.y;
+
+	int i, j;
+	int tx_int = (int)(tx);
+	int ty_int = (int)(ty);
+	float tx_dec = tx - tx_int;
+	float ty_dec = ty - ty_int;
+
+	int il = 0; int jl = 0;
+	int ir = 4; int jr = 4;
+	int i_bufpos = tx_int - 1;
+	int j_bufpos = ty_int - 1;
+
+	float2 texSize;
+	sourceImageR.GetDimensions(texSize.x, texSize.y);
+
+	if (i_bufpos < 0) {
+		il = -i_bufpos;
+	}
+	if (j_bufpos < 0) {
+		jl = -j_bufpos;
+	}
+	if (ir > texSize.x - i_bufpos) {
+		ir = texSize.x - i_bufpos;
+	}
+	if (jr > texSize.y - j_bufpos) {
+		jr = texSize.y - j_bufpos;
+	}
+	if (il >= ir || jl >= jr) {
+		return float4(0, 0, 0, 1.0);
+	}
+
+	float bufx[4];
+	float bufy[4];
+	float dbufR[4][4] = { 
+		{ 0, 0, 0, 0} ,
+		{ 0, 0, 0, 0} ,
+		{ 0, 0, 0, 0} ,
+		{ 0, 0, 0, 0} 
+	};
+
+	float dbufG[4][4] = {
+	{ 0, 0, 0, 0} ,
+	{ 0, 0, 0, 0} ,
+	{ 0, 0, 0, 0} ,
+	{ 0, 0, 0, 0}
+	};
+
+	float dbufB[4][4] = {
+	{ 0, 0, 0, 0} ,
+	{ 0, 0, 0, 0} ,
+	{ 0, 0, 0, 0} ,
+	{ 0, 0, 0, 0}
+	};
+
+	for (j = jl; j < jr; j++) {
+		for (i = il; i < ir; i++) {
+			dbufR[j][i] = sourceImageR[float2(i + i_bufpos, j + j_bufpos + jl)].r;
+			dbufG[j][i] = sourceImageR[float2(i + i_bufpos, j + j_bufpos + jl)].g;
+			dbufB[j][i] = sourceImageR[float2(i + i_bufpos, j + j_bufpos + jl)].b;
+		}
+	}
+
+	Cubic4(bufx, tx_dec);
+	Cubic4(bufy, ty_dec);
+
+	double c1rR;
+	double c2rR = 0;
+
+	double c1rG;
+	double c2rG = 0;
+
+	double c1rB;
+	double c2rB = 0;
+
+	for (j = 0; j < 4; j++) {
+		c1rR = 0;
+		c1rG = 0;
+		c1rB = 0;
+		for (i = 0; i < 4; i++) {
+			c1rR += dbufR[j][i] * bufx[i];
+			c1rG += dbufG[j][i] * bufx[i];
+			c1rB += dbufB[j][i] * bufx[i];
+		}
+		c2rR += c1rR * bufy[j];
+		c2rG += c1rG * bufy[j];
+		c2rB += c1rB * bufy[j];
+	}
+
+	return float4(c2rR, c2rG, c2rB , 1);
+}
+
 [numthreads(WIDTH, 1, 1)]
 void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 {
@@ -541,7 +708,12 @@ void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	if (X >= 0 && X < WIDTH && Y >= 0 && Y < HEIGHT)
 	{
-		destinationImageR[index] = sourceImageR[float2(X, Y)];
+		//NN
+		//destinationImageR[index] = sourceImageR[float2(X, Y)];
+		//BL
+		//destinationImageR[index] = sourceImageRValueBilinearClamp(float2(X, Y));
+		//Bicubic
+		destinationImageR[index] = sourceImageRValueBicubicClamp(float2(X, Y));
 	}
 	else
 	{
@@ -667,76 +839,46 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	int sampleX = 1;
 	int sampleY = 1;
 
-	//for (int x = 0; x < sampleX; x++)
-	//{
-	//	for (int y = 0; y < sampleY; y++)
-	//	{
-	//		float2 innnnn = index + float2(x - sampleX/2, y - sampleY/2);
-
-	//		if (innnnn.x >= 0 && innnnn.x < WIDTH && innnnn.y >= 0 && innnnn.y < HEIGHT)
-	//		{
-	//			for (int i = 0; i < samplenumPerRGB; i++)
-	//			{
-	//				float lamred = maxlambda - i * lambdaDelta;
-	//				float lamgreen = maxlambda - (i + samplenumPerRGB) * lambdaDelta;//より小さい波長からスタート
-	//				float lamblue = maxlambda - (i + 2 * samplenumPerRGB) * lambdaDelta;//同上
-
-	//				//波長が大きいほどサイズは大きくする=波長が大きいほどスケーリング係数を小さくする
-	//				float2 targetIndexR = indexfunc2(innnnn, scalingParam * (maxlambda / lamred)) + weight.xx;
-	//				float2 targetIndexG = indexfunc2(innnnn, scalingParam * (maxlambda / lamgreen)) + weight.xx;
-	//				float2 targetIndexB = indexfunc2(innnnn, scalingParam * (maxlambda / lamblue)) + weight.xx;
-
-	//				targetIndexG. x -= gapG;
-	//				targetIndexB. x -= gapB;
-
-	//				result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
-	//					lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
-	//					lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
-	//			}
-	//		}
-
-	//		
-	//	}
-	//}
-
 	{
 		float lamred = maxlambda - lambdaDelta;
 		float lamgreen = maxlambda - (samplenumPerRGB)*lambdaDelta;//より小さい波長からスタート
 		float lamblue = maxlambda - (2 * samplenumPerRGB) * lambdaDelta;//同上
 
-		//波長が大きいほどサイズは大きくする=波長が大きいほどスケーリング係数を小さくする
-		float2 targetIndexR = indexfunc2(index, scalingParam * (maxlambda / lamred)) + weight.xx;
-		float2 targetIndexG = indexfunc2(index, scalingParam * (maxlambda / lamgreen)) + weight.xx;
-		float2 targetIndexB = indexfunc2(index, scalingParam * (maxlambda / lamblue)) + weight.xx;
+		bool judgeR = true;
+		bool judgeG = true;
+		bool judgeB = true;
+
+		//波長が大きいほどサイズは大きくする=波長が大きいほどスケーリング係数を小さくする         中心からの距離は targetIndex > index
+		float2 targetIndexR = indexfunc2(index, scalingParam * (maxlambda / lamred), judgeR) + weight.xx;
+		float2 targetIndexG = indexfunc2(index, scalingParam * (maxlambda / lamgreen), judgeG) + weight.xx;
+		float2 targetIndexB = indexfunc2(index, scalingParam * (maxlambda / lamblue), judgeB) + weight.xx;
 
 		targetIndexG.x -= gapG;
 		targetIndexB.x -= gapB;
 
-		//float importance = 4;
+		if (judgeR && judgeG && judgeB)
+		{
+			//NN
+			//result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
+			//	lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
+			//	lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
 
-		//float3 S = 0.xxx;
-		//for (int i = 0; i < importance; i++)
-		//{
-		//	for (int j = 0; j < importance; j++)
-		//	{
-		//		float2 iiii = float2(i - importance / 2, j - importance / 2);
+			//BILEAR
+		/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBilinearClamp(targetIndexR).r,
+				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBilinearClamp(targetIndexG).g,
+				lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBilinearClamp(targetIndexB).b);*/
 
-		//		float3 ssssssss = sourceImageRValue(index + iiii).xyz;
-		//		S += ssssssss;
-		//	}
-		//}
-		//S /= importance * importance;
+			//BICUBIC
+				result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBicubicClamp(targetIndexR).r,
+					lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBicubicClamp(targetIndexG).g,
+					lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBicubicClamp(targetIndexB).b);
+		}
+		else
+		{
+			result += float3(0,0,0);
+		}
 
-		//float3 lamlam = float3(lambdafuncFF(maxlambda, lamred),
-		//	lambdafuncFF(maxlambda, lamgreen),
-		//	lambdafuncFF(maxlambda, lamblue));
-
-		//S *= lamlam;
-		//result = result + S;/*
-
-		result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
-			lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
-			lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
+		
 	}
 
 
@@ -917,7 +1059,7 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		float rrrrr = (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) * (texSize.x / texSize.y)* (texSize.x / texSize.y);
 		rrrrr /= (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4;
 
-		float sigsig = 10;
+		float sigsig = 0.5;
 
 		float weight = exp(-(rrrrr * rrrrr) / sigsig * abs(randomValue));
 		destinationImageR[index] = 3 * weight * 
