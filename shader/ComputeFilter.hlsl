@@ -64,8 +64,8 @@ float2 clampF2(float2 value)
 #include "normalize.hlsl"
 #include "asm.hlsl"
 #include "wavefront.hlsl"
-#include "glare.hlsl"
 #include "standard.hlsl"
+#include "glare.hlsl"
 #include "radialblur.hlsl"
 #include "quadratic.hlsl"
 

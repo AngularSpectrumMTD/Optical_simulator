@@ -710,10 +710,10 @@ void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	{
 		//NN
 		//destinationImageR[index] = sourceImageR[float2(X, Y)];
-		//BL
-		//destinationImageR[index] = sourceImageRValueBilinearClamp(float2(X, Y));
+		//BL(GOOD)
+		destinationImageR[index] = sourceImageRValueBilinearClamp(float2(X, Y));
 		//Bicubic
-		destinationImageR[index] = sourceImageRValueBicubicClamp(float2(X, Y));
+		//destinationImageR[index] = sourceImageRValueBicubicClamp(float2(X, Y));
 	}
 	else
 	{
@@ -755,6 +755,44 @@ float3 ACESFilm(float3 x) {
 	float d = 0.59f;
 	float e = 0.14f;
 	return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
+[numthreads(WIDTH, 1, 1)]
+void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+	float2 uv = index / size - float2(0.5, 0.5);
+
+	//îªíËÇµÇΩÇ¢ì_ÇÃà íu
+	float pos = length(uv);
+
+	//îªíËÇµÇΩÇ¢ì_ÇÃÇ»Ç∑äp
+	float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//Ç±Ç±Ç≈äpìxë´ÇµÇΩÇÁâÒÇÈ
+	rad = rad % (2.0 * PI / computeConstants.N);
+
+	//float r_circ = 0.2;
+	float r_circ = 0.4;//max
+
+	//îºåar_circÇÃâ~Ç…ì‡ê⁄Ç∑ÇÈê≥ëΩäpå`ÇÃï”ÇÃà íu
+	float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
+	r_polygon *= r_circ;
+
+	//â~Ç∆ëΩäpå`ÇÃíÜä‘(îºåaÇëÂÇ´Ç≠Ç∑ÇÈÇŸÇ«=çiÇÁÇ»Ç¢ÇŸÇ«â~å`Ç…ãﬂÇ√Ç≠ computeConstants.rÇÕ0Å`1)
+	//lerp(x,y,s) = x + s(y - x)
+	float s = computeConstants.r;
+	//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
+
+	float ratio = (1 + cos(rad * 2)) / 2.0;
+	//ratio *= ratio;
+
+	float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
+
+	float caustic = smoothstep(0.1, 0.0, abs(r_aperture - pos));//ç∂ÇÃílÇ…ãﬂÇ¢ÇŸÇ«0 âEÇÃílÇ…ãﬂÇ¢ÇŸÇ«1
+
+	caustic += 1;
+
+	destinationImageR[index] = caustic*sourceImageR[index];
 }
 
 [numthreads(WIDTH, 1, 1)]
@@ -859,9 +897,9 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		if (judgeR && judgeG && judgeB)
 		{
 			//NN
-			//result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
-			//	lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
-			//	lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
+			result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
+				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
+				lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
 
 			//BILEAR
 		/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBilinearClamp(targetIndexR).r,
@@ -869,9 +907,9 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 				lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBilinearClamp(targetIndexB).b);*/
 
 			//BICUBIC
-				result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBicubicClamp(targetIndexR).r,
+			/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBicubicClamp(targetIndexR).r,
 					lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBicubicClamp(targetIndexG).g,
-					lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBicubicClamp(targetIndexB).b);
+					lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBicubicClamp(targetIndexB).b);*/
 		}
 		else
 		{
@@ -893,7 +931,8 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 bb = float2(randomValue * rrr + 3 + 2 * rrr, randomValue + 4 + rrr);
 
 	float amplitudescale = frac(abs(randomValue));
-	amplitudescale *= frac(abs(randomValue));
+	//amplitudescale *= frac(abs(randomValue));
+	//amplitudescale *= frac(abs(randomValue));
 	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, perlinNoise(gg), perlinNoise(bb))//Ç»ÇÒÇ©frac(radis)ÇÕÇæÇﬂÇ›ÇΩÇ¢ 1ÇÃÇ∆Ç´
 		, 1.0);	
 	//destinationImageR[index] = float4(amplitudescale * ACESFilm(result)//Ç»ÇÒÇ©frac(radis)ÇÕÇæÇﬂÇ›ÇΩÇ¢ 1ÇÃÇ∆Ç´

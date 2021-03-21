@@ -98,18 +98,21 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 		float2 indG = indexfunc(indexR, maxlambda, lamgreen);
 		float2 indB = indexfunc(indexR, maxlambda, lamblue);
 
-		float3 S = 0.xxx;
-		for (int i = 0; i < importance; i++)
-		{
-			for (int j = 0; j < importance; j++)
-			{
-				float2 iiii = float2(i - importance/ 2, j - importance / 2);
+		//float3 S = 0.xxx;
+		//for (int i = 0; i < importance; i++)
+		//{
+		//	for (int j = 0; j < importance; j++)
+		//	{
+		//		float2 iiii = float2(i - importance/ 2, j - importance / 2);
 
-				float3 ssssssss = float3(sourceImageR[indR + iiii].r, sourceImageR[indG + iiii].g, sourceImageR[indB + iiii].b);
-				S += ssssssss;
-			}
-		}
-		S /= importance * importance;
+		//		float3 ssssssss = float3(sourceImageR[indR + iiii].r, sourceImageR[indG + iiii].g, sourceImageR[indB + iiii].b);
+		//		S += ssssssss;
+		//	}
+		//}
+		//S /= importance * importance;
+
+		float3 S = float3(sourceImageRValueBilinearClamp(indR).r , sourceImageRValueBilinearClamp(indG).g, sourceImageRValueBilinearClamp(indB).b);
+		//float3 S = float3(sourceImageRValueBicubicClamp(indR).r , sourceImageRValueBicubicClamp(indG).g, sourceImageRValueBicubicClamp(indB).b);
 
 		S *= float3(cr,cg,cb);
 		result = result + S;
