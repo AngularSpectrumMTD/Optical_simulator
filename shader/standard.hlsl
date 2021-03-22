@@ -127,7 +127,7 @@ void mainBinaryThreshold(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[index] = float4(col, 1.0f);
 }
 
-[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainAdd(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
