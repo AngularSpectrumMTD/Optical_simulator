@@ -21,7 +21,7 @@ float perlinNoise(float2 st)
 		u.y) + 0.5f;
 }
 
-[numthreads(16, 16, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainSepia(uint3 dtid : SV_DispatchThreadID)
 {
 	if (dtid.x < WIDTH && dtid.y < HEIGHT)
@@ -29,7 +29,7 @@ void mainSepia(uint3 dtid : SV_DispatchThreadID)
 		float3x3 toSepia = float3x3(
 			0.393, 0.349, 0.272,
 			0.769, 0.686, 0.534,
-			0.189, 0.168, 0.131);
+			0.189, 0.16, 0.131);
 		float3 color = mul(sourceImageR[dtid.xy].xyz, toSepia);
 		destinationImageR[dtid.xy] = float4(color, 1);
 	}
@@ -183,7 +183,7 @@ void mainDrawGaussianNoNormalize2(uint3 dispatchID : SV_DispatchThreadID)
 	float x = index.x - WIDTH / 2.0f;
 	float y = index.y - HEIGHT / 2.0f;
 
-	
+
 
 	uint table_index = randomTblIndex.Load(0);
 
@@ -207,7 +207,15 @@ void mainDrawGaussianNoNormalize2(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageI[index] = float4(0.0, 0.0, 0.0, 1.0f);
 }
 
-[numthreads(WIDTH, 1, 1)]
+//[numthreads(WIDTH, 1, 1)]
+//void mainCopy(uint3 dispatchID : SV_DispatchThreadID)
+//{
+//	float2 index = dispatchID.xy;
+//
+//	destinationImageR[index] = sourceImageR[index];
+//}
+
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainCopy(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -321,7 +329,7 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 		destinationImageR[index] = float4(col, col, col, 1.0);
 	}
 
-	
+
 
 
 
@@ -366,7 +374,7 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 
 	//	destinationImageR[index] = float4(aperture_fft.xxx, 1.0);
 	//}
-	
+
 }
 
 [numthreads(WIDTH, 1, 1)]//computeConstants.N角形
@@ -429,9 +437,9 @@ void mainDrawSmallCirc(uint3 dispatchID : SV_DispatchThreadID)
 	float2 index = dispatchID.xy;
 	float2 center = float2(WIDTH / 2, HEIGHT / 2);
 	float2 vec = index - center;
-	
+
 	float length = vec.x * vec.x + vec.y * vec.y;
-	
+
 	float range = 3;
 	if (length < range)
 	{
@@ -539,7 +547,7 @@ float4 sourceImageRValue(uint2 index)
 
 float4 sourceImageRValueBilinearClamp(float2 index)
 {
-	uint i1 =(uint)floor(index.x);
+	uint i1 = (uint)floor(index.x);
 	uint j1 = (uint)floor(index.y);
 
 	float2 texSize;
@@ -638,11 +646,11 @@ float4 sourceImageRValueBicubicClamp(float2 index)
 
 	float bufx[4];
 	float bufy[4];
-	float dbufR[4][4] = { 
+	float dbufR[4][4] = {
 		{ 0, 0, 0, 0} ,
 		{ 0, 0, 0, 0} ,
 		{ 0, 0, 0, 0} ,
-		{ 0, 0, 0, 0} 
+		{ 0, 0, 0, 0}
 	};
 
 	float dbufG[4][4] = {
@@ -693,10 +701,11 @@ float4 sourceImageRValueBicubicClamp(float2 index)
 		c2rB += c1rB * bufy[j];
 	}
 
-	return float4(c2rR, c2rG, c2rB , 1);
+	return float4(c2rR, c2rG, c2rB, 1);
 }
 
-[numthreads(WIDTH, 1, 1)]
+//[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -717,7 +726,7 @@ void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	}
 	else
 	{
-		destinationImageR[index] = float4(0,0,0,1);
+		destinationImageR[index] = float4(0, 0, 0, 1);
 	}
 }
 
@@ -743,9 +752,9 @@ void mainInverseRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 
 
-float lambdafuncFF(float lambdamax,float lambda)
+float lambdafuncFF(float lambdamax, float lambda)
 {
-	return ((lambda / lambdamax))/(2 + lambda / lambdamax);
+	return ((lambda / lambdamax)) / (2 + lambda / lambdamax);
 }
 
 float3 ACESFilm(float3 x) {
@@ -757,7 +766,8 @@ float3 ACESFilm(float3 x) {
 	return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
-[numthreads(WIDTH, 1, 1)]
+//[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -792,10 +802,32 @@ void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 
 	caustic += 1;
 
-	destinationImageR[index] = caustic*sourceImageR[index];
+	destinationImageR[index] = caustic * sourceImageR[index];
 }
 
-[numthreads(WIDTH, 1, 1)]
+uint Xorshift(uint seed)
+{
+	uint x = seed;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+	return x;
+}
+
+float XorshiftZeroToOne(uint seed)
+{
+	uint x = seed;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+
+	float ret = x / (1 + x);
+
+	return ret;
+}
+
+//[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -823,14 +855,15 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float randomValue = randomTbl.data[table_index / 4][table_index % 4];
 
 	//中心からのベクトル
-	float2 vec = randomValue * dir;
-	float lengthCenter = length(vec);
+	float lengthCenter = length(randomValue * dir);
 	lengthCenter *= lengthCenter;
 	float weight = abs(randomValue - uint(randomValue));
 	weight *= 100;
 	weight = weight % 10;
 
-	float value = (10 * perlinNoise(float2(randomValue, randomValue + 100)) / (abs(randomValue) + 0.1)  / (lengthCenter + weight) / (computeConstants.r + 0.2));//このままでは負の時に小さな値になる
+	float perlinNoiseR = perlinNoise(float2(randomValue, randomValue + 100));
+
+	float value = (10 * perlinNoiseR / (abs(randomValue) + 0.1) / (lengthCenter + weight) / (computeConstants.r + 0.2));//このままでは負の時に小さな値になる
 	//float value = 10 * randomValue / (computeConstants.r + 0.2) /( lengthCenter + weight);
 
 	value = abs(value);
@@ -842,9 +875,9 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float changevalue = lengthCenter / 0.5 / sqrt(2);
 
 	float2 scalingParam = clamp((41 - computeConstants.ghostScale), 0, 40) * (1 / computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
-		(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value 
+		(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value
 		//* float2(coef + 1, coef + 1);
-	*((((perlinNoise(float2(weight, weight + 3)) * 1000) % 10) > 1) ? float2(coef, coef + changevalue) : float2(coef + changevalue, coef));
+		* ((((perlinNoiseR * 1000) % 10) > 1) ? float2(coef, coef + changevalue) : float2(coef + changevalue, coef));
 
 	//scalingParam += (0.5).xx;
 	scalingParam += (1).xx;
@@ -852,7 +885,10 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	scalingParam *= ((randomValue >= 0) ? 2 : 1);
 	//scalingParam  = 1.xx;
 
-		float2 texSize;
+	scalingParam.x = clamp(scalingParam.x, 1.0f, 30.0f);
+	scalingParam.y = clamp(scalingParam.y, 1.0f, 30.0f);
+
+	float2 texSize;
 	float  level;
 	destinationImageR.GetDimensions(texSize.x, texSize.y);
 
@@ -906,40 +942,39 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBilinearClamp(targetIndexG).g,
 				lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBilinearClamp(targetIndexB).b);*/
 
-			//BICUBIC
-			/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBicubicClamp(targetIndexR).r,
-					lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBicubicClamp(targetIndexG).g,
-					lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBicubicClamp(targetIndexB).b);*/
+				//BICUBIC
+				/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBicubicClamp(targetIndexR).r,
+						lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBicubicClamp(targetIndexG).g,
+						lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBicubicClamp(targetIndexB).b);*/
 		}
 		else
 		{
-			result += float3(0,0,0);
+			result += float3(0, 0, 0);
 		}
 
-		
+
 	}
 
 
 
-	result /= samplenumPerRGB* sampleX* sampleY;
+	result /= samplenumPerRGB * sampleX * sampleY;
 
 	float2 rr = float2(randomValue, randomValue + 1);
 
-	float rrr = perlinNoise(rr);
-
-	float2 gg = float2(rrr + randomValue + 1, randomValue + 2);
-	float2 bb = float2(randomValue * rrr + 3 + 2 * rrr, randomValue + 4 + rrr);
+	float2 gg = float2(perlinNoiseR + randomValue + 1, randomValue + 2);
+	float2 bb = float2(randomValue * perlinNoiseR + 3 + 2 * perlinNoiseR, randomValue + 4 + perlinNoiseR);
 
 	float amplitudescale = frac(abs(randomValue));
 	//amplitudescale *= frac(abs(randomValue));
 	//amplitudescale *= frac(abs(randomValue));
-	destinationImageR[index] = float4(amplitudescale * result * float3(rrr, perlinNoise(gg), perlinNoise(bb))//なんかfrac(radis)はだめみたい 1のとき
-		, 1.0);	
+	destinationImageR[index] = float4(amplitudescale * result * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb))//なんかfrac(radis)はだめみたい 1のとき
+		, 1.0);
 	//destinationImageR[index] = float4(amplitudescale * ACESFilm(result)//なんかfrac(radis)はだめみたい 1のとき
 	//	, 1.0);
 }
 
-[numthreads(WIDTH, 1, 1)]
+//[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -991,7 +1026,7 @@ void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	{
 		destinationImageR[index] = float4(0, 0, 0, 1);
 	}
-	
+
 }
 
 [numthreads(WIDTH, 1, 1)]
@@ -1028,7 +1063,8 @@ void mainShiftImageByTargetPos(uint3 dispatchID : SV_DispatchThreadID)
 
 }
 
-[numthreads(WIDTH, 1, 1)]
+//[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -1084,24 +1120,24 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//	destinationImageR[index] = float4(0, 0, 0, 1);
 	//}
 
-			float2 texSize;
-		float  level;
-		destinationImageR.GetDimensions(texSize.x, texSize.y);
+	float2 texSize;
+	float  level;
+	destinationImageR.GetDimensions(texSize.x, texSize.y);
 
-	if ((index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) <   (abs(randomValue) / (1 + abs(randomValue))) * (WIDTH * WIDTH + HEIGHT  * HEIGHT ) / 4) // この条件が原因で切れているように見える
+	if ((index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) < (abs(randomValue) / (1 + abs(randomValue))) * (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4) // この条件が原因で切れているように見える
 	{
-		float aaaaaaaa =  (abs(randomValue) / (1 + abs(randomValue))) * (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4 - (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2);
+		float aaaaaaaa = (abs(randomValue) / (1 + abs(randomValue))) * (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4 - (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2);
 
 		aaaaaaaa /= (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4;
 		//float weight = smoothstep(0.0, 0.9, aaaaaaaa);
 
-		float rrrrr = (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) * (texSize.x / texSize.y)* (texSize.x / texSize.y);
+		float rrrrr = (index.x - WIDTH / 2) * (index.x - WIDTH / 2) + (index.y - HEIGHT / 2) * (index.y - HEIGHT / 2) * (texSize.x / texSize.y) * (texSize.x / texSize.y);
 		rrrrr /= (WIDTH * WIDTH + HEIGHT * HEIGHT) / 4;
 
 		float sigsig = 0.5;
 
 		float weight = exp(-(rrrrr * rrrrr) / sigsig * abs(randomValue));
-		destinationImageR[index] = 3 * weight * 
+		destinationImageR[index] = 3 * weight *
 			sourceImageI[index];
 	}
 	else
