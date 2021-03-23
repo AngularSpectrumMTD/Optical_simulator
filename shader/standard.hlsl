@@ -877,7 +877,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 scalingParam = clamp((41 - computeConstants.ghostScale), 0, 40) * (1 / computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
 		(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value
 		//* float2(coef + 1, coef + 1);
-		* ((((perlinNoiseR * 1000) % 10) > 1) ? float2(coef, coef + changevalue) : float2(coef + changevalue, coef));
+		;// *((((perlinNoiseR * 1000) % 10) > 1) ? float2(coef, coef + changevalue) : float2(coef + changevalue, coef));
 
 	//scalingParam += (0.5).xx;
 	scalingParam += (1).xx;
@@ -932,10 +932,64 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 		if (judgeR && judgeG && judgeB)
 		{
+			float3 sum = float3(0, 0, 0);
+			bool includeZero = false;
+
+			const float inv = 3;
+
+			float3 center = float3(0, 0, 0);
+
+			//エッジ部分を判断してアンチエイリアス
+			for (int i = 0; i < inv; i++)
+			{
+				for (int j = 0; j < inv; j++)
+				{
+					float2 move = float2(i - inv/2, j - inv/2);
+					float2 moveIndexR = targetIndexR + move;
+					float2 moveIndexG = targetIndexG + move;
+					float2 moveIndexB = targetIndexB + move;
+
+					float3 val = float3(
+						sourceImageRValue(moveIndexR).r,
+						sourceImageRValue(moveIndexG).g,
+						sourceImageRValue(moveIndexB).b
+						);
+
+					if (i == (int)(inv / 2) && j == (int)(inv / 2))
+					{
+						center = val;
+					}
+					
+
+					if (!((val.x) * (val.y) * (val.z)))
+					{
+						includeZero = true;
+					}
+
+					sum += val;
+				}
+			}
+
+			sum /= inv * inv;
+
+			float3 coefficient = float3(lambdafuncFF(maxlambda, lamred),
+				lambdafuncFF(maxlambda, lamgreen) * sum.g, 
+				lambdafuncFF(maxlambda, lamblue) * sum.b);
+
+			if (includeZero)
+			{
+				result = coefficient * sum;
+			}
+			else
+			{
+				result = coefficient * center;
+			}
+
+
 			//NN
-			result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
+		/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
 				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
-				lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
+				lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);*/
 
 			//BILEAR
 		/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBilinearClamp(targetIndexR).r,
