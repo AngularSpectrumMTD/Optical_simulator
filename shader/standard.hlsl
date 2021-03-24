@@ -798,9 +798,10 @@ void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 
 	float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
 
-	float caustic = smoothstep(0.1, 0.0, abs(r_aperture - pos));//左の値に近いほど0 右の値に近いほど1
+	//float caustic = smoothstep(0.1, 0.0, abs(r_aperture - pos));//左の値に近いほど0 右の値に近いほど1
+	float caustic = 1 + computeConstants.N * computeConstants.r * smoothstep(0.02, 0.01, abs(r_aperture - pos));//左の値に近いほど0 右の値に近いほど1
 
-	caustic += 1;
+	//caustic += 1;
 
 	destinationImageR[index] = caustic * sourceImageR[index];
 }
@@ -973,8 +974,8 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 			sum /= inv * inv;
 
 			float3 coefficient = float3(lambdafuncFF(maxlambda, lamred),
-				lambdafuncFF(maxlambda, lamgreen) * sum.g, 
-				lambdafuncFF(maxlambda, lamblue) * sum.b);
+				lambdafuncFF(maxlambda, lamgreen), 
+				lambdafuncFF(maxlambda, lamblue));
 
 			if (includeZero)
 			{
