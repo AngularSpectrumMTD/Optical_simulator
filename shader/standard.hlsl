@@ -801,9 +801,12 @@ void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 	//float caustic = smoothstep(0.1, 0.0, abs(r_aperture - pos));//左の値に近いほど0 右の値に近いほど1
 	float caustic = 1 + computeConstants.N * computeConstants.r * smoothstep(0.02, 0.01, abs(r_aperture - pos));//左の値に近いほど0 右の値に近いほど1
 
+	float col = step(pos, r_aperture);
+
+	col *= 1.01 - computeConstants.r;
 	//caustic += 1;
 
-	destinationImageR[index] = caustic * sourceImageR[index];
+	destinationImageR[index] = caustic * col * sourceImageR[index];
 }
 
 uint Xorshift(uint seed)
@@ -888,6 +891,9 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	scalingParam.x = clamp(scalingParam.x, 1.0f, 30.0f);
 	scalingParam.y = clamp(scalingParam.y, 1.0f, 30.0f);
+
+	//scalingParam.x = ghostGotateMat.elem.x * (scalingParam.x - 15) + ghostGotateMat.elem.y * (scalingParam.y - 15) + 15;
+	//scalingParam.y = ghostGotateMat.elem.z * (scalingParam.x - 15) + ghostGotateMat.elem.w * (scalingParam.y - 15) + 15;
 
 	float2 texSize;
 	float  level;
@@ -979,11 +985,11 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 			if (includeZero)
 			{
-				result = coefficient * sum;
+				result = coefficient * sum * computeConstants.baseColor;//
 			}
 			else
 			{
-				result = coefficient * center;
+				result = coefficient * center * computeConstants.baseColor;
 			}
 
 
@@ -1199,4 +1205,28 @@ void mainApplyVignettingByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	{
 		destinationImageR[index] = float4(0, 0, 0, 1);
 	}
+}
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainBlur(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+
+	float3 col = 0.xxx;
+
+	const float involve = 4;
+
+	for (int i = 0; i < involve; i++)
+	{
+		for (int j = 0; j < involve; j++)
+		{
+			float2 moved = index + float2(i - involve/2, j - involve / 2);
+
+			col += sourceImageRValue(moved).rgb;
+		}
+	}
+
+	col /= involve * involve;
+
+	destinationImageR[index] = float4(col, 1.0);
 }
