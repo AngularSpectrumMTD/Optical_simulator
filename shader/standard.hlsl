@@ -1296,3 +1296,42 @@ void mainFadeByGauss(uint3 dispatchID : SV_DispatchThreadID)
 
 	destinationImageR[index] = float4(val * sourceImageR[index].rgb, 1.0f);
 }
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainScaleByPos(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+
+	float2 targetPos =
+		float2
+		(
+			computeConstants.posx,
+			computeConstants.posy
+			);
+
+	float2 center =
+		float2
+		(
+			0.5,
+			0.5
+			);
+
+	//インデックスとして計算(中心基準)
+	//float2 sourcePoint = index - targetPos + center;
+
+	float scalingWeight = 2 * length(targetPos - center) + 1;
+
+	float2 sourcePoint = ( (index / size - float2(0.5, 0.5)) * scalingWeight + float2(0.5, 0.5)) * size;
+
+	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
+	{
+		destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
+	}
+	else
+	{
+		destinationImageR[index] = float4(0, 0, 0, 1);
+	}
+
+
+}
