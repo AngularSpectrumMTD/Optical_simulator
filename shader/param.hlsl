@@ -2,7 +2,7 @@
 #define HEIGHT 256
 #define PI 3.14159
 #define RAD PI / 180.0
-#define RANDNUM 16
+#define RANDNUM 40
 #define THREADNUM 16
 #define ROW 0
 #define LENGTH HEIGHT

@@ -333,8 +333,8 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 
 
 
-
-	//float2 uv = pos.xy / aperture_resolution;
+	//float2 index = dispatchID.xy;
+	//float2 uv = index / float2(WIDTH, HEIGHT);
 
 
 	//{
@@ -878,7 +878,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//0から1の値n をmin maxに変換    y = n(max - min) + min
 	float changevalue = lengthCenter / 0.5 / sqrt(2);
 
-	float2 scalingParam = clamp((41 - computeConstants.ghostScale), 0, 40) * (1 / computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
+	float2 scalingParam = clamp((51 - computeConstants.ghostScale), 0, 50) * (1 / computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
 		(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value
 		//* float2(coef + 1, coef + 1);
 		;// *((((perlinNoiseR * 1000) % 10) > 1) ? float2(coef, coef + changevalue) : float2(coef + changevalue, coef));
@@ -889,8 +889,8 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	scalingParam *= ((randomValue >= 0) ? 2 : 1);
 	//scalingParam  = 1.xx;
 
-	scalingParam.x = clamp(scalingParam.x, 1.0f, 30.0f);
-	scalingParam.y = clamp(scalingParam.y, 1.0f, 30.0f);
+	scalingParam.x = clamp(scalingParam.x, 1.0f, 50.0f);
+	scalingParam.y = clamp(scalingParam.y, 1.0f, 50.0f);
 
 	//scalingParam.x = ghostGotateMat.elem.x * (scalingParam.x - 15) + ghostGotateMat.elem.y * (scalingParam.y - 15) + 15;
 	//scalingParam.y = ghostGotateMat.elem.z * (scalingParam.x - 15) + ghostGotateMat.elem.w * (scalingParam.y - 15) + 15;
@@ -939,64 +939,64 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 		if (judgeR && judgeG && judgeB)
 		{
-			float3 sum = float3(0, 0, 0);
-			bool includeZero = false;
+			//float3 sum = float3(0, 0, 0);
+			//bool includeZero = false;
 
-			const float inv = 3;
+			//const float inv = 3;
 
-			float3 center = float3(0, 0, 0);
+			//float3 center = float3(0, 0, 0);
 
-			//エッジ部分を判断してアンチエイリアス
-			for (int i = 0; i < inv; i++)
-			{
-				for (int j = 0; j < inv; j++)
-				{
-					float2 move = float2(i - inv/2, j - inv/2);
-					float2 moveIndexR = targetIndexR + move;
-					float2 moveIndexG = targetIndexG + move;
-					float2 moveIndexB = targetIndexB + move;
+			////エッジ部分を判断してアンチエイリアス
+			//for (int i = 0; i < inv; i++)
+			//{
+			//	for (int j = 0; j < inv; j++)
+			//	{
+			//		float2 move = float2(i - inv/2, j - inv/2);
+			//		float2 moveIndexR = targetIndexR + move;
+			//		float2 moveIndexG = targetIndexG + move;
+			//		float2 moveIndexB = targetIndexB + move;
 
-					float3 val = float3(
-						sourceImageRValue(moveIndexR).r,
-						sourceImageRValue(moveIndexG).g,
-						sourceImageRValue(moveIndexB).b
-						);
+			//		float3 val = float3(
+			//			sourceImageRValue(moveIndexR).r,
+			//			sourceImageRValue(moveIndexG).g,
+			//			sourceImageRValue(moveIndexB).b
+			//			);
 
-					if (i == (int)(inv / 2) && j == (int)(inv / 2))
-					{
-						center = val;
-					}
-					
+			//		if (i == (int)(inv / 2) && j == (int)(inv / 2))
+			//		{
+			//			center = val;
+			//		}
+			//		
 
-					if (!((val.x) * (val.y) * (val.z)))
-					{
-						includeZero = true;
-					}
+			//		if (!((val.x) * (val.y) * (val.z)))
+			//		{
+			//			includeZero = true;
+			//		}
 
-					sum += val;
-				}
-			}
+			//		sum += val;
+			//	}
+			//}
 
-			sum /= inv * inv;
+			//sum /= inv * inv;
 
-			float3 coefficient = float3(lambdafuncFF(maxlambda, lamred),
-				lambdafuncFF(maxlambda, lamgreen), 
-				lambdafuncFF(maxlambda, lamblue));
+			//float3 coefficient = float3(lambdafuncFF(maxlambda, lamred),
+			//	lambdafuncFF(maxlambda, lamgreen), 
+			//	lambdafuncFF(maxlambda, lamblue));
 
-			if (includeZero)
-			{
-				result = coefficient * sum * computeConstants.baseColor;//
-			}
-			else
-			{
-				result = coefficient * center * computeConstants.baseColor;
-			}
+			//if (includeZero)
+			//{
+			//	result = coefficient * sum * computeConstants.baseColor;//
+			//}
+			//else
+			//{
+			//	result = coefficient * center * computeConstants.baseColor;
+			//}
 
 
 			//NN
-		/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
+			result = computeConstants.baseColor * float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
 				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
-				lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);*/
+				lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
 
 			//BILEAR
 		/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBilinearClamp(targetIndexR).r,
@@ -1088,6 +1088,56 @@ void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		destinationImageR[index] = float4(0, 0, 0, 1);
 	}
 
+}
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainShiftImageByRandomTblandAdd(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+
+	float2 targetPos =
+		float2
+		(
+			computeConstants.posx * size.x,
+			computeConstants.posy * size.y
+			);
+
+	float2 center =
+		float2
+		(
+			0.5 * size.x,
+			0.5 * size.y
+			);
+
+	uint table_index = randomTblIndex.Load(0);
+
+	float randomValue = randomTbl.data[table_index / 4][table_index % 4];
+
+	//中心からターゲット方面 係数が負なら逆側へのベクトル
+	//float2 dir = (targetPos - center) / sqrt(size.x * size.x + size.y * size.y);
+
+	float2 rr = float2(randomValue, randomValue + 1);
+	float2 gg = float2(randomValue + 1, randomValue + 2);
+
+	//散らばり
+	float2 move = float2(perlinNoise(rr), perlinNoise(gg));
+
+	float2 dir = (targetPos - center + move) / sqrt(size.x * size.x + size.y * size.y);
+
+	float2 texSize;
+	float  level;
+	destinationImageR.GetDimensions(texSize.x, texSize.y);
+
+	dir.y *= texSize.x / texSize.y;
+
+	//インデックスとして計算(中心基準)
+	float2 sourcePoint = index - randomValue * dir * size;// randomTbl.data : 0.5で注目点付近 randomTbl.data : -0.5
+
+	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
+	{
+		destinationImageR[index] += sourceImageR[sourcePoint];
+	}
 }
 
 [numthreads(WIDTH, 1, 1)]
@@ -1229,4 +1279,20 @@ void mainBlur(uint3 dispatchID : SV_DispatchThreadID)
 	col /= involve * involve;
 
 	destinationImageR[index] = float4(col, 1.0);
+}
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainFadeByGauss(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+
+	float x = index.x - WIDTH / 2.0f;
+	float y = index.y - HEIGHT / 2.0f;
+
+	float sx = WIDTH / 4;
+	float sy = HEIGHT / 4;
+
+	float val = exp(-(x * x + y * y) / 2 / sx / sy);//必ずサイズで割ること
+
+	destinationImageR[index] = float4(val * sourceImageR[index].rgb, 1.0f);
 }

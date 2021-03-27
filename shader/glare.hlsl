@@ -11,28 +11,28 @@ void mainRaiseBottomRealImage(uint3 dispatchID : SV_DispatchThreadID)
 
 	float val = (amplitude.r + amplitude.g + amplitude.b) / 3.0f;
 
-	if (val < 1)
+	if (val < 1)// && val > 0.0001)
 	{
 		/*inputR = inputR * 10.0f;
 		inputI = inputI * 10.0f;*/
 		inputR = inputR * computeConstants.glareintensity;
 		inputI = inputI * computeConstants.glareintensity;
 	}
-	else if (val < 0.1)
-	{
-		destinationImageR[index] = float4(0,0,0, 1.0);
-		destinationImageI[index] = float4(0,0,0, 1.0);
-	}
+	//else if (val < 0.1)
+	//{
+	//	destinationImageR[index] = float4(0,0,0, 1.0);
+	//	destinationImageI[index] = float4(0,0,0, 1.0);
+	//}
 
-	if ((inputR.r + inputR.g + inputR.b) / 3.0f >= 1.0)
-	{
-		inputR = float3(1.0, 1.0, 1.0);
-	}
+	//if ((inputR.r + inputR.g + inputR.b) / 3.0f >= 1.0)
+	//{
+	//	inputR = float3(1.0, 1.0, 1.0);
+	//}
 
-	if ((inputI.r + inputI.g + inputI.b) / 3.0f >= 1.0)
-	{
-		inputI = float3(1.0, 1.0, 1.0);
-	}
+	//if ((inputI.r + inputI.g + inputI.b) / 3.0f >= 1.0)
+	//{
+	//	inputI = float3(1.0, 1.0, 1.0);
+	//}
 
 	destinationImageR[index] = float4(inputR, 1.0);
 	destinationImageI[index] = float4(inputI, 1.0);
