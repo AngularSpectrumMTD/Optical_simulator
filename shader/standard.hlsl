@@ -706,7 +706,7 @@ float4 sourceImageRValueBicubicClamp(float2 index)
 
 //[numthreads(WIDTH, 1, 1)]
 [numthreads(THREADNUM, THREADNUM, 1)]
-void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
+void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)//縦より横が長い時 回転するとはみ出てしまうのでやり方考えないといけない
 {
 	float2 index = dispatchID.xy;
 	float2 size = float2(WIDTH, HEIGHT);
@@ -718,9 +718,9 @@ void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	if (X >= 0 && X < WIDTH && Y >= 0 && Y < HEIGHT)
 	{
 		//NN
-		//destinationImageR[index] = sourceImageR[float2(X, Y)];
+		destinationImageR[index] = sourceImageR[float2(X, Y)];
 		//BL(GOOD)
-		destinationImageR[index] = sourceImageRValueBilinearClamp(float2(X, Y));
+		//destinationImageR[index] = sourceImageRValueBilinearClamp(float2(X, Y));
 		//Bicubic
 		//destinationImageR[index] = sourceImageRValueBicubicClamp(float2(X, Y));
 	}
@@ -730,7 +730,7 @@ void mainRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	}
 }
 
-[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainInverseRotateByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -867,33 +867,50 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	float perlinNoiseR = perlinNoise(float2(randomValue, randomValue + 100));
 
-	float value = (10 * perlinNoiseR / (abs(randomValue) + 0.1) / (lengthCenter + weight) / (computeConstants.r + 0.2));//このままでは負の時に小さな値になる
-	//float value = 10 * randomValue / (computeConstants.r + 0.2) /( lengthCenter + weight);
 
-	value = abs(value);
 
-	float coef = value / (1 + value);//valueが負の数なら大きくなる
-	coef *= (-(lengthCenter - 0.5) * (lengthCenter - 0.5) + 1);
+	//float value = (10 * perlinNoiseR / (abs(randomValue) + 0.1) / (lengthCenter + weight) / (computeConstants.r + 0.2));//このままでは負の時に小さな値になる
+	////float value = 10 * randomValue / (computeConstants.r + 0.2) /( lengthCenter + weight);
 
-	//0から1の値n をmin maxに変換    y = n(max - min) + min
-	float changevalue = lengthCenter / 0.5 / sqrt(2);
+	//value = abs(value);
 
-	float2 scalingParam = clamp((51 - computeConstants.ghostScale), 0, 50) * (1 / computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
-		(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value
-		//* float2(coef + 1, coef + 1);
-		;// *((((perlinNoiseR * 1000) % 10) > 1) ? float2(coef, coef + changevalue) : float2(coef + changevalue, coef));
+	//float coef = value / (1 + value);//valueが負の数なら大きくなる
+	//coef *= (-(lengthCenter - 0.5) * (lengthCenter - 0.5) + 1);
 
-	//scalingParam += (0.5).xx;
-	scalingParam += (1).xx;
+	////0から1の値n をmin maxに変換    y = n(max - min) + min
+	//float changevalue = lengthCenter / 0.5 / sqrt(2);
 
-	scalingParam *= ((randomValue >= 0) ? 2 : 1);
-	//scalingParam  = 1.xx;
+	//float2 scalingParam = clamp((51 - computeConstants.ghostScale), 0, 50) * (1 / computeConstants.r) * //ここを大きくすればゴーストは全体的に縮小傾向
+	//	(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value;
 
-	scalingParam.x = clamp(scalingParam.x, 1.0f, 50.0f);
-	scalingParam.y = clamp(scalingParam.y, 1.0f, 50.0f);
+	//scalingParam += (1).xx;
 
-	//scalingParam.x = ghostGotateMat.elem.x * (scalingParam.x - 15) + ghostGotateMat.elem.y * (scalingParam.y - 15) + 15;
-	//scalingParam.y = ghostGotateMat.elem.z * (scalingParam.x - 15) + ghostGotateMat.elem.w * (scalingParam.y - 15) + 15;
+	//scalingParam *= ((randomValue >= 0) ? 2 : 1);
+
+	//scalingParam.x = clamp(scalingParam.x, 1.0f + weight, 50.0f + weight);
+	//scalingParam.y = clamp(scalingParam.y, 1.0f + weight, 50.0f + weight);
+
+	////if (length(scalingParam) < 1.5)
+	////{
+	////	scalingParam.x = 1.0f;// -weight / 10;
+	////	scalingParam.y = 1.0f;// -weight / 10;
+	////}
+
+	//bool isBig = false;
+	//if (table_index == 4 || table_index == 5)
+	//{
+	//	isBig = true;
+	//	scalingParam.x = 1.0f +weight / 10;
+	//	scalingParam.y = 1.0f +weight / 10;
+	//}
+
+	float2 scalingParam = float2(51 - computeConstants.ghostScale, 51 - computeConstants.ghostScale) * weight;
+
+	scalingParam.x = clamp(scalingParam.x, 1, 50);
+	scalingParam.y = clamp(scalingParam.y, 1, 50);
+
+	/*scalingParam.x = 1;
+	scalingParam.y = 1;*/
 
 	float2 texSize;
 	float  level;
@@ -934,89 +951,25 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		float2 targetIndexG = indexfunc2(index, scalingParam * (maxlambda / lamgreen), judgeG) + weight.xx;
 		float2 targetIndexB = indexfunc2(index, scalingParam * (maxlambda / lamblue), judgeB) + weight.xx;
 
-		targetIndexG.x -= gapG;
-		targetIndexB.x -= gapB;
+	/*	if (!isBig)
+		{*/
+			targetIndexG.x -= gapG;
+			targetIndexB.x -= gapB;
+		//}
+		
 
 		if (judgeR && judgeG && judgeB)
 		{
-			//float3 sum = float3(0, 0, 0);
-			//bool includeZero = false;
-
-			//const float inv = 3;
-
-			//float3 center = float3(0, 0, 0);
-
-			////エッジ部分を判断してアンチエイリアス
-			//for (int i = 0; i < inv; i++)
-			//{
-			//	for (int j = 0; j < inv; j++)
-			//	{
-			//		float2 move = float2(i - inv/2, j - inv/2);
-			//		float2 moveIndexR = targetIndexR + move;
-			//		float2 moveIndexG = targetIndexG + move;
-			//		float2 moveIndexB = targetIndexB + move;
-
-			//		float3 val = float3(
-			//			sourceImageRValue(moveIndexR).r,
-			//			sourceImageRValue(moveIndexG).g,
-			//			sourceImageRValue(moveIndexB).b
-			//			);
-
-			//		if (i == (int)(inv / 2) && j == (int)(inv / 2))
-			//		{
-			//			center = val;
-			//		}
-			//		
-
-			//		if (!((val.x) * (val.y) * (val.z)))
-			//		{
-			//			includeZero = true;
-			//		}
-
-			//		sum += val;
-			//	}
-			//}
-
-			//sum /= inv * inv;
-
-			//float3 coefficient = float3(lambdafuncFF(maxlambda, lamred),
-			//	lambdafuncFF(maxlambda, lamgreen), 
-			//	lambdafuncFF(maxlambda, lamblue));
-
-			//if (includeZero)
-			//{
-			//	result = coefficient * sum * computeConstants.baseColor;//
-			//}
-			//else
-			//{
-			//	result = coefficient * center * computeConstants.baseColor;
-			//}
-
-
 			//NN
 			result = computeConstants.baseColor * float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
 				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
 				lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
-
-			//BILEAR
-		/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBilinearClamp(targetIndexR).r,
-				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBilinearClamp(targetIndexG).g,
-				lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBilinearClamp(targetIndexB).b);*/
-
-				//BICUBIC
-				/*	result += float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBicubicClamp(targetIndexR).r,
-						lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBicubicClamp(targetIndexG).g,
-						lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBicubicClamp(targetIndexB).b);*/
 		}
 		else
 		{
 			result += float3(0, 0, 0);
 		}
-
-
 	}
-
-
 
 	result /= samplenumPerRGB * sampleX * sampleY;
 
@@ -1026,12 +979,8 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 bb = float2(randomValue * perlinNoiseR + 3 + 2 * perlinNoiseR, randomValue + 4 + perlinNoiseR);
 
 	float amplitudescale = frac(abs(randomValue));
-	//amplitudescale *= frac(abs(randomValue));
-	//amplitudescale *= frac(abs(randomValue));
 	destinationImageR[index] = float4(amplitudescale * result * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb))//なんかfrac(radis)はだめみたい 1のとき
 		, 1.0);
-	//destinationImageR[index] = float4(amplitudescale * ACESFilm(result)//なんかfrac(radis)はだめみたい 1のとき
-	//	, 1.0);
 }
 
 //[numthreads(WIDTH, 1, 1)]
@@ -1264,7 +1213,9 @@ void mainBlur(uint3 dispatchID : SV_DispatchThreadID)
 
 	float3 col = 0.xxx;
 
-	const float involve = 4;
+	//const float involve = 4 + computeConstants.r * computeConstants.N;
+	const float involve = clamp(2 +computeConstants.r * computeConstants.N, 2.f, 5.f);
+	//const float involve = 4;
 
 	for (int i = 0; i < involve; i++)
 	{
