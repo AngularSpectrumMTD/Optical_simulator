@@ -94,7 +94,7 @@ struct ComputeParameters
 	float3 baseColor;
 	float r1;
 
-	float ghostScale;
+	//float ghostScale;
 	float rotAngle;
 };
 

@@ -323,8 +323,6 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 
 		//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ð”»’è
 		float col = step(pos, r_aperture);
-		//float col = step(pos, r_aperture * (1 + 2 * cos(rad/4.0f)) * 3.0              );
-
 
 		destinationImageR[index] = float4(col, col, col, 1.0);
 	}
@@ -867,50 +865,18 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	float perlinNoiseR = perlinNoise(float2(randomValue, randomValue + 100));
 
+	//float2 scalingParam = float2(51 - computeConstants.ghostScale, 51 - computeConstants.ghostScale) * weight;
 
-
-	//float value = (10 * perlinNoiseR / (abs(randomValue) + 0.1) / (lengthCenter + weight) / (computeConstants.r + 0.2));//‚±‚Ì‚Ü‚Ü‚Å‚Í•‰‚ÌŽž‚É¬‚³‚È’l‚É‚È‚é
-	////float value = 10 * randomValue / (computeConstants.r + 0.2) /( lengthCenter + weight);
-
-	//value = abs(value);
-
-	//float coef = value / (1 + value);//value‚ª•‰‚Ì”‚È‚ç‘å‚«‚­‚È‚é
-	//coef *= (-(lengthCenter - 0.5) * (lengthCenter - 0.5) + 1);
-
-	////0‚©‚ç1‚Ì’ln ‚ðmin max‚É•ÏŠ·    y = n(max - min) + min
-	//float changevalue = lengthCenter / 0.5 / sqrt(2);
-
-	//float2 scalingParam = clamp((51 - computeConstants.ghostScale), 0, 50) * (1 / computeConstants.r) * //‚±‚±‚ð‘å‚«‚­‚·‚ê‚ÎƒS[ƒXƒg‚Í‘S‘Ì“I‚Ék¬ŒXŒü
-	//	(1 / (1 + computeConstants.r) / (1 + 0.5 * computeConstants.r)) * value;
-
-	//scalingParam += (1).xx;
-
-	//scalingParam *= ((randomValue >= 0) ? 2 : 1);
-
-	//scalingParam.x = clamp(scalingParam.x, 1.0f + weight, 50.0f + weight);
-	//scalingParam.y = clamp(scalingParam.y, 1.0f + weight, 50.0f + weight);
-
-	////if (length(scalingParam) < 1.5)
+	////if (weight < 9)
 	////{
-	////	scalingParam.x = 1.0f;// -weight / 10;
-	////	scalingParam.y = 1.0f;// -weight / 10;
+	////	scalingParam *= weight;
 	////}
 
-	//bool isBig = false;
-	//if (table_index == 4 || table_index == 5)
-	//{
-	//	isBig = true;
-	//	scalingParam.x = 1.0f +weight / 10;
-	//	scalingParam.y = 1.0f +weight / 10;
-	//}
+	//scalingParam.x = clamp(scalingParam.x, 1, 50);
+	//scalingParam.y = clamp(scalingParam.y, 1, 50);
 
-	float2 scalingParam = float2(51 - computeConstants.ghostScale, 51 - computeConstants.ghostScale) * weight;
-
-	scalingParam.x = clamp(scalingParam.x, 1, 50);
-	scalingParam.y = clamp(scalingParam.y, 1, 50);
-
-	/*scalingParam.x = 1;
-	scalingParam.y = 1;*/
+	float2 scalingParam = float2(1 + computeConstants.r, 1 + computeConstants.r) * weight;
+	scalingParam += float2(1, 1);
 
 	float2 texSize;
 	float  level;
