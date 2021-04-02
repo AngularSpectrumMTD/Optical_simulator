@@ -189,8 +189,8 @@ void mainDrawGaussianNoNormalize2(uint3 dispatchID : SV_DispatchThreadID)
 
 	float randomValue = randomTbl.data[table_index / 4][table_index % 4];
 	//randomValue = perlinNoise(float2(randomValue, randomValue + 100));
-	randomValue = abs(frac(randomValue));
-	randomValue = frac(randomValue);
+	randomValue = abs(randomValue + 0.1);
+	randomValue = 1 / randomValue;
 	randomValue *= randomValue;
 
 	float s = computeConstants.gausssigma2;
@@ -944,7 +944,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 gg = float2(perlinNoiseR + randomValue + 1, randomValue + 2);
 	float2 bb = float2(randomValue * perlinNoiseR + 3 + 2 * perlinNoiseR, randomValue + 4 + perlinNoiseR);
 
-	float amplitudescale = frac(abs(randomValue));
+	float amplitudescale = 1 / abs(randomValue + 0.1);
 	destinationImageR[index] = float4(amplitudescale * result * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb))//なんかfrac(radis)はだめみたい 1のとき
 		, 1.0);
 }
@@ -1180,8 +1180,8 @@ void mainBlur(uint3 dispatchID : SV_DispatchThreadID)
 	float3 col = 0.xxx;
 
 	//const float involve = 4 + computeConstants.r * computeConstants.N;
-	const float involve = clamp(2 +computeConstants.r * computeConstants.N, 2.f, 5.f);
-	//const float involve = 4;
+	//const float involve = clamp(2 +computeConstants.r * computeConstants.N, 2.f, 5.f);//このブラーの巻き込み数の変化がちらつきの元
+	const float involve = 4;
 
 	for (int i = 0; i < involve; i++)
 	{
@@ -1251,4 +1251,33 @@ void mainScaleByPos(uint3 dispatchID : SV_DispatchThreadID)
 	}
 
 
+}
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainDownIntensityByPos(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+
+	float2 targetPos =
+		float2
+		(
+			computeConstants.posx,
+			computeConstants.posy
+			);
+
+	float2 center =
+		float2
+		(
+			0.5,
+			0.5
+			);
+
+	//インデックスとして計算(中心基準)
+	//float2 sourcePoint = index - targetPos + center;
+
+	float len = length(targetPos - center);
+	//float len = 0;
+
+	destinationImageR[index] = sourceImageR[index] / (len * 10 + 1.0f);//シェーダで分数はやばいのか ちらつく
 }
