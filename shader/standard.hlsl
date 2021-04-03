@@ -807,6 +807,45 @@ void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[index] = caustic * col * sourceImageR[index];
 }
 
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainCutOff(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+	float2 uv = index / size - float2(0.5, 0.5);
+
+	//”»’è‚µ‚½‚¢“_‚ÌˆÊ’u
+	float pos = length(uv);
+
+	//”»’è‚µ‚½‚¢“_‚Ì‚È‚·Šp
+	float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//‚±‚±‚ÅŠp“x‘«‚µ‚½‚ç‰ñ‚é
+	rad = rad % (2.0 * PI / computeConstants.N);
+
+	//float r_circ = 0.2;
+	float r_circ = 0.4;//max
+
+	//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
+	float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
+	r_polygon *= r_circ;
+
+	//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ğ‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
+	//lerp(x,y,s) = x + s(y - x)
+	float s = computeConstants.r;
+	//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
+
+	float ratio = (1 + cos(rad * 2)) / 2.0;
+	//ratio *= ratio;
+
+	float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
+
+	//float caustic = smoothstep(0.1, 0.0, abs(r_aperture - pos));//¶‚Ì’l‚É‹ß‚¢‚Ù‚Ç0 ‰E‚Ì’l‚É‹ß‚¢‚Ù‚Ç1
+	float caustic = 1 + computeConstants.N * computeConstants.r * smoothstep(0.02, 0.01, abs(r_aperture - pos));//¶‚Ì’l‚É‹ß‚¢‚Ù‚Ç0 ‰E‚Ì’l‚É‹ß‚¢‚Ù‚Ç1
+
+	float col = step(pos, r_aperture);
+
+	destinationImageR[index] = col * sourceImageR[index];
+}
+
 uint Xorshift(uint seed)
 {
 	uint x = seed;
@@ -944,7 +983,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 gg = float2(perlinNoiseR + randomValue + 1, randomValue + 2);
 	float2 bb = float2(randomValue * perlinNoiseR + 3 + 2 * perlinNoiseR, randomValue + 4 + perlinNoiseR);
 
-	float amplitudescale = 1 / abs(randomValue + 0.1);
+	float amplitudescale = length(scalingParam) / abs(randomValue + 1);
 	destinationImageR[index] = float4(amplitudescale * result * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚İ‚½‚¢ 1‚Ì‚Æ‚«
 		, 1.0);
 }
