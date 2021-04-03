@@ -983,7 +983,10 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	float2 gg = float2(perlinNoiseR + randomValue + 1, randomValue + 2);
 	float2 bb = float2(randomValue * perlinNoiseR + 3 + 2 * perlinNoiseR, randomValue + 4 + perlinNoiseR);
 
-	float amplitudescale = length(scalingParam) / abs(randomValue + 1);
+	float k = length(scalingParam) / (1 + length(scalingParam));
+
+	float amplitudescale = k/ abs(randomValue + 1);
+	amplitudescale = amplitudescale / (1 + amplitudescale);
 	destinationImageR[index] = float4(amplitudescale * result * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb))//‚È‚ñ‚©frac(radis)‚Í‚¾‚ß‚Ý‚½‚¢ 1‚Ì‚Æ‚«
 		, 1.0);
 }
