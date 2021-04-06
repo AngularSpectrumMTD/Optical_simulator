@@ -51,7 +51,8 @@ float gauss(float x, float x0, float sigma)
 
 float lambdafunc(float lambdamin, float lambdamax, float lambda)
 {
-	return (lambda / (lambdamax -lambdamin)) * (lambda / (lambdamax - lambdamin));
+	float V = (lambda / (lambdamax - lambdamin));
+	return  V;
 }
 
 float2 indexfunc(float2 IndexStandard, float lambdamax, float lambda)

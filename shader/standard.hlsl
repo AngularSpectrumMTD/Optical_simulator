@@ -305,7 +305,7 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 		rad = rad % (2.0 * PI / computeConstants.N);
 
 		//float r_circ = 0.2;
-		float r_circ = 0.4;//max
+		float r_circ = 0.49;//max
 
 		//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
 		float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
@@ -780,7 +780,7 @@ void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 	rad = rad % (2.0 * PI / computeConstants.N);
 
 	//float r_circ = 0.2;
-	float r_circ = 0.4;//max
+	float r_circ = 0.49;//max
 
 	//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
 	float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
@@ -800,11 +800,21 @@ void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 	float caustic = 1 + computeConstants.N * computeConstants.r * smoothstep(0.02, 0.01, abs(r_aperture - pos));//¶‚Ì’l‚É‹ß‚¢‚Ù‚Ç0 ‰E‚Ì’l‚É‹ß‚¢‚Ù‚Ç1
 
 	float col = step(pos, r_aperture);
+	float colsave = col;
 
 	col *= 1.01 - computeConstants.r;
 	//caustic += 1;
 
-	destinationImageR[index] = caustic * col * sourceImageR[index];
+	if ((sourceImageR[index].x + sourceImageR[index].y + sourceImageR[index].z) / 3.0f > 0.1 && colsave == 1)
+	{
+		destinationImageR[index] = sourceImageR[index];
+	}
+	else
+	{
+		destinationImageR[index] = float4(0,0,0,1);
+	}
+
+	//destinationImageR[index] = caustic * col * sourceImageR[index];
 }
 
 [numthreads(THREADNUM, THREADNUM, 1)]
@@ -843,7 +853,16 @@ void mainCutOff(uint3 dispatchID : SV_DispatchThreadID)
 
 	float col = step(pos, r_aperture);
 
-	destinationImageR[index] = col * sourceImageR[index];
+	if ((sourceImageR[index].x + sourceImageR[index].y + sourceImageR[index].z) / 3.0f > 0.1 && col == 1)
+	{
+		destinationImageR[index] = sourceImageR[index];
+	}
+	else
+	{
+		destinationImageR[index] = float4(0, 0, 0, 1);
+	}
+
+	//destinationImageR[index] = col * sourceImageR[index];
 }
 
 uint Xorshift(uint seed)
@@ -966,9 +985,15 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 		if (judgeR && judgeG && judgeB)
 		{
 			//NN
-			result = computeConstants.baseColor * float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValue(targetIndexR).r,
-				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValue(targetIndexG).g,
-				lambdafuncFF(maxlambda, lamblue) * sourceImageRValue(targetIndexB).b);
+		/*	result = computeConstants.baseColor * float3(lambdafuncFF(maxlambda, lamred) * sourceImageRValueBilinearClamp(targetIndexR).r,
+				lambdafuncFF(maxlambda, lamgreen) * sourceImageRValueBilinearClamp(targetIndexG).g,
+				lambdafuncFF(maxlambda, lamblue) * sourceImageRValueBilinearClamp(targetIndexB).b);*/
+
+			
+
+			result = computeConstants.baseColor * float3(lambdafuncFF(maxlambda, lamred) * sourceImageR.SampleLevel(CSimageSampler, targetIndexR / texSize, 0).r,
+				lambdafuncFF(maxlambda, lamgreen) * sourceImageR.SampleLevel(CSimageSampler, targetIndexG / texSize, 0).r,
+				lambdafuncFF(maxlambda, lamblue) * sourceImageR.SampleLevel(CSimageSampler, targetIndexB / texSize, 0).r);
 		}
 		else
 		{
@@ -1036,7 +1061,8 @@ void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
-		destinationImageR[index] = sourceImageR[sourcePoint];
+		//destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
+		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, sourcePoint / texSize, 0);
 	}
 	else
 	{
@@ -1091,7 +1117,8 @@ void mainShiftImageByRandomTblandAdd(uint3 dispatchID : SV_DispatchThreadID)
 
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
-		destinationImageR[index] += sourceImageR[sourcePoint];
+		//destinationImageR[index] += sourceImageRValueBilinearClamp(sourcePoint);
+		destinationImageR[index] += sourceImageR.SampleLevel(CSimageSampler, sourcePoint / texSize, 0);
 	}
 }
 
@@ -1120,7 +1147,8 @@ void mainShiftImageByTargetPos(uint3 dispatchID : SV_DispatchThreadID)
 
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
-		destinationImageR[index] = sourceImageR[sourcePoint];
+		//destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
+		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, sourcePoint / size, 0);
 	}
 	else
 	{
@@ -1277,13 +1305,15 @@ void mainScaleByPos(uint3 dispatchID : SV_DispatchThreadID)
 	//ƒCƒ“ƒfƒbƒNƒX‚Æ‚µ‚ÄŒvŽZ(’†SŠî€)
 	//float2 sourcePoint = index - targetPos + center;
 
-	float scalingWeight = 2 * length(targetPos - center) + 1;
+	//float scalingWeight = 2 * length(targetPos - center)  + 1;
+	float scalingWeight = length(targetPos - center) + computeConstants.r * computeConstants.r + 1;
 
 	float2 sourcePoint = ( (index / size - float2(0.5, 0.5)) * scalingWeight + float2(0.5, 0.5)) * size;
 
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
-		destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
+		//destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
+		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, sourcePoint / size, 0);
 	}
 	else
 	{
