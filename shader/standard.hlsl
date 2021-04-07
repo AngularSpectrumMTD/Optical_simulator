@@ -305,7 +305,7 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 		rad = rad % (2.0 * PI / computeConstants.N);
 
 		//float r_circ = 0.2;
-		float r_circ = 0.49;//max
+		float r_circ = 0.48;//max
 
 		//îºåar_circÇÃâ~Ç…ì‡ê⁄Ç∑ÇÈê≥ëΩäpå`ÇÃï”ÇÃà íu
 		float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
@@ -780,7 +780,7 @@ void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
 	rad = rad % (2.0 * PI / computeConstants.N);
 
 	//float r_circ = 0.2;
-	float r_circ = 0.49;//max
+	float r_circ = 0.48;//max
 
 	//îºåar_circÇÃâ~Ç…ì‡ê⁄Ç∑ÇÈê≥ëΩäpå`ÇÃï”ÇÃà íu
 	float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
@@ -832,7 +832,7 @@ void mainCutOff(uint3 dispatchID : SV_DispatchThreadID)
 	rad = rad % (2.0 * PI / computeConstants.N);
 
 	//float r_circ = 0.2;
-	float r_circ = 0.4;//max
+	float r_circ = 0.48;//max
 
 	//îºåar_circÇÃâ~Ç…ì‡ê⁄Ç∑ÇÈê≥ëΩäpå`ÇÃï”ÇÃà íu
 	float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
@@ -1267,19 +1267,19 @@ void mainBlur(uint3 dispatchID : SV_DispatchThreadID)
 }
 
 [numthreads(THREADNUM, THREADNUM, 1)]
-void mainFadeByGauss(uint3 dispatchID : SV_DispatchThreadID)
+void mainFade(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
 
-	float x = index.x - WIDTH / 2.0f;
-	float y = index.y - HEIGHT / 2.0f;
+	float2 size = float2(WIDTH, HEIGHT);
 
-	float sx = WIDTH / 4;
-	float sy = HEIGHT / 4;
+	float2 uv = index / size - 0.5;
+	float d = length(uv) * 2;
+	float fade = lerp(1.0f, 0.f, d);
 
-	float val = exp(-(x * x + y * y) / 2 / sx / sy);//ïKÇ∏ÉTÉCÉYÇ≈äÑÇÈÇ±Ç∆
+	//fade = 1;
 
-	destinationImageR[index] = float4(val * sourceImageR[index].rgb, 1.0f);
+	destinationImageR[index] = float4(fade * sourceImageR[index].rgb, 1.0f);
 }
 
 [numthreads(THREADNUM, THREADNUM, 1)]
@@ -1350,4 +1350,17 @@ void mainDownIntensityByPos(uint3 dispatchID : SV_DispatchThreadID)
 	//float len = 0;
 
 	destinationImageR[index] = sourceImageR[index] / (len * 10 + 1.0f);//ÉVÉFÅ[É_Ç≈ï™êîÇÕÇ‚ÇŒÇ¢ÇÃÇ© ÇøÇÁÇ¬Ç≠
+}
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainShiftSample(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+
+	float2 targetIndex = index + 10 * (computeConstants.elapsedTime).xx;
+
+	destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, targetIndex / size, 0);
+
+	//destinationImageR[index] = sourceImageR[targetIndex];
 }

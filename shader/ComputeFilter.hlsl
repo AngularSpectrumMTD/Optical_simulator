@@ -96,6 +96,7 @@ struct ComputeParameters
 
 	//float ghostScale;
 	float rotAngle;
+	float elapsedTime;
 };
 
 struct RandomTbl {
