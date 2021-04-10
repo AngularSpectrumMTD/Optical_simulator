@@ -316,7 +316,11 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 		float s = computeConstants.r;
 		//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
 
-		float ratio = (1 + cos(rad * 2)) / 2.0;
+		uint term = 2;//この周期分はいる
+
+		float ratio = (1 + cos(term * rad)) / 2.0;
+		//ratio = cos(term * rad);
+		//ratio = 0.5;
 		//ratio *= ratio;
 
 		float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
@@ -916,6 +920,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 	//中心からのベクトル
 	float lengthCenter = length(randomValue * dir);
+	float lengthSave = lengthCenter;
 	lengthCenter *= lengthCenter;
 	float weight = abs(randomValue - uint(randomValue));
 	weight *= 100;
@@ -933,7 +938,7 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	//scalingParam.x = clamp(scalingParam.x, 1, 50);
 	//scalingParam.y = clamp(scalingParam.y, 1, 50);
 
-	float2 scalingParam = float2(1 + computeConstants.r, 1 + computeConstants.r) * weight;
+	float2 scalingParam = float2(2 - computeConstants.r, 2 - computeConstants.r) * weight * (lengthSave + 1);
 	scalingParam += float2(1, 1);
 
 	float2 texSize;

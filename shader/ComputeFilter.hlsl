@@ -126,6 +126,7 @@ float2 clampF2(float2 value)
 	return float2(clamp(value.x, 0, WIDTH), clamp(value.y, 0, HEIGHT));
 }
 
+#include "CMF.hlsl"
 #include "FFT.hlsl"
 #include "normalize.hlsl"
 #include "asm.hlsl"
