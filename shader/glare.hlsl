@@ -86,10 +86,10 @@ float2 indexfunc(float2 IndexStandard, float lambdamax, float lambda)
 	return uv + float2(0.5 * WIDTH, 0.5 * HEIGHT);
 }
 
-float2 indexfunc2(float2 IndexStandard, float lambdamax, float lambda)
+float2 indexfunc2(float2 IndexStandard, float scale)
 {
 	float2 uvstandard = IndexStandard - float2(0.5 * WIDTH, 0.5 * HEIGHT);
-	float2 uv = uvstandard * lambdamax / lambda;
+	float2 uv = uvstandard * scale;//ŒW”‚ª‘å‚«‚¢‚Ù‚Ç‚¿‚¢‚³‚­ ”g’·‚Í‘å‚«‚¢‚Ù‚Ç‘å‚«‚­
 
 	return uv + float2(0.5 * WIDTH, 0.5 * HEIGHT);
 }
@@ -138,11 +138,9 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 	float minlambda = 390;
 
 	//RGB–ˆ‚Ég—p‚·‚éƒTƒ“ƒvƒ‹”
-	float samplenum = computeConstants.glarelambdasamplenum * 4;
+	float samplenum = computeConstants.glarelambdasamplenum;
 
 	float lambdarange = maxlambda - minlambda;
-
-	float3 result = float3(0.0, 0.0, 0.0);
 
 	float2 size = float2(WIDTH, HEIGHT);
 	//ƒXƒP[ƒŠƒ“ƒO‚µ‚½æ‚Ì‘Î‰‰æ‘f’l‚ğQÆ‚µ‚Ä‰ÁZ‚µ‚Ä‚¢‚­
@@ -151,29 +149,34 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 
 	const float representativeLambda = maxlambda;
 
+	float3 Cxyz = float3(0.0, 0.0, 0.0);
+
 	for (int i = 0; i < samplenum; i++)
 	{
 		float lambda = maxlambda - i * lambdaDelta;
+
+		//o—Í‰æ‘œ‚Í(ƒÉ0/ƒÉ)^2‚ğ‹­“x‚ÉæZ‚µ
 		float cr = representativeLambda / lambda;
 		cr *= cr;//‘ÎÛ‚Í‹­“x‚Ì‚½‚ß2æ
 
-		//float2 indR = indexfunc(indexR, maxlambda, representativeLambda + minlambda - lambda);
-		float2 indR = indexfunc2(indexR, maxlambda, lambda);// lambda‚É‚Ğ‚ê‚¢
+		//o—Í‰æ‘œ‚Í(ƒÉ/ƒÉ0)”{‚ÉŠg‘å‚·‚é•K—v‚ª‚ ‚é
+		float scalefuctor = lambda / representativeLambda;//‘ÎÛ
+		float2 indR = indexfunc2(indexR, 1/ scalefuctor);//‚±‚ÌŠÖ”‚Ín”{‚ÌŠg‘å‚ª1/n”{‚É‚È‚é‚½‚ß
 
 		float3 S = (isInRange(indR) == true) ? sourceImageR.SampleLevel(CSimageSampler, indR / size, 0).rgb : float3(0,0,0);
 
-		S *= cr;
 		float3 xyzfunc = convertToMCF(lambda);
 
-		S *= xyzfunc;
-		S = convertXYZtoRGB(S);
-		result = result + S;
+		S *= cr * xyzfunc;
+		Cxyz += S;
 	}
 	//‘«‚µ‚½‚¾‚¯Š„‚é
-	result /= (WIDTH*HEIGHT * samplenum);
+	Cxyz /= (WIDTH*HEIGHT * samplenum);
 
-	destinationImageR[indexR] = float4(result, 1.0);
-	destinationImageI[indexR] = float4(result, 1.0);
+	float3 resultRGB = convertXYZtoRGB(Cxyz);
+
+	destinationImageR[indexR] = float4(resultRGB, 1.0);
+	destinationImageI[indexR] = float4(resultRGB, 1.0);
 }
 
 float3 wl2rgbTannenbaum(float w) {
