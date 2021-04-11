@@ -106,110 +106,45 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 	//float maxlambda = 800;
 	//float minlambda = 360;
 
-	float maxlambda = 700;
-	float minlambda = 380;
+	//float maxlambda = 700;
+	//float minlambda = 380;
 
 	//float maxlambda = 800;
 	//float minlambda = 100;
 
-	//float maxlambda = 900;
-	//float minlambda = 100;
+	float maxlambda = 900;
+	float minlambda = 100;
 
 	//RGB毎に使用するサンプル数
-	float samplenum = computeConstants.glarelambdasamplenum;
+	float samplenum = computeConstants.glarelambdasamplenum * 4;
 
 	float lambdarange = maxlambda - minlambda;
 
-	float lambdaDelta = lambdarange / samplenum / 3;
-
-	float maxr = sourceImageR[indexR].r;
-
 	float3 result = float3(0.0, 0.0, 0.0);
 
-	float importance = 10;
 	float2 size = float2(WIDTH, HEIGHT);
 	//スケーリングした先の対応画素値を参照して加算していく
 
-	////////////////////////////////////////////////////////////BEFORE
-	//for (int i = 0; i < samplenum; i++)
-	//{
-	//	float lamred = maxlambda - i * lambdaDelta;
-	//	float lamgreen = maxlambda - (i + samplenum) * lambdaDelta;//より小さい波長からスタート
-	//	float lamblue = maxlambda - (i + 2 * samplenum) * lambdaDelta;//同上
-
-	//	float cr = lambdafunc(minlambda, maxlambda, lamred);
-	//	float cg = lambdafunc(minlambda, maxlambda, lamgreen);
-	//	float cb = lambdafunc(minlambda, maxlambda, lamblue);
-
-	//	float2 indR = indexfunc(indexR, maxlambda, lamred);
-	//	float2 indG = indexfunc(indexR, maxlambda, lamgreen);
-	//	float2 indB = indexfunc(indexR, maxlambda, lamblue);
-
-	//	//====================================
-	//	//float3 S = 0.xxx;
-	//	//for (int i = 0; i < importance; i++)
-	//	//{
-	//	//	for (int j = 0; j < importance; j++)
-	//	//	{
-	//	//		float2 iiii = float2(i - importance/ 2, j - importance / 2);
-
-	//	//		float3 ssssssss = float3(sourceImageR[indR + iiii].r, sourceImageR[indG + iiii].g, sourceImageR[indB + iiii].b);
-	//	//		S += ssssssss;
-	//	//	}
-	//	//}
-	//	//S /= importance * importance;
-	//	//====================================
-
-	//	//float3 S = float3(sourceImageRValueBilinearClamp(indR).r , sourceImageRValueBilinearClamp(indG).g, sourceImageRValueBilinearClamp(indB).b);
-	//	//float3 S = float3(sourceImageRValueBicubicClamp(indR).r , sourceImageRValueBicubicClamp(indG).g, sourceImageRValueBicubicClamp(indB).b);
-	//	float3 S = float3(sourceImageR.SampleLevel(CSimageSampler, indR / size, 0).r,
-	//		sourceImageR.SampleLevel(CSimageSampler, indG / size, 0).r
-	//		, sourceImageR.SampleLevel(CSimageSampler, indB / size, 0).r);
-
-	//	S *= float3(cr,cg,cb);
-
-	//	//S = convertRGBtoXYZ(S);
-
-	//	//float3 xyzfunc = convertToMCF();
-
-	//	result = result + S;
-	//}
-
-	////////////////////////////////////////////////////////////AFTER
-	//samplenum = 30;
-	lambdaDelta = lambdarange / samplenum;
+	float lambdaDelta = lambdarange / samplenum;
 
 	const float representativeLambda = maxlambda;
 
 	for (int i = 0; i < samplenum; i++)
 	{
 		float lambda = maxlambda - i * lambdaDelta;
-
-		//float cr = lambdafunc(minlambda, maxlambda, lambda);
-		float cr = representativeLambda / lambda;// / lambda;
-		cr *= cr;
+		float cr = representativeLambda / lambda;
+		cr *= cr;//対象は強度のため2乗
 
 		float2 indR = indexfunc(indexR, maxlambda, representativeLambda + minlambda - lambda);
 
 		float3 S = sourceImageR.SampleLevel(CSimageSampler, indR / size, 0).rgb;
 
 		S *= cr;
-
-		//S = convertRGBtoXYZ(S);
-
 		float3 xyzfunc = convertToMCF(lambda);
 
 		S *= xyzfunc;
-
-		//S = convertRGBtoXYZ(S);
-
 		result = result + S;
 	}
-
-
-
-
-
 	//足しただけ割る
 	result /= (WIDTH*HEIGHT * samplenum);
 
