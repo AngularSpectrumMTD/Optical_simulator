@@ -86,6 +86,26 @@ float2 indexfunc(float2 IndexStandard, float lambdamax, float lambda)
 	return uv + float2(0.5 * WIDTH, 0.5 * HEIGHT);
 }
 
+float2 indexfunc2(float2 IndexStandard, float lambdamax, float lambda)
+{
+	float2 uvstandard = IndexStandard - float2(0.5 * WIDTH, 0.5 * HEIGHT);
+	float2 uv = uvstandard * lambdamax / lambda;
+
+	return uv + float2(0.5 * WIDTH, 0.5 * HEIGHT);
+}
+
+bool isInRange(float2 index)
+{
+	if (index.x < 0 || WIDTH < index.x || index.y < 0 || HEIGHT < index.y)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
 //(https://ja.wikipedia.org/wiki/CIE_1931_%E8%89%B2%E7%A9%BA%E9%96%93)
 float3 convertRGBtoXYZ(float3 RGBColor)
 {
@@ -98,22 +118,24 @@ float3 convertRGBtoXYZ(float3 RGBColor)
 	return colXYZ;
 }
 
+float3 convertXYZtoRGB(float3 XYZColor)
+{
+	float3 colRGB = 
+		float3(
+			1.9106 * XYZColor.r + -0.5326 * XYZColor.g -0.2883 * XYZColor.b,
+			-0.9843 * XYZColor.r + 1.9984 * XYZColor.g -0.0283 * XYZColor.b,
+			0.0584 * XYZColor.r -0.1185* XYZColor.g + 0.8985 * XYZColor.b
+			);
+	return colRGB;
+}
+
 [numthreads(WIDTH, 1, 1)]
 void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 indexR = dispatchID.xy;
 
-	//float maxlambda = 800;
-	//float minlambda = 360;
-
-	//float maxlambda = 700;
-	//float minlambda = 380;
-
-	//float maxlambda = 800;
-	//float minlambda = 100;
-
-	float maxlambda = 900;
-	float minlambda = 100;
+	float maxlambda = 830;
+	float minlambda = 390;
 
 	//RGB毎に使用するサンプル数
 	float samplenum = computeConstants.glarelambdasamplenum * 4;
@@ -135,14 +157,16 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 		float cr = representativeLambda / lambda;
 		cr *= cr;//対象は強度のため2乗
 
-		float2 indR = indexfunc(indexR, maxlambda, representativeLambda + minlambda - lambda);
+		//float2 indR = indexfunc(indexR, maxlambda, representativeLambda + minlambda - lambda);
+		float2 indR = indexfunc2(indexR, maxlambda, lambda);// lambdaにひれい
 
-		float3 S = sourceImageR.SampleLevel(CSimageSampler, indR / size, 0).rgb;
+		float3 S = (isInRange(indR) == true) ? sourceImageR.SampleLevel(CSimageSampler, indR / size, 0).rgb : float3(0,0,0);
 
 		S *= cr;
 		float3 xyzfunc = convertToMCF(lambda);
 
 		S *= xyzfunc;
+		S = convertXYZtoRGB(S);
 		result = result + S;
 	}
 	//足しただけ割る
