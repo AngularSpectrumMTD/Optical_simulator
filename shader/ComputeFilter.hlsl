@@ -119,7 +119,8 @@ RWTexture2D<float4> destinationImageR1 : register(u2);
 RWTexture2D<float4> destinationImageI1 : register(u3);
 RWByteAddressBuffer randomTblIndex : register(u4);
 
-SamplerState CSimageSampler : register(s0);
+SamplerState CSimageSamplerBILINEAR_WRAP : register(s0);
+SamplerState CSimageSamplerBILINEAR_CLAMP : register(s1);
 
 float2 clampF2(float2 value)
 {

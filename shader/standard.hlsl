@@ -290,96 +290,6 @@ float fade_aperture_edge(float radius, float fade, float signed_distance) {
 }
 
 [numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
-void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
-{
-	{
-		float2 index = dispatchID.xy;
-		float2 size = float2(WIDTH, HEIGHT);
-		float2 uv = index / size - float2(0.5, 0.5);
-
-		//”»’è‚µ‚½‚¢“_‚ÌˆÊ’u
-		float pos = length(uv);
-
-		//”»’è‚µ‚½‚¢“_‚Ì‚È‚·Šp
-		float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//‚±‚±‚ÅŠp“x‘«‚µ‚½‚ç‰ñ‚é
-		rad = rad % (2.0 * PI / computeConstants.N);
-
-		//float r_circ = 0.2;
-		float r_circ = 0.48;//max
-
-		//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
-		float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
-		r_polygon *= r_circ;
-
-		//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ğ‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
-		//lerp(x,y,s) = x + s(y - x)
-		float s = computeConstants.r;
-		//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
-
-		uint term = 2;//‚±‚ÌüŠú•ª‚Í‚¢‚é
-
-		float ratio = (1 + cos(term * rad)) / 2.0;
-		//ratio = cos(term * rad);
-		//ratio = 0.5;
-		//ratio *= ratio;
-
-		float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
-
-		//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ğ”»’è
-		float col = step(pos, r_aperture);
-
-		destinationImageR[index] = float4(col, col, col, 1.0);
-	}
-
-
-
-
-
-	//float2 index = dispatchID.xy;
-	//float2 uv = index / float2(WIDTH, HEIGHT);
-
-
-	//{
-
-	//	float2 index = dispatchID.xy;
-	//	float2 size = float2(WIDTH, HEIGHT);
-	//	float2 uv = index / size;
-
-
-
-	//	float2 ndc = ((uv - 0.5f) * 2.f);
-
-	//	float aperture_opening = computeConstants.r;
-	//	//float opening = 0.2f + saturate(aperture_opening / 10.f);
-	//	//ndc = ndc * opening;
-
-	//	int num_of_blades = int(computeConstants.N);
-
-	//	float a = (atan2(ndc.x, ndc.y) + aperture_opening) / 2 / PI + 3.f / 4.f;
-	//	float o = frac(a * num_of_blades + 0.5);
-	//	float w1 = lerp(0.010, 0.001f, saturate((num_of_blades - 4) / 10.f));
-	//	float w2 = lerp(0.025, 0.001f, saturate((num_of_blades - 4) / 10.f));
-	//	float s0 = sin(o * 2 * PI);
-	//	float s1 = s0 * w1;
-	//	float s2 = s0 * w2;
-
-	//	// fft aperture shape
-	//	float signed_distance = 0.f;
-	//	for (int i = 0; i < num_of_blades; ++i) {
-	//		float angle = aperture_opening + (i / float(num_of_blades)) * 2 * PI;
-	//		float2 axis = float2(cos(angle), sin(angle));
-	//		signed_distance = max(signed_distance, dot(axis, ndc));
-	//	}
-
-	//	//signed_distance += s1;
-	//	float aperture_fft = fade_aperture_edge(0.7, 0.00001, signed_distance);
-
-	//	destinationImageR[index] = float4(aperture_fft.xxx, 1.0);
-	//}
-
-}
-
-[numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
 void mainDrawMovingPolygon(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
@@ -768,6 +678,49 @@ float3 ACESFilm(float3 x) {
 	return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
+[numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
+void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
+{
+	{
+		float2 index = dispatchID.xy;
+		float2 size = float2(WIDTH, HEIGHT);
+		float2 uv = index / size - float2(0.5, 0.5);
+
+		//”»’è‚µ‚½‚¢“_‚ÌˆÊ’u
+		float pos = length(uv);
+
+		//”»’è‚µ‚½‚¢“_‚Ì‚È‚·Šp
+		float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//‚±‚±‚ÅŠp“x‘«‚µ‚½‚ç‰ñ‚é
+		rad = rad % (2.0 * PI / computeConstants.N);
+
+		//float r_circ = 0.2;
+		float r_circ = 0.48;//max
+
+		//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
+		float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
+		r_polygon *= r_circ;
+
+		//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ğ‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
+		//lerp(x,y,s) = x + s(y - x)
+		float s = computeConstants.r;
+		//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
+
+		uint term = 2;//‚±‚ÌüŠú•ª‚Í‚¢‚é
+
+		float ratio = (1 + cos(term * rad)) / 2.0;
+		//ratio = cos(term * rad);
+		//ratio = 0.5;
+		//ratio *= ratio;
+
+		float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
+
+		//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ğ”»’è
+		float col = step(pos, r_aperture);
+
+		destinationImageR[index] = float4(col, col, col, 1.0);
+	}
+}
+
 //[numthreads(WIDTH, 1, 1)]
 [numthreads(THREADNUM, THREADNUM, 1)]
 void mainCaustic(uint3 dispatchID : SV_DispatchThreadID)
@@ -996,9 +949,9 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 
 			
 
-			result = computeConstants.baseColor * float3(lambdafuncFF(maxlambda, lamred) * sourceImageR.SampleLevel(CSimageSampler, targetIndexR / texSize, 0).r,
-				lambdafuncFF(maxlambda, lamgreen) * sourceImageR.SampleLevel(CSimageSampler, targetIndexG / texSize, 0).r,
-				lambdafuncFF(maxlambda, lamblue) * sourceImageR.SampleLevel(CSimageSampler, targetIndexB / texSize, 0).r);
+			result = computeConstants.baseColor * float3(lambdafuncFF(maxlambda, lamred) * sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, targetIndexR / texSize, 0).r,
+				lambdafuncFF(maxlambda, lamgreen) * sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, targetIndexG / texSize, 0).r,
+				lambdafuncFF(maxlambda, lamblue) * sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, targetIndexB / texSize, 0).r);
 		}
 		else
 		{
@@ -1067,7 +1020,7 @@ void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
 		//destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
-		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, sourcePoint / texSize, 0);
+		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, sourcePoint / texSize, 0);
 	}
 	else
 	{
@@ -1123,7 +1076,7 @@ void mainShiftImageByRandomTblandAdd(uint3 dispatchID : SV_DispatchThreadID)
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
 		//destinationImageR[index] += sourceImageRValueBilinearClamp(sourcePoint);
-		destinationImageR[index] += sourceImageR.SampleLevel(CSimageSampler, sourcePoint / texSize, 0);
+		destinationImageR[index] += sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, sourcePoint / texSize, 0);
 	}
 }
 
@@ -1153,7 +1106,7 @@ void mainShiftImageByTargetPos(uint3 dispatchID : SV_DispatchThreadID)
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
 		//destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
-		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, sourcePoint / size, 0);
+		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, sourcePoint / size, 0);
 	}
 	else
 	{
@@ -1318,7 +1271,7 @@ void mainScaleByPos(uint3 dispatchID : SV_DispatchThreadID)
 	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
 	{
 		//destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
-		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, sourcePoint / size, 0);
+		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, sourcePoint / size, 0);
 	}
 	else
 	{
@@ -1365,7 +1318,7 @@ void mainShiftSample(uint3 dispatchID : SV_DispatchThreadID)
 
 	float2 targetIndex = index + 10 * (computeConstants.elapsedTime).xx;
 
-	destinationImageR[index] = sourceImageR.SampleLevel(CSimageSampler, targetIndex / size, 0);
+	destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, targetIndex / size, 0);
 
 	//destinationImageR[index] = sourceImageR[targetIndex];
 }

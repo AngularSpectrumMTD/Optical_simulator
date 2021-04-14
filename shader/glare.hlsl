@@ -129,7 +129,8 @@ float3 convertXYZtoRGB(float3 XYZColor)
 	return colRGB;
 }
 
-[numthreads(WIDTH, 1, 1)]
+//[numthreads(WIDTH, 1, 1)]
+[numthreads(THREADNUM, THREADNUM, 1)]
 void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 indexR = dispatchID.xy;
@@ -159,11 +160,14 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 		float cr = representativeLambda / lambda;
 		cr *= cr;//対象は強度のため2乗
 
-		//出力画像は(λ/λ0)倍に拡大する必要がある
-		float scalefuctor = lambda / representativeLambda;//対象
-		float2 indR = indexfunc2(indexR, 1/ scalefuctor);//この関数はn倍の拡大が1/n倍になるため
+		float ratio = 1.5;//全体的な倍率 最大のバーストを規定よりもこの分拡大しておく⇒全体的に拡大される
 
-		float3 S = (isInRange(indR) == true) ? sourceImageR.SampleLevel(CSimageSampler, indR / size, 0).rgb : float3(0,0,0);
+		//出力画像は(λ/λ0)倍に拡大する必要がある
+		float scalefuctor = ratio * lambda / representativeLambda;
+
+		float2 indR = indexfunc2(indexR, 1/ scalefuctor);
+
+		float3 S = (isInRange(indR) == true) ? sourceImageR.SampleLevel(CSimageSamplerBILINEAR_CLAMP, indR / size, 0).rgb : float3(0, 0, 0);
 
 		float3 xyzfunc = convertToMCF(lambda);
 
@@ -210,85 +214,6 @@ float3 wl2rgbTannenbaum(float w) {
 
 	return r;
 }
-
-//[numthreads(WIDTH, 1, 1)]
-//void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
-//{
-//	float2 indexR = dispatchID.xy;
-//	float2 size = float2(WIDTH, HEIGHT);
-//	float2 uv = indexR / size - 0.5;
-//	float d = length(uv) * 2;
-//
-//	float scale1 = 0.50f;
-//	float scale2 = -0.75f;
-//	float fft_scale = 0.00001f;
-//
-//	float3 result = 0.f;
-//	int num_steps = 256;
-//
-//	//スケーリングした先の対応画素値を参照して加算していく
-//	for (int i = 0; i < num_steps; ++i)
-//	{
-//		float n = (float)i / (float)num_steps;
-//
-//		float2 scaled_uv1 = uv * lerp(1.f + scale1, 1.f, n);
-//		float2 scaled_uv2 = uv * lerp(1.f + scale2, 1.f, n);
-//
-//		float r1 = sourceImageR[scaled_uv1 * size].r;
-//		float i1 = sourceImageI[scaled_uv1 * size].r;
-//
-//		float2 p1 = float2(r1, i1);
-//
-//		float starburst = pow(length(p1), 2.f) * fft_scale * lerp(0.0f, 25.f, d);
-//
-//		float lambda = lerp(380.f, 700.f, n);
-//		float3 rgb = wl2rgbTannenbaum(lambda);
-//		rgb = lerp(1.f, rgb, 0.75f);
-//
-//		result += (starburst + rgb * 0.25f);
-//	}
-//
-//	result /= (float)num_steps;
-//	destinationImageR[indexR] = float4(result, 1);
-//}
-
-///////////////////////////////////////////////////////////////////////////////////グレア旧
-//[numthreads(WIDTH, 1, 1)]
-//void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
-//{
-//	float2 indexR = dispatchID.xy;
-//
-//	float ratioRG = computeConstants.lambdaG / computeConstants.lambdaR;
-//	float ratioRB = computeConstants.lambdaB / computeConstants.lambdaR;
-//
-//	//float ratioBG = computeConstants.lambdaB / computeConstants.lambdaG;
-//	//float ratioBR = computeConstants.lambdaB / computeConstants.lambdaR;
-//
-//	//ratioBG = ratioBG * ratioBG;
-//	//ratioBR = ratioBR * ratioBR;
-//
-//	float ratioBG = 1;
-//	float ratioBR = 1;
-//
-//	float2 uvR = indexR - float2(0.5 * WIDTH, 0.5 * HEIGHT);
-//	float2 uvG = uvR * ratioRG;
-//	float2 uvB = uvR * ratioRB;
-//
-//	float2 indexG = uvG + float2(0.5 * WIDTH, 0.5 * HEIGHT);
-//	float2 indexB = uvB + float2(0.5 * WIDTH, 0.5 * HEIGHT);
-//
-//	float r = sourceImageR[indexR].r * ratioBR;
-//	float g = sourceImageR[indexG].g * ratioBG;
-//	float b = sourceImageR[indexB].b;
-//
-//	destinationImageR[indexR] = float4(r, g, b, 1.0);
-//
-//	r = sourceImageI[indexR].r * ratioBR;
-//	g = sourceImageI[indexG].g * ratioBG;
-//	b = sourceImageI[indexB].b;
-//
-//	destinationImageI[indexR] = float4(r, g, b, 1.0);
-//}
 
 [numthreads(WIDTH, 1, 1)]
 void mainSpectrumAmplitudeAdjustment(uint3 dispatchID : SV_DispatchThreadID)
