@@ -441,12 +441,30 @@ float4(828,8e-07,7.78e-08,0),
 float4(829,7.49e-07,7.31e-08,0),
 float4(830,7.02e-07,6.87e-08,0)};
 
-float3 convertToMCF(uint lambda)
+float3 convertToMCF(float lambda)
 {
-if (lambda < 390 || 830 < lambda)
+
+	uint i1 = (uint)floor(lambda);
+
+if (i1 < 390 || 830 < i1)
 {
 return float3(0, 0, 0);
 }
-uint index = lambda - 390;
-return mcfdata[index].yzw;
+
+float t = lambda - i1;
+float t1 = 1 - t;
+
+float index = lambda - 390;
+float index1;
+
+if (i1 == 830)
+{
+	index1 = index;
+}
+else
+{
+	index1 = index + 1;
+}
+
+return mcfdata[index].yzw * t1 + mcfdata[index1].yzw * t;
 }

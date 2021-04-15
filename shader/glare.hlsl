@@ -129,90 +129,90 @@ float3 convertXYZtoRGB(float3 XYZColor)
 	return colRGB;
 }
 
-//[numthreads(WIDTH, 1, 1)]
+float3 lambdalRGB(float lambda) {
+	float3 colRGB;
+
+	if (lambda < 350.0)
+		colRGB = float3(0.5, 0.0, 1.0);
+	else if ((lambda >= 350.0) && (lambda < 440.0))
+		colRGB = float3((440.0 - lambda) / 90.0, 0.0, 1.0);
+	else if ((lambda >= 440.0) && (lambda <= 490.0))
+		colRGB = float3(0.0, (lambda - 440.0) / 50.0, 1.0);
+	else if ((lambda >= 490.0) && (lambda < 510.0))
+		colRGB = float3(0.0, 1.0, (-(lambda - 510.0)) / 20.0);
+	else if ((lambda >= 510.0) && (lambda < 580.0))
+		colRGB = float3((lambda - 510.0) / 70.0, 1.0, 0.0);
+	else if ((lambda >= 580.0) && (lambda < 645.0))
+		colRGB = float3(1.0, (-(lambda - 645.0)) / 65.0, 0.0);
+	else
+		colRGB = float3(1.0, 0.0, 0.0);
+
+	if (lambda < 350.0)
+		colRGB *= 0.3;
+	else if ((lambda >= 350.0) && (lambda < 420.0))
+		colRGB *= 0.3 + (0.7 * ((lambda - 350.0) / 70.0));
+	else if ((lambda >= 420.0) && (lambda <= 700.0))
+		colRGB *= 1.0;
+	else if ((lambda > 700.0) && (lambda <= 780.0))
+		colRGB *= 0.3 + (0.7 * ((780.0 - lambda) / 80.0));
+	else
+		colRGB *= 0.3;
+
+	return colRGB;
+}
+
+bool Clamped(float2 floatIndex) {
+	return floatIndex.x < -0 || floatIndex.x > 1 || floatIndex.y < -0 || floatIndex.y > 1;
+}
+
 [numthreads(THREADNUM, THREADNUM, 1)]
 void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 {
-	float2 indexR = dispatchID.xy;
-
-	float maxlambda = 830;
-	float minlambda = 390;
-
-	//RGB毎に使用するサンプル数
-	float samplenum = computeConstants.glarelambdasamplenum;
-
-	float lambdarange = maxlambda - minlambda;
-
+	const float starburst_resolution = 1.0f;
+	float2 index = dispatchID.xy;
 	float2 size = float2(WIDTH, HEIGHT);
-	//スケーリングした先の対応画素値を参照して加算していく
+	float2 pos = index / size;
+	float2 uv = pos.xy / starburst_resolution - 0.5;
+	float d = length(uv) * 2;
 
-	float lambdaDelta = lambdarange / samplenum;
+	// -ve violet, +v reds
+	const float scale = 0.50f;
 
-	const float representativeLambda = maxlambda;
+	const float lambdaRed = 700;
+	const float lambdaVio = 380;
 
-	float3 Cxyz = float3(0.0, 0.0, 0.0);
+	float3 result = 0.f;
+	int num_steps = computeConstants.glarelambdasamplenum * 3;
+	for (int i = 0; i <= num_steps; ++i) {
+		float n = (float)i / (float)num_steps;
 
-	for (int i = 0; i < samplenum; i++)
-	{
-		float lambda = maxlambda - i * lambdaDelta;
+		float2 scaled_uv = uv * lerp(1.f + scale, 1.f, n) + 0.5;
 
-		//出力画像は(λ0/λ)^2を強度に乗算し
-		float cr = representativeLambda / lambda;
-		cr *= cr;//対象は強度のため2乗
+		bool clamped = Clamped(scaled_uv);
 
-		float ratio = 1.5;//全体的な倍率 最大のバーストを規定よりもこの分拡大しておく⇒全体的に拡大される
+		float r1 = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_CLAMP, scaled_uv, 0).r * !clamped;
 
-		//出力画像は(λ/λ0)倍に拡大する必要がある
-		float scalefuctor = ratio * lambda / representativeLambda;
+		float starburst = r1 * lerp(0.0f, 25.f, d);
 
-		float2 indR = indexfunc2(indexR, 1/ scalefuctor);
+		float lambda = lerp(lambdaVio, lambdaRed, n);
 
-		float3 S = (isInRange(indR) == true) ? sourceImageR.SampleLevel(CSimageSamplerBILINEAR_CLAMP, indR / size, 0).rgb : float3(0, 0, 0);
+		//float3 rgb = convertToMCF(lambda);
+		float3 rgb = lambdalRGB(lambda);
 
-		float3 xyzfunc = convertToMCF(lambda);
+		float cr = 1 / lambda;
+		cr *= cr;//対象は強度のため2乗(トーンマッピングを無視するならここは cr = (lambdaRed / lambda)^2)
 
-		S *= cr * xyzfunc;
-		Cxyz += S;
+		rgb = lerp(1.f, rgb, 0.75f);
+
+		result += (cr * r1 * rgb);
 	}
-	//足しただけ割る
-	Cxyz /= (WIDTH*HEIGHT * samplenum);
 
-	float3 resultRGB = convertXYZtoRGB(Cxyz);
+	result /= (float)num_steps;
 
-	destinationImageR[indexR] = float4(resultRGB, 1.0);
-	destinationImageI[indexR] = float4(resultRGB, 1.0);
-}
+	//result = convertXYZtoRGB(result);
 
-float3 wl2rgbTannenbaum(float w) {
-	float3 r;
-
-	if (w < 350.0)
-		r = float3(0.5, 0.0, 1.0);
-	else if ((w >= 350.0) && (w < 440.0))
-		r = float3((440.0 - w) / 90.0, 0.0, 1.0);
-	else if ((w >= 440.0) && (w <= 490.0))
-		r = float3(0.0, (w - 440.0) / 50.0, 1.0);
-	else if ((w >= 490.0) && (w < 510.0))
-		r = float3(0.0, 1.0, (-(w - 510.0)) / 20.0);
-	else if ((w >= 510.0) && (w < 580.0))
-		r = float3((w - 510.0) / 70.0, 1.0, 0.0);
-	else if ((w >= 580.0) && (w < 645.0))
-		r = float3(1.0, (-(w - 645.0)) / 65.0, 0.0);
-	else
-		r = float3(1.0, 0.0, 0.0);
-
-	if (w < 350.0)
-		r *= 0.3;
-	else if ((w >= 350.0) && (w < 420.0))
-		r *= 0.3 + (0.7 * ((w - 350.0) / 70.0));
-	else if ((w >= 420.0) && (w <= 700.0))
-		r *= 1.0;
-	else if ((w > 700.0) && (w <= 780.0))
-		r *= 0.3 + (0.7 * ((780.0 - w) / 80.0));
-	else
-		r *= 0.3;
-
-	return r;
+	destinationImageR[index] = float4(result, 1.0);
+	destinationImageI[index] = float4(result, 1.0);
 }
 
 [numthreads(WIDTH, 1, 1)]
@@ -241,18 +241,19 @@ float reinhard(float x)
 	return x / (1.0f + x);
 }
 
+float3 ACESFilm(float3 x) {
+	float a = 2.51f;
+	float b = 0.03f;
+	float c = 2.43f;
+	float d = 0.59f;
+	float e = 0.14f;
+	return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
 [numthreads(WIDTH, 1, 1)]
 void mainToneMapping(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
 
-	float ampr = sourceImageR[index].r;
-	float ampg = sourceImageR[index].g;
-	float ampb = sourceImageR[index].b;
-
-	float toneR = reinhard(ampr);
-	float toneG = reinhard(ampg);
-	float toneB = reinhard(ampb);
-
-	destinationImageR[index] = float4(toneR, toneG, toneB, 1.0);
+	destinationImageR[index] = float4(ACESFilm(sourceImageR[index].rgb), 1.0);
 }

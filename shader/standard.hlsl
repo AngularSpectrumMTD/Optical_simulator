@@ -669,15 +669,6 @@ float lambdafuncFF(float lambdamax, float lambda)
 	return ((lambda / lambdamax)) / (2 + lambda / lambdamax);
 }
 
-float3 ACESFilm(float3 x) {
-	float a = 2.51f;
-	float b = 0.03f;
-	float c = 2.43f;
-	float d = 0.59f;
-	float e = 0.14f;
-	return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
-}
-
 [numthreads(WIDTH, 1, 1)]//computeConstants.Näpå`
 void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 {
