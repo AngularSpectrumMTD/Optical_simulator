@@ -886,10 +886,10 @@ void mainScalingSizeByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	scalingParam += float2(1, 1);
 
 	float2 texSize;
-	float  level;
 	destinationImageR.GetDimensions(texSize.x, texSize.y);
 
-	scalingParam.x *= texSize.x / texSize.y;
+	//scalingParam.x *= texSize.x / texSize.y;
+	scalingParam.x *= 0.5 * computeConstants.screenWidth / computeConstants.screenHeight;
 
 	scalingParam *= (randomValue > 0) ? -1 : 1;
 
@@ -1004,6 +1004,7 @@ void mainShiftImageByRandomTbl(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR.GetDimensions(texSize.x, texSize.y);
 
 	dir.y *= texSize.x / texSize.y;
+	//dir.x *= computeConstants.screenWidth / computeConstants.screenHeight;
 
 	//インデックスとして計算(中心基準)
 	float2 sourcePoint = index - randomValue * dir * size;// randomTbl.data : 0.5で注目点付近 randomTbl.data : -0.5
@@ -1060,6 +1061,7 @@ void mainShiftImageByRandomTblandAdd(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR.GetDimensions(texSize.x, texSize.y);
 
 	dir.y *= texSize.x / texSize.y;
+	//dir.x *= computeConstants.screenWidth / computeConstants.screenHeight;
 
 	//インデックスとして計算(中心基準)
 	float2 sourcePoint = index - randomValue * dir * size;// randomTbl.data : 0.5で注目点付近 randomTbl.data : -0.5
@@ -1255,7 +1257,9 @@ void mainScaleByPos(uint3 dispatchID : SV_DispatchThreadID)
 	//float2 sourcePoint = index - targetPos + center;
 
 	//float scalingWeight = 2 * length(targetPos - center)  + 1;
-	float scalingWeight = length(targetPos - center) + computeConstants.r * computeConstants.r + 1;
+	float2 scalingWeight = length(targetPos - center) + computeConstants.r * computeConstants.r + 1;
+	//scalingParam.x *= texSize.x / texSize.y;
+	scalingWeight.x *= 0.5 * computeConstants.screenWidth / computeConstants.screenHeight;
 
 	float2 sourcePoint = ( (index / size - float2(0.5, 0.5)) * scalingWeight + float2(0.5, 0.5)) * size;
 
@@ -1307,9 +1311,15 @@ void mainShiftSample(uint3 dispatchID : SV_DispatchThreadID)
 	float2 index = dispatchID.xy;
 	float2 size = float2(WIDTH, HEIGHT);
 
-	float2 targetIndex = index + 10 * (computeConstants.elapsedTime).xx;
+	float2 targetIndex = index + 100 * (computeConstants.elapsedTime).xx;
 
 	destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, targetIndex / size, 0);
 
 	//destinationImageR[index] = sourceImageR[targetIndex];
+}
+
+[numthreads(GHOSTCOUNT + 1, 1, 1)]
+void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
+{
+	
 }

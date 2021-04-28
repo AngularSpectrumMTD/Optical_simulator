@@ -14,13 +14,13 @@ void mainRaiseBottomRealImage(uint3 dispatchID : SV_DispatchThreadID)
 
 	float val = (amplitude.r + amplitude.g + amplitude.b) / 3.0f;
 
-	if (val < 1)// && val > 0.0001)
-	{
+	//if (val < 1)// && val > 0.0001)
+	//{
 		/*inputR = inputR * 10.0f;
 		inputI = inputI * 10.0f;*/
 		inputR = inputR * computeConstants.glareintensity;
 		inputI = inputI * computeConstants.glareintensity;
-	}
+	//}
 	//else if (val < 0.2)
 	//{
 	//	destinationImageR[index] = float4(0,0,0, 1.0);
@@ -213,6 +213,59 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 
 	destinationImageR[index] = float4(result, 1.0);
 	destinationImageI[index] = float4(result, 1.0);
+}
+
+float2 Rotate(float2 p, float a) {
+	float x = p.x;
+	float y = p.y;
+
+	float cosa = cos(a);
+	float sina = sin(a);
+
+	float x1 = x * cosa - y * sina;
+	float y1 = y * cosa + x * sina;
+
+	return float2(x1, y1);
+}
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainSpectrumFilterling(uint3 dispatchID : SV_DispatchThreadID)
+{
+	const float starburst_resolution = 1.0f;
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+	float2 pos = index / size;
+	float2 uv = pos.xy / starburst_resolution - 0.5;
+
+	float3 result = 0.f;
+
+	const float lambdaRed = 700;
+	const float lambdaVio = 380;
+
+	int num_steps = computeConstants.glarelambdasamplenum * 3;;
+	for (int i = 0; i <= num_steps; ++i) {
+		float n = (float)i / (float)num_steps;
+		float phi = n * 2 * PI * 2.f;
+
+		float2 spin = float2(cos(phi), sin(phi)) * n * 0.002f;
+		//0’†S‚É‰ñ“]‚µ‚Ä0.5‰ÁŽZ‚Å01‹óŠÔ‚Ö
+		float2 rotated_uv = Rotate(uv + spin, n * 0.05f) + 0.5f;
+
+		bool clamped = Clamped(rotated_uv);
+
+		float3 starburst = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_CLAMP, rotated_uv, 0).rgb * !clamped;
+
+		float lambda = lerp(lambdaVio, lambdaRed, (i % 80) / 80.f);
+		float3 rgb = lambdalRGB(lambda);
+		rgb = lerp(rgb, 1.f, 0.5f);
+
+		result += starburst * rgb;
+	}
+
+	result /= (float)num_steps;
+
+	destinationImageR[index] = float4(result, 1.0);
+	//destinationImageR[index] = sourceImageR[index];
 }
 
 [numthreads(WIDTH, 1, 1)]

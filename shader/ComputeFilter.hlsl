@@ -97,6 +97,8 @@ struct ComputeParameters
 	//float ghostScale;
 	float rotAngle;
 	float elapsedTime;
+	float screenWidth;
+	float screenHeight;
 };
 
 struct RandomTbl {
@@ -118,6 +120,12 @@ RWTexture2D<float4> destinationImageI : register(u1);
 RWTexture2D<float4> destinationImageR1 : register(u2);
 RWTexture2D<float4> destinationImageI1 : register(u3);
 RWByteAddressBuffer randomTblIndex : register(u4);
+
+
+StructuredBuffer<float4> scaleShiftTbl : register(t2);
+RWStructuredBuffer<float4> RWscaleShiftTbl : register(u5);
+StructuredBuffer<float4> colorTbl : register(t3);
+RWStructuredBuffer<float4> RWcolorTbl : register(u6);
 
 SamplerState CSimageSamplerBILINEAR_WRAP : register(s0);
 SamplerState CSimageSamplerBILINEAR_CLAMP : register(s1);
