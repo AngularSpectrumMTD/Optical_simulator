@@ -1238,6 +1238,7 @@ void mainScaleByPos(uint3 dispatchID : SV_DispatchThreadID)
 {
 	float2 index = dispatchID.xy;
 	float2 size = float2(WIDTH, HEIGHT);
+	float2 pos = index / size;
 
 	float2 targetPos =
 		float2
@@ -1254,26 +1255,22 @@ void mainScaleByPos(uint3 dispatchID : SV_DispatchThreadID)
 			);
 
 	//インデックスとして計算(中心基準)
-	//float2 sourcePoint = index - targetPos + center;
+	float2 uv = pos.xy - 0.5;
 
-	//float scalingWeight = 2 * length(targetPos - center)  + 1;
 	float2 scalingWeight = length(targetPos - center) + computeConstants.r * computeConstants.r + 1;
-	//scalingParam.x *= texSize.x / texSize.y;
 	scalingWeight.x *= 0.5 * computeConstants.screenWidth / computeConstants.screenHeight;
 
-	float2 sourcePoint = ( (index / size - float2(0.5, 0.5)) * scalingWeight + float2(0.5, 0.5)) * size;
+	float2 scaleduv = uv * scalingWeight + 0.5;
 
-	if (sourcePoint.x >= 0 && sourcePoint.x < WIDTH && sourcePoint.y >= 0 && sourcePoint.y < HEIGHT)
+	if (scaleduv.x >= 0 && scaleduv.x < 1 && scaleduv.y >= 0 && scaleduv.y < 1)
 	{
 		//destinationImageR[index] = sourceImageRValueBilinearClamp(sourcePoint);
-		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, sourcePoint / size, 0);
+		destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, scaleduv, 0);
 	}
 	else
 	{
 		destinationImageR[index] = float4(0, 0, 0, 1);
 	}
-
-
 }
 
 [numthreads(THREADNUM, THREADNUM, 1)]
@@ -1316,10 +1313,4 @@ void mainShiftSample(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[index] = sourceImageR.SampleLevel(CSimageSamplerBILINEAR_WRAP, targetIndex / size, 0);
 
 	//destinationImageR[index] = sourceImageR[targetIndex];
-}
-
-[numthreads(GHOSTCOUNT + 1, 1, 1)]
-void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
-{
-	
 }

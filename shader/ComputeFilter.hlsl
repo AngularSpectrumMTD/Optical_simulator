@@ -8,62 +8,6 @@ struct VSInput
 #include "complex.hlsl"
 #include "PS_VS.hlsl"
 
-//struct ComputeParameters
-//{
-//	float intervalx;
-//	float intervaly;
-//	float lambdaR;
-//	float lambdaG;
-//	float lambdaB;
-//	float distance0;
-//	float gausssigma;
-//	float gausssigma2;
-//	float glareintensity;
-//	float glarelambdasamplenum;
-//	float threshold;
-//	float raylength;
-//	float posx;
-//	float posy;
-//	float range;
-//	float lensradius;
-//	float focus0;
-//	int N;
-//	float r;
-//	int N1;
-//	float r1;
-//	float ghostScale;
-//	float rotAngle;
-//	float3 baseColor;
-//};
-
-//struct ComputeParameters
-//{
-//	float intervalx : packoffset(c0.x);
-//	float intervaly : packoffset(c0.y);
-//	float lambdaR : packoffset(c0.z);
-//	float lambdaG : packoffset(c0.w);
-//	float lambdaB : packoffset(c1.x);
-//	float distance0 : packoffset(c1.y);
-//	float gausssigma : packoffset(c1.z);
-//	float gausssigma2 : packoffset(c1.w);
-//	float glareintensity : packoffset(c2.x);
-//	float glarelambdasamplenum : packoffset(c2.y);
-//	float threshold : packoffset(c2.z);
-//	float raylength : packoffset(c2.w);
-//	float posx : packoffset(c3.x);
-//	float posy : packoffset(c3.y);
-//	float range : packoffset(c3.z);
-//	float lensradius : packoffset(c3.w);
-//	float focus0 : packoffset(c4.x);
-//	int N : packoffset(c4.y);
-//	float r : packoffset(c4.z);
-//	int N1 : packoffset(c4.w);
-//	float r1 : packoffset(c5.x);
-//	float ghostScale : packoffset(c5.y);
-//	float rotAngle : packoffset(c5.z);
-//	float3 baseColor:packoffset(c5.w);
-//};
-
 struct ComputeParameters
 {
 	float intervalx;
@@ -121,10 +65,10 @@ RWTexture2D<float4> destinationImageR1 : register(u2);
 RWTexture2D<float4> destinationImageI1 : register(u3);
 RWByteAddressBuffer randomTblIndex : register(u4);
 
-
 StructuredBuffer<float4> scaleShiftTbl : register(t2);
-RWStructuredBuffer<float4> RWscaleShiftTbl : register(u5);
 StructuredBuffer<float4> colorTbl : register(t3);
+
+RWStructuredBuffer<float4> RWscaleShiftTbl : register(u5);
 RWStructuredBuffer<float4> RWcolorTbl : register(u6);
 
 SamplerState CSimageSamplerBILINEAR_WRAP : register(s0);
@@ -144,4 +88,5 @@ float2 clampF2(float2 value)
 #include "glare.hlsl"
 #include "radialblur.hlsl"
 #include "quadratic.hlsl"
+#include "lensFlare.hlsl"
 
