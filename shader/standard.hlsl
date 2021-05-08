@@ -1200,7 +1200,8 @@ void mainBlur(uint3 dispatchID : SV_DispatchThreadID)
 
 	//const float involve = 4 + computeConstants.r * computeConstants.N;
 	//const float involve = clamp(2 +computeConstants.r * computeConstants.N, 2.f, 5.f);//‚±‚Ìƒuƒ‰[‚ÌŠª‚«‚İ”‚Ì•Ï‰»‚ª‚¿‚ç‚Â‚«‚ÌŒ³
-	const float involve = 4;
+	const float involve = 20;
+	//const float involve = 3;
 
 	for (int i = 0; i < involve; i++)
 	{

@@ -247,7 +247,8 @@ void mainSpectrumFilterling(uint3 dispatchID : SV_DispatchThreadID)
 		float n = (float)i / (float)num_steps;
 		float phi = n * 2 * PI * 2.f;
 
-		float2 spin = float2(cos(phi), sin(phi)) * n * 0.002f;
+	    //float2 spin = float2(cos(phi), sin(phi)) * n * 0.002f;
+		float2 spin = float2(cos(phi), sin(phi)) * n * 0.01f;//maybe include blur effect
 		//0’†S‚É‰ñ“]‚µ‚Ä0.5‰ÁZ‚Å01‹óŠÔ‚Ö
 		float2 rotated_uv = Rotate(uv + spin, n * 0.05f) + 0.5f;
 
