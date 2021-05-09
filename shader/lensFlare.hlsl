@@ -13,7 +13,8 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 
 		RWscaleShiftTbl[index].xy = scalingWeight * 0.4f;
 		RWscaleShiftTbl[index].zw = pos;
-		RWcolorTbl[index] = 1.xxxx;
+		//RWcolorTbl[index] = 1.xxxx;
+		RWcolorTbl[index] = float4(computeConstants.baseColor, 1.0f);
 		return;
 	}
 

@@ -183,6 +183,7 @@ void mainSpectrumScaling(uint3 dispatchID : SV_DispatchThreadID)
 
 	float3 result = 0.f;
 	int num_steps = computeConstants.glarelambdasamplenum * 3;
+	num_steps = 20 * 3;
 	for (int i = 0; i <= num_steps; ++i) {
 		float n = (float)i / (float)num_steps;
 
@@ -242,7 +243,8 @@ void mainSpectrumFilterling(uint3 dispatchID : SV_DispatchThreadID)
 	const float lambdaRed = 700;
 	const float lambdaVio = 380;
 
-	int num_steps = computeConstants.glarelambdasamplenum * 3;;
+	int num_steps = computeConstants.glarelambdasamplenum * 3;
+	num_steps = 50 * 3;
 	for (int i = 0; i <= num_steps; ++i) {
 		float n = (float)i / (float)num_steps;
 		float phi = n * 2 * PI * 2.f;
