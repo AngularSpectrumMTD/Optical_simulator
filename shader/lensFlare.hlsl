@@ -32,6 +32,10 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		scalingWeight *= (randomValue > 0) ? -1 : 1;
 		scalingWeight *= 0.05f;
 
+		//float2 dilation = float2(abs(normalize(dir).x), abs(normalize(dir).y));
+		float2 dilation = float2(abs(dir.x), abs(dir.y));
+		scalingWeight *= (1 + 2 * dilation * abs(randomValue));
+
 		//êF
 		float2 rr = float2(randomValue, randomValue + 1);
 		float2 gg = float2(perlinNoiseR + randomValue + 1, randomValue + 2);

@@ -42,6 +42,17 @@ float4 mainPS(PSInput In) : SV_TARGET
   return imageTex.Sample(imageSampler, In.UV.xy);
 }
 
+float normalDistribution(float x , float u, float sig2)
+{
+	float X = -(x - u) * (x - u) / (2 * sig2);
+	return exp(X);
+}
+
+float normalDistribution2D(float x, float u_x, float sig2_x, float y, float u_y, float sig2_y)
+{
+	return normalDistribution(x, u_x, sig2_x) * normalDistribution(y, u_y, sig2_y);
+}
+
 float4 mainPSLensFlare(PSInput In) : SV_TARGET
 {
 	float4 col = 0.xxxx;
@@ -66,11 +77,29 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 
 		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
 		{
-			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : ghostImage.Sample(imageSampler, uv));
+			float u = 0;
+			float sig2 = 0.025;
+			float kerare = normalDistribution2D(currentUV.x - 0.5, u, sig2, currentUV.y - 0.5, u, sig2);
+
+			float uGhostX = GraphicsScaleShiftTbl[GHOSTCOUNT].z + (scaleShift.z - 0.5);
+			float uGhostY = GraphicsScaleShiftTbl[GHOSTCOUNT].w + (scaleShift.w - 0.5);
+			float sig2Ghost = length(scale) * 5;
+			float kerarePerGhost = normalDistribution2D(uv.x, uGhostX, sig2Ghost, uv.y, uGhostY, sig2Ghost);
+
+			kerare *= kerarePerGhost;
+			//kerare = 1;
+			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv)  * kerare)  );
+			//col += ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : kerarePerGhost  );
+			//col += ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : uGhost);
 		}
 	}
 
 	col /= 1.0f * (GHOSTCOUNT + 1);
+
+	/*float u = 0;
+	float sig2 = 0.025;
+
+	col = float4(   (normalDistribution(currentUV.x - 0.5, u, sig2) * normalDistribution(currentUV.y - 0.5, u, sig2)  ).xxx, 1.0f);*/
 
 	return col;
 }
@@ -99,7 +128,20 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 
 		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
 		{
-			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : ghostImage.Sample(imageSampler, uv));
+			float u = 0;
+			float sig2 = 0.025;
+			float kerare = normalDistribution2D(currentUV.x - 0.5, u, sig2, currentUV.y - 0.5, u, sig2);
+
+			float uGhostX = GraphicsScaleShiftTbl[GHOSTCOUNT].z + (scaleShift.z - 0.5);
+			float uGhostY = GraphicsScaleShiftTbl[GHOSTCOUNT].w + (scaleShift.w - 0.5);
+			float sig2Ghost = length(scale) * 5;
+			float kerarePerGhost = normalDistribution2D(uv.x, uGhostX, sig2Ghost, uv.y, uGhostY, sig2Ghost);
+
+			kerare *= kerarePerGhost;
+			//kerare = 1;
+			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv) * kerare));
+			//col += ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : kerarePerGhost  );
+			//col += ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : uGhost);
 		}
 	}
 
