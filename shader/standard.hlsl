@@ -139,6 +139,18 @@ void mainAdd(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[index] = float4(col, 1.0f);
 }
 
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainMul(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float3 input1 = sourceImageR[index].rgb;
+	float3 input2 = sourceImageI[index].rgb;
+
+	float3 col = input1 * input2;
+
+	destinationImageR[index] = float4(col, 1.0f);
+}
+
 [numthreads(WIDTH, 1, 1)]
 void mainDrawGaussian(uint3 dispatchID : SV_DispatchThreadID)
 {
@@ -1330,7 +1342,13 @@ void mainMultipleMoveCircle(uint3 dispatchID : SV_DispatchThreadID)
 			computeConstants.posy - 0.5
 			);
 
-	if (length(float2(uv.x - targetPos.x, uv.y - targetPos.y)) < (0.5 + 0.5 * computeConstants.r) * (0.5 + 0.5 * computeConstants.r))
+	float R = 0.5 + 0.5 * (1 - computeConstants.r);
+	R *= R;
+	const float R2 = R;
+
+	const float moveRatio = 2.0;
+
+	if (length(float2(uv.x - moveRatio * targetPos.x, uv.y - moveRatio * targetPos.y)) < R2)
 	{
 		destinationImageR[index] = sourceImageR[index];
 	}
