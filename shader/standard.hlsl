@@ -1315,3 +1315,27 @@ void mainShiftSample(uint3 dispatchID : SV_DispatchThreadID)
 
 	//destinationImageR[index] = sourceImageR[targetIndex];
 }
+
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainMultipleMoveCircle(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float2 size = float2(WIDTH, HEIGHT);
+	float2 uv = index / size - 0.5;
+
+	float2 targetPos =
+		float2
+		(
+			computeConstants.posx - 0.5,
+			computeConstants.posy - 0.5
+			);
+
+	if (length(float2(uv.x - targetPos.x, uv.y - targetPos.y)) < (0.5 + 0.5 * computeConstants.r) * (0.5 + 0.5 * computeConstants.r))
+	{
+		destinationImageR[index] = sourceImageR[index];
+	}
+	else
+	{
+		destinationImageR[index] = float4(0,0,0,1);
+	}
+}

@@ -13,8 +13,8 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 
 		RWscaleShiftTbl[index].xy = scalingWeight * 0.4f;
 		RWscaleShiftTbl[index].zw = pos;
-		//RWcolorTbl[index] = 1.xxxx;
-		RWcolorTbl[index] = float4(computeConstants.baseColor, 1.0f);
+		RWcolorTbl[index] = 1.xxxx;
+		//RWcolorTbl[index] = float4(computeConstants.baseColor, 1.0f);
 		return;
 	}
 
@@ -23,27 +23,20 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		float2 dir = pos - center;
 
 		//スケール
-		float lengthCenter = length(randomValue * dir);
-		float weight = abs(randomValue - uint(randomValue));
-		weight = (weight * 100)%10/10;
-		float perlinNoiseR = perlinNoise(float2(randomValue, randomValue + 100));
-		float2 scalingWeight = ((computeConstants.r).xx + 1.xx) * weight * (1.5 - lengthCenter);
+		float weight = (randomValue * 100)%10/10;
+		float2 scalingWeight = (10 * (computeConstants.r).xx + 1.xx) * (1.5 - length(randomValue * dir)) * weight;
 		scalingWeight.x *= 2 * computeConstants.screenHeight / computeConstants.screenWidth;
-		scalingWeight *= (randomValue > 0) ? -1 : 1;
-		scalingWeight *= 0.05f;
-
-		//float2 dilation = float2(abs(normalize(dir).x), abs(normalize(dir).y));
+		scalingWeight *= 0.01f;
 		float2 dilation = float2(abs(dir.x), abs(dir.y));
 		scalingWeight *= (1 + 2 * dilation * abs(randomValue));
 
 		//色
 		float2 rr = float2(randomValue, randomValue + 1);
+		float perlinNoiseR = perlinNoise(float2(randomValue, randomValue + 100));
 		float2 gg = float2(perlinNoiseR + randomValue + 1, randomValue + 2);
 		float2 bb = float2(randomValue * perlinNoiseR + 3 + 2 * perlinNoiseR, randomValue + 4 + perlinNoiseR);
 		float amplitudescale = 5 * 1 / (length(dir) + 0.1f);
 		float3 colorWeight = amplitudescale * computeConstants.baseColor * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb));
-
-		//colorWeight = float4(1, 1, 1, 1);
 
 		//位置
 		float2 move = float2(perlinNoise(rr), perlinNoise(gg));
@@ -57,6 +50,5 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		RWscaleShiftTbl[index].xy = scalingWeight;
 		RWscaleShiftTbl[index].zw = ghostPos;
 		RWcolorTbl[index] = float4(colorWeight, 1);
-		return;
 	}
 }
