@@ -99,7 +99,7 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 
 			float kerarePerGhost = (uGhostX * uGhostX + uGhostY * uGhostY) < R2;
 
-			kerare *= kerarePerGhost * (1 + smoothstep(0.81 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
+			kerare *= kerarePerGhost * (1 + sceneConstants.r * smoothstep(0.9 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv)  * kerare)  );
 		}
@@ -147,7 +147,7 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 
 			float kerarePerGhost = (uGhostX * uGhostX + uGhostY * uGhostY) < R2;
 
-			kerare *= kerarePerGhost * (1 + smoothstep(0.81 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
+			kerare *= kerarePerGhost * (1 + sceneConstants.r * smoothstep(0.1 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv) * kerare));
 		}
