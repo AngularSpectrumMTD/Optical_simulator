@@ -19,7 +19,8 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 	}
 
 	{//ゴースト
-		float randomValue = randomTbl.data[index / 4][index % 4];
+		float randomValue = randomTbl.data[index / 4][index % 4];// -1 光源と点対象 1 光源の位置
+		//randomValue = -1;
 		float2 dir = pos - center;
 
 		//スケール
@@ -27,6 +28,7 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		float2 scalingWeight = (10 * (computeConstants.r).xx + 1.xx) * (1.5 - length(randomValue * dir)) * weight;
 		scalingWeight.x *= 2 * computeConstants.screenHeight / computeConstants.screenWidth;
 		scalingWeight *= 0.02f;
+		//scalingWeight = float2(0.5, 0.5);
 		//float2 dilation = float2(abs(dir.x), abs(dir.y));
 		//scalingWeight *= (1 + 100 * length(dilation) * dilation * abs(randomValue));
 

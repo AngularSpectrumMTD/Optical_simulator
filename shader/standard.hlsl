@@ -293,13 +293,13 @@ void mainDrawPolygon(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[index] = float4(col, col, col, 1.0);
 }
 
-float fade_aperture_edge(float radius, float fade, float signed_distance) {
-	float l = radius;
-	float u = radius + fade;
-	float s = u - l;
-	float c = 1.f - saturate(saturate(signed_distance - l) / s);
-	return smoothstep(0, 1, c);
-}
+//float fade_aperture_edge(float radius, float fade, float signed_distance) {
+//	float l = radius;
+//	float u = radius + fade;
+//	float s = u - l;
+//	float c = 1.f - saturate(saturate(signed_distance - l) / s);
+//	return smoothstep(0, 1, c);
+//}
 
 [numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
 void mainDrawMovingPolygon(uint3 dispatchID : SV_DispatchThreadID)

@@ -54,6 +54,14 @@ float normalDistribution2D(float x, float u_x, float sig2_x, float y, float u_y,
 	return normalDistribution(x, u_x, sig2_x) * normalDistribution(y, u_y, sig2_y);
 }
 
+float fade_aperture_edge(float radius, float fade, float signed_distance) {
+	float l = radius;
+	float u = radius + fade;
+	float s = u - l;
+	float c = 1.f - saturate(saturate(signed_distance - l) / s);
+	return smoothstep(0, 1, c);
+}
+
 float4 mainPSLensFlare(PSInput In) : SV_TARGET
 {
 	float4 col = 0.xxxx;
@@ -91,7 +99,7 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 
 			float kerarePerGhost = (uGhostX * uGhostX + uGhostY * uGhostY) < R2;
 
-			kerare *= kerarePerGhost;
+			kerare *= kerarePerGhost * (1 + smoothstep(0.81 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv)  * kerare)  );
 		}
@@ -139,7 +147,7 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 
 			float kerarePerGhost = (uGhostX * uGhostX + uGhostY * uGhostY) < R2;
 
-			kerare *= kerarePerGhost;
+			kerare *= kerarePerGhost * (1 + smoothstep(0.81 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv) * kerare));
 		}
