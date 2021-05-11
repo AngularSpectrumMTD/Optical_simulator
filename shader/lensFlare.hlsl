@@ -26,9 +26,9 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		float weight = (randomValue * 100)%10/10;
 		float2 scalingWeight = (10 * (computeConstants.r).xx + 1.xx) * (1.5 - length(randomValue * dir)) * weight;
 		scalingWeight.x *= 2 * computeConstants.screenHeight / computeConstants.screenWidth;
-		scalingWeight *= 0.01f;
-		float2 dilation = float2(abs(dir.x), abs(dir.y));
-		scalingWeight *= (1 + 2 * dilation * abs(randomValue));
+		scalingWeight *= 0.02f;
+		//float2 dilation = float2(abs(dir.x), abs(dir.y));
+		//scalingWeight *= (1 + 100 * length(dilation) * dilation * abs(randomValue));
 
 		//êF
 		float2 rr = float2(randomValue, randomValue + 1);
@@ -36,7 +36,7 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		float2 gg = float2(perlinNoiseR + randomValue + 1, randomValue + 2);
 		float2 bb = float2(randomValue * perlinNoiseR + 3 + 2 * perlinNoiseR, randomValue + 4 + perlinNoiseR);
 		float amplitudescale = 5 * 1 / (length(dir) + 0.1f);
-		float3 colorWeight = amplitudescale * computeConstants.baseColor * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb));
+		float3 colorWeight = amplitudescale * computeConstants.baseColor * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb)) / (0.1 + length(scalingWeight));
 
 		//à íu
 		float2 move = float2(perlinNoise(rr), perlinNoise(gg));
