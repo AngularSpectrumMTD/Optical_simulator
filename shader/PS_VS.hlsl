@@ -8,6 +8,8 @@ struct SceneParameters
 {
 	float4x4 proj;
 	float r;
+	float screenWidth;
+	float screenHeight;
 };
 
 ConstantBuffer<SceneParameters> sceneConstants : register(b0);
@@ -62,6 +64,54 @@ float fade_aperture_edge(float radius, float fade, float signed_distance) {
 	return smoothstep(0, 1, c);
 }
 
+//float4 mainPSLensFlare(PSInput In) : SV_TARGET
+//{
+//	float4 col = 0.xxxx;
+//
+//	float2 currentUV = In.UV.xy;
+//
+//	for (int i = 0; i <= GHOSTCOUNT; i++)
+//	{
+//		float4 scaleShift = GraphicsScaleShiftTbl[i];
+//
+//		float4 colWeight = GraphicsScolorTbl[i];
+//
+//		float2 scale = scaleShift.xy;
+//		float2 shift = scaleShift.zw;
+//
+//		float2 uv = currentUV;
+//
+//		uv -= shift;
+//		uv /= scale;
+//
+//		uv = (uv + float2(1, 1)) * 0.5;
+//
+//		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
+//		{
+//			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uv - 0.5.xx;
+//
+//			const float lengthUV = length(ghostUV);
+//
+//			float fade = 0.2;
+//			float lens_distance = length(ghostUV * (5 + sceneConstants.r));
+//			float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
+//			sun_disk = smoothstep(0, 1, sun_disk);
+//			sun_disk *= lerp(0.5, 1, saturate(lens_distance));
+//			sun_disk /= length(scale);
+//
+//			float kerarePerGhost = 1;
+//
+//			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
+//				(ghostImage.Sample(imageSampler, uv)
+//					* kerarePerGhost));
+//		}
+//	}
+//
+//	col /= 1.0f * (GHOSTCOUNT + 1);
+//
+//	return col;
+//}
+
 float4 mainPSLensFlare(PSInput In) : SV_TARGET
 {
 	float4 col = 0.xxxx;
@@ -84,24 +134,49 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 
 		uv = (uv + float2(1, 1)) * 0.5;
 
+		float2 direction = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx;
+
+		float aspect = sceneConstants.screenHeight / sceneConstants.screenWidth;
+
+		direction *= 2 * aspect;
+
+		direction = normalize(direction);
+		float2 vertDirection = float2(-direction.y, direction.x);
+		if (i < GHOSTCOUNT)
+		{
+			float2 tmp = shift - 0.5.xx;
+			tmp.x *= aspect;
+			float Len = length(tmp);
+			uv -= 0.5.xx;
+			float rotatedU = dot(uv, direction);
+			float rotatedV = dot(uv, vertDirection) * (1 + 2 * Len);
+			uv = direction * rotatedU + vertDirection * rotatedV;
+			uv += 0.5.xx;
+
+			if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1)
+			{
+				continue;
+			}
+		}
+
 		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
 		{
-			float u = 0;
-			float sig2 = 0.025;
-			float kerare = normalDistribution2D(currentUV.x - 0.5, u, sig2, currentUV.y - 0.5, u, sig2);
+			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uv - 0.5.xx;
 
-			float uGhostX = GraphicsScaleShiftTbl[GHOSTCOUNT].z - 0.5  + (uv.x - 0.5);
-			float uGhostY = GraphicsScaleShiftTbl[GHOSTCOUNT].w - 0.5 + (uv.y - 0.5);
+			const float lengthUV = length(ghostUV);
 
-			float R = 0.5 + 0.5 * (1 - sceneConstants.r);
-			R *= R * length(scale) * (   (2.0 - length(GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx)  ));
-			const float R2 = R;
+			float fade = 0.2;
+			float lens_distance = length(ghostUV * (5 + sceneConstants.r));
+			float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
+			sun_disk = smoothstep(0, 1, sun_disk);
+			sun_disk *= lerp(0.5, 1, saturate(lens_distance));
+			sun_disk /= length(scale);
 
-			float kerarePerGhost = (uGhostX * uGhostX + uGhostY * uGhostY) < R2;
+			float kerarePerGhost = 1;
 
-			kerare *= kerarePerGhost * (1 + sceneConstants.r * smoothstep(0.9 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
-
-			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv)  * kerare)  );
+			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
+				(ghostImage.Sample(imageSampler, uv)
+					* kerarePerGhost));
 		}
 	}
 
@@ -134,22 +209,22 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 
 		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
 		{
-			float u = 0;
-			float sig2 = 0.025;
-			float kerare = normalDistribution2D(currentUV.x - 0.5, u, sig2, currentUV.y - 0.5, u, sig2);
+			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uv - 0.5.xx;
 
-			float uGhostX = GraphicsScaleShiftTbl[GHOSTCOUNT].z - 0.5 + (uv.x - 0.5);
-			float uGhostY = GraphicsScaleShiftTbl[GHOSTCOUNT].w - 0.5 + (uv.y - 0.5);
-
-			float R = 0.5 + 0.5 * (1 - sceneConstants.r);
+			float R = 0.5 + 0.5 * (1 - sceneConstants.r) + length(shift - 0.5.xx);
 			R *= R * length(scale) * ((2.0 - length(GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx)));
 			const float R2 = R;
 
-			float kerarePerGhost = (uGhostX * uGhostX + uGhostY * uGhostY) < R2;
+			const float lengthUV = length(ghostUV);
 
-			kerare *= kerarePerGhost * (1 + sceneConstants.r * smoothstep(0.1 * R2, R2, uGhostX * uGhostX + uGhostY * uGhostY));
+			float kerarePerGhost = smoothstep(R2, 0.8 * R2, lengthUV);
 
-			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) : (ghostImage.Sample(imageSampler, uv) * kerare));
+			float caustic = 1;
+
+			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
+				(ghostImage.Sample(imageSampler, uv)
+					* kerarePerGhost
+					* caustic));
 		}
 	}
 

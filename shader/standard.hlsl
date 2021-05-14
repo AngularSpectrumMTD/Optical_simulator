@@ -151,6 +151,17 @@ void mainMul(uint3 dispatchID : SV_DispatchThreadID)
 	destinationImageR[index] = float4(col, 1.0f);
 }
 
+[numthreads(THREADNUM, THREADNUM, 1)]
+void mainWhitening(uint3 dispatchID : SV_DispatchThreadID)
+{
+	float2 index = dispatchID.xy;
+	float3 col = sourceImageR[index].rgb;
+
+	float raiseCol = max(col.r, 0.7f);
+
+	destinationImageR[index] = float4(raiseCol.rrr, 1.0f);
+}
+
 [numthreads(WIDTH, 1, 1)]
 void mainDrawGaussian(uint3 dispatchID : SV_DispatchThreadID)
 {
@@ -791,8 +802,7 @@ void mainCutOff(uint3 dispatchID : SV_DispatchThreadID)
 	float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//‚±‚±‚ÅŠp“x‘«‚µ‚½‚ç‰ñ‚é
 	rad = rad % (2.0 * PI / computeConstants.N);
 
-	//float r_circ = 0.2;
-	float r_circ = 0.48;//max
+	float r_circ = 0.48;
 
 	//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
 	float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
@@ -801,28 +811,15 @@ void mainCutOff(uint3 dispatchID : SV_DispatchThreadID)
 	//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ð‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
 	//lerp(x,y,s) = x + s(y - x)
 	float s = computeConstants.r;
-	//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
 
 	float ratio = (1 + cos(rad * 2)) / 2.0;
-	//ratio *= ratio;
 
 	float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
 
-	//float caustic = smoothstep(0.1, 0.0, abs(r_aperture - pos));//¶‚Ì’l‚É‹ß‚¢‚Ù‚Ç0 ‰E‚Ì’l‚É‹ß‚¢‚Ù‚Ç1
-	float caustic = 1 + computeConstants.N * computeConstants.r * smoothstep(0.02, 0.01, abs(r_aperture - pos));//¶‚Ì’l‚É‹ß‚¢‚Ù‚Ç0 ‰E‚Ì’l‚É‹ß‚¢‚Ù‚Ç1
+	//float col = step(pos, r_aperture);
+	float col = smoothstep(1.0 * r_aperture, 0.8 * r_aperture, pos);
 
-	float col = step(pos, r_aperture);
-
-	if ((sourceImageR[index].x + sourceImageR[index].y + sourceImageR[index].z) / 3.0f > 0.1 && col == 1)
-	{
-		destinationImageR[index] = sourceImageR[index];
-	}
-	else
-	{
-		destinationImageR[index] = float4(0, 0, 0, 1);
-	}
-
-	//destinationImageR[index] = col * sourceImageR[index];
+	destinationImageR[index] = col * sourceImageR[index];
 }
 
 uint Xorshift(uint seed)
