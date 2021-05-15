@@ -147,9 +147,10 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 			float2 tmp = shift - 0.5.xx;
 			tmp.x *= aspect;
 			float Len = length(tmp);
+			float scaleFactor = pow(1 + Len, 3);
 			uv -= 0.5.xx;
 			float rotatedU = dot(uv, direction);
-			float rotatedV = dot(uv, vertDirection) * (1 + 2 * Len);
+			float rotatedV = dot(uv, vertDirection) * scaleFactor;
 			uv = direction * rotatedU + vertDirection * rotatedV;
 			uv += 0.5.xx;
 
@@ -207,24 +208,50 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 
 		uv = (uv + float2(1, 1)) * 0.5;
 
+		float2 direction = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx;
+
+		float aspect = sceneConstants.screenHeight / sceneConstants.screenWidth;
+
+		direction *= 2 * aspect;
+
+		direction = normalize(direction);
+		float2 vertDirection = float2(-direction.y, direction.x);
+		if (i < GHOSTCOUNT)
+		{
+			float2 tmp = shift - 0.5.xx;
+			tmp.x *= aspect;
+			float Len = length(tmp);
+			float scaleFactor = pow(1 + Len, 3);
+			uv -= 0.5.xx;
+			float rotatedU = dot(uv, direction);
+			float rotatedV = dot(uv, vertDirection) * scaleFactor;
+			uv = direction * rotatedU + vertDirection * rotatedV;
+			uv += 0.5.xx;
+
+			if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1)
+			{
+				continue;
+			}
+		}
+
 		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
 		{
 			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uv - 0.5.xx;
 
-			float R = 0.5 + 0.5 * (1 - sceneConstants.r) + length(shift - 0.5.xx);
-			R *= R * length(scale) * ((2.0 - length(GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx)));
-			const float R2 = R;
-
 			const float lengthUV = length(ghostUV);
 
-			float kerarePerGhost = smoothstep(R2, 0.8 * R2, lengthUV);
+			float fade = 0.2;
+			float lens_distance = length(ghostUV * (5 + sceneConstants.r));
+			float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
+			sun_disk = smoothstep(0, 1, sun_disk);
+			sun_disk *= lerp(0.5, 1, saturate(lens_distance));
+			sun_disk /= length(scale);
 
-			float caustic = 1;
+			float kerarePerGhost = 1;
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
 				(ghostImage.Sample(imageSampler, uv)
-					* kerarePerGhost
-					* caustic));
+					* kerarePerGhost));
 		}
 	}
 

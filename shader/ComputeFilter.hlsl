@@ -43,6 +43,9 @@ struct ComputeParameters
 	float elapsedTime;
 	float screenWidth;
 	float screenHeight;
+
+	float minColOfDustTex;
+	float ghostScale;
 };
 
 struct RandomTbl {

@@ -157,7 +157,7 @@ void mainWhitening(uint3 dispatchID : SV_DispatchThreadID)
 	float2 index = dispatchID.xy;
 	float3 col = sourceImageR[index].rgb;
 
-	float raiseCol = max(col.r, 0.7f);
+	float raiseCol = max((col.r + col.g + col.b) / 3.0f, computeConstants.minColOfDustTex);
 
 	destinationImageR[index] = float4(raiseCol.rrr, 1.0f);
 }
@@ -693,7 +693,7 @@ float lambdafuncFF(float lambdamax, float lambda)
 }
 
 [numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
-void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
+void mainDrawPolygonFixScaleForBurst(uint3 dispatchID : SV_DispatchThreadID)
 {
 	{
 		float2 index = dispatchID.xy;
@@ -717,19 +717,56 @@ void mainDrawPolygonFixScale(uint3 dispatchID : SV_DispatchThreadID)
 		//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ğ‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
 		//lerp(x,y,s) = x + s(y - x)
 		float s = computeConstants.r;
-		//float r_aperture = lerp(r_polygon, r_circ, s * s * s);
 
 		uint term = 2;//‚±‚ÌüŠú•ª‚Í‚¢‚é
 
 		float ratio = (1 + cos(term * rad)) / 2.0;
-		//ratio = cos(term * rad);
-		//ratio = 0.5;
-		//ratio *= ratio;
 
 		float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
 
 		//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ğ”»’è
 		float col = step(pos, r_aperture);
+
+		destinationImageR[index] = float4(col, col, col, 1.0);
+	}
+}
+
+[numthreads(WIDTH, 1, 1)]//computeConstants.NŠpŒ`
+void mainDrawPolygonFixScaleForGhost(uint3 dispatchID : SV_DispatchThreadID)
+{
+	{
+		float2 index = dispatchID.xy;
+		float2 size = float2(WIDTH, HEIGHT);
+		float2 uv = index / size - float2(0.5, 0.5);
+
+		//”»’è‚µ‚½‚¢“_‚ÌˆÊ’u
+		float pos = length(uv);
+
+		//”»’è‚µ‚½‚¢“_‚Ì‚È‚·Šp
+		float rad = atan2(uv.x, uv.y) + 2.0 * PI + computeConstants.rotAngle * PI / 180.0f;//‚±‚±‚ÅŠp“x‘«‚µ‚½‚ç‰ñ‚é
+		rad = rad % (2.0 * PI / computeConstants.N);
+
+		//float r_circ = 0.2;
+		float r_circ = 0.48;//max
+
+		//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
+		float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);
+		r_polygon *= r_circ;
+
+		//‰~‚Æ‘½ŠpŒ`‚Ì’†ŠÔ(”¼Œa‚ğ‘å‚«‚­‚·‚é‚Ù‚Ç=i‚ç‚È‚¢‚Ù‚Ç‰~Œ`‚É‹ß‚Ã‚­ computeConstants.r‚Í0`1)
+		//lerp(x,y,s) = x + s(y - x)
+		float s = computeConstants.r;
+
+		uint term = 2;//‚±‚ÌüŠú•ª‚Í‚¢‚é
+
+		float ratio = (1 + cos(term * rad)) / 2.0;
+
+		float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
+
+		float minRadius = lerp(0.9, 0.5, computeConstants.r) * r_aperture;
+
+		//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ğ”»’è
+		float col = smoothstep(1.0 * r_aperture, minRadius, pos);
 
 		destinationImageR[index] = float4(col, col, col, 1.0);
 	}
@@ -814,12 +851,20 @@ void mainCutOff(uint3 dispatchID : SV_DispatchThreadID)
 
 	float ratio = (1 + cos(rad * 2)) / 2.0;
 
+	float a = (atan2(uv.x, uv.y) + 0) / 2.0f / PI + 3.f / 4.f;
+	float o = frac(a * computeConstants.N + 0.5);
+	float w2 = lerp(0.025, 0.001f, saturate((computeConstants.N - 4) / 10.f));
+	float s0 = sin(o * 2 * PI);
+	float s2 = s0 * w2;
+
 	float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
 
 	//float col = step(pos, r_aperture);
-	float col = smoothstep(1.0 * r_aperture, 0.8 * r_aperture, pos);
+	float col = smoothstep(1.0 * r_aperture, 0.9 * r_aperture, pos);
+	//float col = smoothstep(1.0 * r_aperture, 0.8 * r_aperture, pos);
+	//float col = fade_aperture_edge(1.0 * r_aperture, 0.4, 0.9 * pos);
 
-	destinationImageR[index] = col * sourceImageR[index];
+	destinationImageR[index] = 1 * sourceImageR[index];
 }
 
 uint Xorshift(uint seed)
