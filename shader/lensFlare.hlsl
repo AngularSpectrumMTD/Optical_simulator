@@ -39,7 +39,7 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		float amplitudescale = 0.5 - length(dir);
 		amplitudescale = 1 / length(scalingWeight);
 
-		float standardIntensity = computeConstants.glareintensity * 0.001f;
+		float standardIntensity = computeConstants.glareintensity * 0.01f;
 
 		float3 colorWeight = amplitudescale* computeConstants.baseColor* standardIntensity * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb));
 

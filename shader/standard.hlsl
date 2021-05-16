@@ -763,7 +763,7 @@ void mainDrawPolygonFixScaleForGhost(uint3 dispatchID : SV_DispatchThreadID)
 
 		float r_aperture = lerp(r_polygon, r_circ, computeConstants.r * ratio);
 
-		float minRadius = lerp(0.9, 0.5, computeConstants.r * computeConstants.r) * r_aperture;
+		float minRadius = lerp(0.9, 0.4, computeConstants.r * computeConstants.r) * r_aperture;
 
 		//”»’è‚³‚ê‚é“_‚ª•`‚«‚½‚¢‘½ŠpŒ`‚Ì“àŠO‚©‚ð”»’è
 		float col = smoothstep(1.0 * r_aperture, minRadius, pos);

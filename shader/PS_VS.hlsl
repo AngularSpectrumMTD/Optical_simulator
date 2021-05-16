@@ -114,11 +114,19 @@ float fade_aperture_edge(float radius, float fade, float signed_distance) {
 //	return col;
 //}
 
-float4 mainPSLensFlare(PSInput In) : SV_TARGET
+float kerareMask(float fade, float2 ghostUV, float offset, float2 scale)
+{
+	float lens_distance = length(ghostUV * (sceneConstants.disk + offset +  1 - sceneConstants.r));
+	float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
+	sun_disk = smoothstep(0, 1, sun_disk);
+	sun_disk *= lerp(0.5, 1, saturate(lens_distance));
+	//sun_disk /= length(scale);
+	return sun_disk;
+}
+
+float4 compute(float2 currentUV)
 {
 	float4 col = 0.xxxx;
-
-	float2 currentUV = In.UV.xy;
 
 	for (int i = 0; i <= GHOSTCOUNT; i++)
 	{
@@ -170,19 +178,24 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 			const float lengthUV = length(ghostUV);
 
 			float fade = 0.2;
-			float lens_distance = length(ghostUV * (sceneConstants.disk + sceneConstants.r));
-			float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
-			sun_disk = smoothstep(0, 1, sun_disk);
-			sun_disk *= lerp(0.5, 1, saturate(lens_distance));
-			sun_disk /= length(scale);
+
+			float sun_disk = kerareMask(fade, ghostUV, 0, scale);
+
+			float sun_disk2 = kerareMask(fade, ghostUV, 0.05, scale);
+
+			float sun_disk3 = abs(sun_disk - sun_disk2) + 1;
 
 			//ƒPƒ‰ƒŒ‚³‚¹‚é‚©
 			float kerarePerGhost = sun_disk;
+			kerarePerGhost = sun_disk3 * sun_disk;
 			kerarePerGhost = (sceneConstants.kerare > 0) ? kerarePerGhost : 1;
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
 				(ghostImage.Sample(imageSampler, uv)
 					* kerarePerGhost));
+
+			//col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
+			//	(float4(kerarePerGhost.xxx, 1)));
 		}
 	}
 
@@ -191,79 +204,20 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 	return col;
 }
 
-float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
+float4 mainPSLensFlare(PSInput In) : SV_TARGET
 {
-	float4 col = 0.xxxx;
-
 	float2 currentUV = In.UV.xy;
 
-	for (int i = 0; i <= GHOSTCOUNT; i++)
-	{
-		float4 scaleShift = GraphicsScaleShiftTbl[i];
+	float4 col = compute(currentUV);
 
-		float4 colWeight = GraphicsScolorTbl[i];
+	return col;
+}
 
-		float2 scale = scaleShift.xy;
-		float2 shift = scaleShift.zw;
+float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
+{
+	float2 currentUV = In.UV.xy;
 
-		float2 uv = currentUV;
-
-		uv -= shift;
-		uv /= scale;
-
-		uv = (uv + float2(1, 1)) * 0.5;
-		float2 uvSave = uv;
-
-		float2 direction = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx;
-
-		float aspect = sceneConstants.screenHeight / sceneConstants.screenWidth;
-
-		direction *= 2 * aspect;
-
-		direction = normalize(direction);
-		float2 vertDirection = float2(-direction.y, direction.x);
-		if (i < GHOSTCOUNT)
-		{
-			float2 tmp = shift - 0.5.xx;
-			tmp.x *= aspect;
-			float Len = length(tmp);
-			float scaleFactor = pow(1 + Len, 4);
-			uv -= 0.5.xx;
-			float rotatedU = dot(uv, direction);
-			float rotatedV = dot(uv, vertDirection) * scaleFactor;
-			uv = direction * rotatedU + vertDirection * rotatedV;
-			uv += 0.5.xx;
-
-			if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1)
-			{
-				continue;
-			}
-		}
-
-		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
-		{
-			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uvSave - 0.5.xx;
-
-			const float lengthUV = length(ghostUV);
-
-			float fade = 0.2;
-			float lens_distance = length(ghostUV * (sceneConstants.disk + sceneConstants.r));
-			float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
-			sun_disk = smoothstep(0, 1, sun_disk);
-			sun_disk *= lerp(0.5, 1, saturate(lens_distance));
-			sun_disk /= length(scale);
-
-			//ƒPƒ‰ƒŒ‚³‚¹‚é‚©
-			float kerarePerGhost = sun_disk;
-			kerarePerGhost = (sceneConstants.kerare > 0) ? kerarePerGhost : 1;
-
-			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
-				(ghostImage.Sample(imageSampler, uv)
-					* kerarePerGhost));
-		}
-	}
-
-	col /= 1.0f * (GHOSTCOUNT + 1);
+	float4 col = compute(currentUV);
 
 	return col + float4(backImage.Sample(imageSampler, currentUV).rgb, 0);
 }
