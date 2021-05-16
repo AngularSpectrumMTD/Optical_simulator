@@ -709,6 +709,7 @@ void mainDrawPolygonFixScaleForBurst(uint3 dispatchID : SV_DispatchThreadID)
 
 		//float r_circ = 0.2;
 		float r_circ = 0.48;//max
+		//r_circ = 0.1;//max
 
 		//”¼Œar_circ‚Ì‰~‚É“àÚ‚·‚é³‘½ŠpŒ`‚Ì•Ó‚ÌˆÊ’u
 		float r_polygon = cos(PI / computeConstants.N) / cos(PI / computeConstants.N - rad);

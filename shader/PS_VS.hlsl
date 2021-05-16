@@ -177,13 +177,14 @@ float4 compute(float2 currentUV)
 
 			const float lengthUV = length(ghostUV);
 
-			float fade = 0.2;
+			float fade = lerp(0.2, 0.1, sceneConstants.r);//ü‚Ì•‚ª•Ï‚í‚é ‘å‚«‚¢‚Ù‚Ç‘¾‚­
 
 			float sun_disk = kerareMask(fade, ghostUV, 0, scale);
 
-			float sun_disk2 = kerareMask(fade, ghostUV, 0.05, scale);
+			float sun_disk2 = kerareMask(fade, ghostUV, sceneConstants.r * 0.1, scale);
 
-			float sun_disk3 = abs(sun_disk - sun_disk2) + 1;
+			float sun_disk3 = abs(sun_disk - sun_disk2) + (1 - sceneConstants.r) + 0.1f;
+			sun_disk3 /= 1.1f;
 
 			//ƒPƒ‰ƒŒ‚³‚¹‚é‚©
 			float kerarePerGhost = sun_disk;
@@ -194,8 +195,8 @@ float4 compute(float2 currentUV)
 				(ghostImage.Sample(imageSampler, uv)
 					* kerarePerGhost));
 
-			//col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
-			//	(float4(kerarePerGhost.xxx, 1)));
+		/*	col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
+				(float4(kerarePerGhost.xxx, 1)));*/
 		}
 	}
 
