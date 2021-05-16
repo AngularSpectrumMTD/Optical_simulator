@@ -47,6 +47,7 @@ struct ComputeParameters
 	float minColOfDustTex;
 	float ghostScale;
 	float jitter;
+	float kerare;
 };
 
 struct RandomTbl {

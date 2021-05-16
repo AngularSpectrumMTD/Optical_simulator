@@ -10,6 +10,8 @@ struct SceneParameters
 	float r;
 	float screenWidth;
 	float screenHeight;
+	float kerare;
+	float disk;
 };
 
 ConstantBuffer<SceneParameters> sceneConstants : register(b0);
@@ -133,6 +135,7 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 		uv /= scale;
 
 		uv = (uv + float2(1, 1)) * 0.5;
+		float2 uvSave = uv;
 
 		float2 direction = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx;
 
@@ -147,7 +150,7 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 			float2 tmp = shift - 0.5.xx;
 			tmp.x *= aspect;
 			float Len = length(tmp);
-			float scaleFactor = pow(1 + Len, 3);
+			float scaleFactor = pow(1 + Len, 4);
 			uv -= 0.5.xx;
 			float rotatedU = dot(uv, direction);
 			float rotatedV = dot(uv, vertDirection) * scaleFactor;
@@ -162,18 +165,20 @@ float4 mainPSLensFlare(PSInput In) : SV_TARGET
 
 		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
 		{
-			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uv - 0.5.xx;
+			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uvSave - 0.5.xx;
 
 			const float lengthUV = length(ghostUV);
 
 			float fade = 0.2;
-			float lens_distance = length(ghostUV * (5 + sceneConstants.r));
+			float lens_distance = length(ghostUV * (sceneConstants.disk + sceneConstants.r));
 			float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
 			sun_disk = smoothstep(0, 1, sun_disk);
 			sun_disk *= lerp(0.5, 1, saturate(lens_distance));
 			sun_disk /= length(scale);
 
-			float kerarePerGhost = 1;
+			//ƒPƒ‰ƒŒ‚³‚¹‚é‚©
+			float kerarePerGhost = sun_disk;
+			kerarePerGhost = (sceneConstants.kerare > 0) ? kerarePerGhost : 1;
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
 				(ghostImage.Sample(imageSampler, uv)
@@ -207,6 +212,7 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 		uv /= scale;
 
 		uv = (uv + float2(1, 1)) * 0.5;
+		float2 uvSave = uv;
 
 		float2 direction = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx;
 
@@ -221,7 +227,7 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 			float2 tmp = shift - 0.5.xx;
 			tmp.x *= aspect;
 			float Len = length(tmp);
-			float scaleFactor = pow(1 + Len, 3);
+			float scaleFactor = pow(1 + Len, 4);
 			uv -= 0.5.xx;
 			float rotatedU = dot(uv, direction);
 			float rotatedV = dot(uv, vertDirection) * scaleFactor;
@@ -236,18 +242,20 @@ float4 mainPSLensFlareAdd(PSInput In) : SV_TARGET
 
 		if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1)
 		{
-			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uv - 0.5.xx;
+			float2 ghostUV = GraphicsScaleShiftTbl[GHOSTCOUNT].zw - 0.5.xx + uvSave - 0.5.xx;
 
 			const float lengthUV = length(ghostUV);
 
 			float fade = 0.2;
-			float lens_distance = length(ghostUV * (5 + sceneConstants.r));
+			float lens_distance = length(ghostUV * (sceneConstants.disk + sceneConstants.r));
 			float sun_disk = 1 - saturate((lens_distance - 1.f + fade) / fade);
 			sun_disk = smoothstep(0, 1, sun_disk);
 			sun_disk *= lerp(0.5, 1, saturate(lens_distance));
 			sun_disk /= length(scale);
 
-			float kerarePerGhost = 1;
+			//ƒPƒ‰ƒŒ‚³‚¹‚é‚©
+			float kerarePerGhost = sun_disk;
+			kerarePerGhost = (sceneConstants.kerare > 0) ? kerarePerGhost : 1;
 
 			col += colWeight * ((i == GHOSTCOUNT) ? burstImage.Sample(imageSampler, uv) :
 				(ghostImage.Sample(imageSampler, uv)

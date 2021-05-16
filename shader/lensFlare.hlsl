@@ -37,12 +37,15 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 		float2 bb = rr + 2.xx;
 		//float amplitudescale = 5 * 1 / (length(dir) + 0.1f);
 		float amplitudescale = 0.5 - length(dir);
-		amplitudescale *= 1 / length(scalingWeight);
-		float3 colorWeight = amplitudescale* computeConstants.baseColor* float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb));
+		amplitudescale = 1 / length(scalingWeight);
+
+		float standardIntensity = computeConstants.glareintensity * 0.001f;
+
+		float3 colorWeight = amplitudescale* computeConstants.baseColor* standardIntensity * float3(perlinNoiseR, perlinNoise(gg), perlinNoise(bb));
 
 		//ˆÊ’u
 		float2 move = float2(perlinNoise(rr), perlinNoise(gg));
-		float2 dir2 = dir + computeConstants.jitter * weight * float2(dir.y, -dir.x);
+		float2 dir2 = dir + computeConstants.jitter * weight * float2(dir.y, -dir.x) * ((10 * weight > 5) ? 1 : -1);
 		float2 texSize;
 		destinationImageR.GetDimensions(texSize.x, texSize.y);
 		dir2.y *= texSize.x / texSize.y;
