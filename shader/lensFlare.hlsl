@@ -25,7 +25,7 @@ void mainComputeScaleShiftColor(uint3 dispatchID : SV_DispatchThreadID)
 
 		//ƒXƒP[ƒ‹
 		float weight = (abs(randomValue) * 100) % 10 / 10;
-		float2 scalingWeight = 0.1 * (computeConstants.r + 0.5).xx * (length(randomValue * dir + float2(1,1))) * (weight + 0.1);
+		float2 scalingWeight = 0.1 * (abs(randomValue) + 0.1) * (computeConstants.r + 0.5).xx * (length(randomValue * dir + float2(1,1))) * (weight + 0.1);
 		scalingWeight.x *= 2 * computeConstants.screenHeight / computeConstants.screenWidth;
 		scalingWeight *= randomValue > 0 ? 1 : -1;
 		//scalingWeight *= computeConstants.ghostScale;
